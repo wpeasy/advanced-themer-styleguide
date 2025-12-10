@@ -7,7 +7,10 @@
       "Bash(git commit:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(composer install:*)"
+      "Bash(composer install:*)",
+      "Bash(curl:*)",
+      "Bash(php wp-cli.phar:*)",
+      "Bash(php:*)"
     ]
   }
 }

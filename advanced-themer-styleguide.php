@@ -29,6 +29,7 @@ if ( file_exists( AT_STYLE_GUIDE_PLUGIN_PATH . 'vendor/autoload.php' ) ) {
 	require_once AT_STYLE_GUIDE_PLUGIN_PATH . 'vendor/autoload.php';
 }
 
+
 /**
  * Initialize the plugin.
  *
@@ -64,10 +65,11 @@ function is_bricks_active(): bool {
 		return true;
 	}
 
-	// Fallback: Check theme name.
+	// Fallback: Check theme name or template.
 	if ( function_exists( 'wp_get_theme' ) ) {
 		$theme = wp_get_theme();
-		if ( 'Bricks' === $theme->name || 'Bricks' === $theme->parent_theme ) {
+		// Check parent theme, theme name, or template slug.
+		if ( 'Bricks' === $theme->parent_theme || 'Bricks' === $theme->name || 'bricks' === $theme->get_template() ) {
 			return true;
 		}
 	}
@@ -81,20 +83,14 @@ function is_bricks_active(): bool {
  * @return bool
  */
 function is_advanced_themer_active(): bool {
-	// Check for AT class or option that indicates AT is active.
-	if ( class_exists( 'AT__Init' ) || class_exists( '\AT__Init' ) ) {
+	// Check for AT constant (defined in bricks-advanced-themer.php).
+	if ( defined( 'BRICKS_ADVANCED_THEMER_PATH' ) ) {
 		return true;
 	}
 
-	// Alternative check: AT stores colors in this option.
-	$palettes = get_option( 'bricks_color_palette', [] );
-	if ( ! empty( $palettes ) ) {
-		// Check if any palette has the AT structure (brxc_ prefix).
-		foreach ( $palettes as $palette ) {
-			if ( isset( $palette['id'] ) && str_starts_with( $palette['id'], 'brxc_' ) ) {
-				return true;
-			}
-		}
+	// Fallback: Check for AT classes.
+	if ( class_exists( 'AT__Global_Colors' ) || class_exists( 'AT__Admin' ) ) {
+		return true;
 	}
 
 	return false;
