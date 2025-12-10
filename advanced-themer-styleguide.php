@@ -16,20 +16,17 @@
 
 namespace AB\ATStyleGuide;
 
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 // Plugin constants.
 define( 'AT_STYLE_GUIDE_VERSION', '0.0.1-beta' );
 define( 'AT_STYLE_GUIDE_PLUGIN_FILE', __FILE__ );
-define( 'AT_STYLE_GUIDE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'AT_STYLE_GUIDE_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'AT_STYLE_GUIDE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 // Load Composer autoloader.
-if ( file_exists( AT_STYLE_GUIDE_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
-	require_once AT_STYLE_GUIDE_PLUGIN_DIR . 'vendor/autoload.php';
+if ( file_exists( AT_STYLE_GUIDE_PLUGIN_PATH . 'vendor/autoload.php' ) ) {
+	require_once AT_STYLE_GUIDE_PLUGIN_PATH . 'vendor/autoload.php';
 }
 
 /**
@@ -51,7 +48,7 @@ function init(): void {
 	}
 
 	// Initialize the plugin.
-	Plugin::get_instance();
+	Plugin::init();
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\init' );
 

@@ -11,10 +11,7 @@ namespace AB\ATStyleGuide\Elements;
 
 use AB\ATStyleGuide\ATColors;
 
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Color Swatch Element.

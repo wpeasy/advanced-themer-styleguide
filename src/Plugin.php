@@ -7,53 +7,37 @@
 
 namespace AB\ATStyleGuide;
 
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Plugin main class.
  */
-class Plugin {
+final class Plugin {
 
 	/**
-	 * Plugin instance.
+	 * Whether the plugin has been initialized.
 	 *
-	 * @var Plugin|null
+	 * @var bool
 	 */
-	private static ?Plugin $instance = null;
+	private static bool $initialized = false;
 
 	/**
-	 * Get plugin instance.
-	 *
-	 * @return Plugin
-	 */
-	public static function get_instance(): Plugin {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Constructor.
-	 */
-	private function __construct() {
-		$this->init_hooks();
-	}
-
-	/**
-	 * Initialize hooks.
+	 * Initialize the plugin.
 	 *
 	 * @return void
 	 */
-	private function init_hooks(): void {
+	public static function init(): void {
+		if ( self::$initialized ) {
+			return;
+		}
+
+		self::$initialized = true;
+
 		// Register Bricks elements.
-		add_action( 'init', [ $this, 'register_bricks_elements' ], 11 );
+		add_action( 'init', [ __CLASS__, 'register_bricks_elements' ], 11 );
 
 		// Enqueue assets.
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_frontend_assets' ] );
 	}
 
 	/**
@@ -61,19 +45,17 @@ class Plugin {
 	 *
 	 * @return void
 	 */
-	public function register_bricks_elements(): void {
-		// Check if Bricks elements class exists.
+	public static function register_bricks_elements(): void {
 		if ( ! class_exists( '\Bricks\Elements' ) ) {
 			return;
 		}
 
-		// Register elements.
 		$elements = [
 			'color-swatch' => Elements\ColorSwatch::class,
 		];
 
 		foreach ( $elements as $name => $class ) {
-			$file = AT_STYLE_GUIDE_PLUGIN_DIR . 'src/Elements/' . str_replace( '_', '', ucwords( str_replace( '-', '_', $name ), '_' ) ) . '.php';
+			$file = AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/' . str_replace( '_', '', ucwords( str_replace( '-', '_', $name ), '_' ) ) . '.php';
 
 			if ( class_exists( $class ) ) {
 				\Bricks\Elements::register_element( $file, $name, $class );
@@ -86,13 +68,12 @@ class Plugin {
 	 *
 	 * @return void
 	 */
-	public function enqueue_frontend_assets(): void {
-		// Only load on frontend when Bricks is rendering.
+	public static function enqueue_frontend_assets(): void {
 		if ( ! function_exists( 'bricks_is_builder_preview' ) ) {
 			return;
 		}
 
-		$dist_path = AT_STYLE_GUIDE_PLUGIN_DIR . 'assets/svelte/dist/';
+		$dist_path = AT_STYLE_GUIDE_PLUGIN_PATH . 'assets/svelte/dist/';
 		$dist_url  = AT_STYLE_GUIDE_PLUGIN_URL . 'assets/svelte/dist/';
 
 		// Enqueue main Svelte app if it exists.
@@ -105,7 +86,6 @@ class Plugin {
 				true
 			);
 
-			// Localize script with data.
 			wp_localize_script(
 				'at-style-guide-svelte',
 				'atStyleGuideData',

@@ -9,10 +9,7 @@
 
 namespace AB\ATStyleGuide;
 
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * AT Colors Helper class.
