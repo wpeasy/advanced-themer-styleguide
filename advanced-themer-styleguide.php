@@ -35,8 +35,8 @@ if ( file_exists( AT_STYLE_GUIDE_PLUGIN_PATH . 'vendor/autoload.php' ) ) {
  * @return void
  */
 function init(): void {
-	// Check if Bricks Builder is active.
-	if ( ! defined( 'BRICKS_VERSION' ) ) {
+	// Check if Bricks Builder theme is active.
+	if ( ! is_bricks_active() ) {
 		add_action( 'admin_notices', __NAMESPACE__ . '\\missing_bricks_notice' );
 		return;
 	}
@@ -50,8 +50,30 @@ function init(): void {
 	// Initialize the plugin.
 	Plugin::init();
 }
-// Use after_setup_theme because Bricks constants are defined in the theme's functions.php.
+// Use after_setup_theme because Bricks theme must be loaded first.
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\init' );
+
+/**
+ * Check if Bricks Builder theme is active.
+ *
+ * @return bool
+ */
+function is_bricks_active(): bool {
+	// Check for BRICKS_VERSION constant (defined in theme's functions.php).
+	if ( defined( 'BRICKS_VERSION' ) ) {
+		return true;
+	}
+
+	// Fallback: Check theme name.
+	if ( function_exists( 'wp_get_theme' ) ) {
+		$theme = wp_get_theme();
+		if ( 'Bricks' === $theme->name || 'Bricks' === $theme->parent_theme ) {
+			return true;
+		}
+	}
+
+	return false;
+}
 
 /**
  * Check if Advanced Themer plugin is active.
