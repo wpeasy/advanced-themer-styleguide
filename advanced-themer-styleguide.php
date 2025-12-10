@@ -50,7 +50,8 @@ function init(): void {
 	// Initialize the plugin.
 	Plugin::init();
 }
-add_action( 'plugins_loaded', __NAMESPACE__ . '\\init' );
+// Use after_setup_theme because Bricks constants are defined in the theme's functions.php.
+add_action( 'after_setup_theme', __NAMESPACE__ . '\\init' );
 
 /**
  * Check if Advanced Themer plugin is active.
