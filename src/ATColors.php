@@ -27,6 +27,21 @@ class ATColors {
 	public const DARK_SHADES = [ 'd-1', 'd-2', 'd-3', 'd-4', 'd-5', 'd-6' ];
 
 	/**
+	 * Shade variation suffixes for transparency shades.
+	 */
+	public const TRANSPARENCY_SHADES = [ 't-1', 't-2', 't-3', 't-4', 't-5', 't-6' ];
+
+	/**
+	 * Colors to exclude from the color selection (base colors only, not swatches).
+	 */
+	public const EXCLUDED_BASE_COLORS = [ 'black', 'white' ];
+
+	/**
+	 * Palette name prefixes that identify AT-managed palettes.
+	 */
+	public const AT_PALETTE_PREFIXES = [ 'at ', 'at-', 'advanced themer' ];
+
+	/**
 	 * Get all color palettes from Advanced Themer.
 	 *
 	 * @return array Array of palettes.
@@ -36,7 +51,31 @@ class ATColors {
 	}
 
 	/**
-	 * Get all root colors (excluding variations) from all enabled palettes.
+	 * Check if a palette is an AT-managed palette.
+	 *
+	 * @param array $palette The palette data.
+	 * @return bool True if it's an AT palette.
+	 */
+	public static function is_at_palette( array $palette ): bool {
+		$palette_name = strtolower( $palette['name'] ?? '' );
+
+		// Check if palette name starts with AT prefixes.
+		foreach ( self::AT_PALETTE_PREFIXES as $prefix ) {
+			if ( str_starts_with( $palette_name, $prefix ) ) {
+				return true;
+			}
+		}
+
+		// Check if palette has a prefix set (AT palettes typically have this).
+		if ( ! empty( $palette['prefix'] ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get all root colors (excluding variations) from all enabled AT palettes.
 	 *
 	 * @return array Array of root colors with palette info.
 	 */
@@ -50,6 +89,11 @@ class ATColors {
 				continue;
 			}
 
+			// Skip non-AT palettes (e.g., default Bricks "Color 1", "Color 2").
+			if ( ! self::is_at_palette( $palette ) ) {
+				continue;
+			}
+
 			$palette_name   = $palette['name'] ?? 'Unnamed Palette';
 			$palette_prefix = $palette['prefix'] ?? '';
 
@@ -58,17 +102,27 @@ class ATColors {
 			}
 
 			foreach ( $palette['colors'] as $color ) {
+				$color_name = $color['name'] ?? '';
+
 				// Skip variation colors (they contain shade suffixes).
-				if ( self::is_shade_variation( $color['name'] ?? '' ) ) {
+				if ( self::is_shade_variation( $color_name ) ) {
 					continue;
 				}
 
-				$color_id   = $color['id'] ?? '';
-				$color_name = $color['name'] ?? '';
+				// Skip excluded base colors (black, white).
+				if ( in_array( strtolower( $color_name ), self::EXCLUDED_BASE_COLORS, true ) ) {
+					continue;
+				}
+
+				$color_id = $color['id'] ?? '';
 
 				if ( empty( $color_id ) ) {
 					continue;
 				}
+
+				// Determine if this color has shade variations.
+				// shadeChildren can be true, false, or absent.
+				$has_shades = ! empty( $color['shadeChildren'] );
 
 				$root_colors[ $color_id ] = [
 					'id'             => $color_id,
@@ -79,7 +133,7 @@ class ATColors {
 					'raw'            => $color['raw'] ?? '',
 					'hex'            => $color['hex'] ?? '',
 					'rawValue'       => $color['rawValue'] ?? [],
-					'shadeChildren'  => $color['shadeChildren'] ?? false,
+					'shadeChildren'  => $has_shades,
 				];
 			}
 		}
@@ -193,7 +247,7 @@ class ATColors {
 	 * @return bool True if it's a shade variation.
 	 */
 	public static function is_shade_variation( string $name ): bool {
-		$all_shades = array_merge( self::LIGHT_SHADES, self::DARK_SHADES );
+		$all_shades = array_merge( self::LIGHT_SHADES, self::DARK_SHADES, self::TRANSPARENCY_SHADES );
 
 		foreach ( $all_shades as $shade ) {
 			if ( str_ends_with( $name, '-' . $shade ) ) {

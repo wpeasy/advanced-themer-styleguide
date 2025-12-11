@@ -10,7 +10,9 @@
       "Bash(composer install:*)",
       "Bash(curl:*)",
       "Bash(php wp-cli.phar:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "SlashCommand(/zip-plugin)",
+      "Bash(powershell -ExecutionPolicy Bypass -File create-plugin-zip.ps1)"
     ]
   }
 }

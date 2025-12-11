@@ -36,6 +36,9 @@ final class Plugin {
 		// Register Bricks elements.
 		add_action( 'init', [ __CLASS__, 'register_bricks_elements' ], 11 );
 
+		// Add element category translations.
+		add_filter( 'bricks/builder/i18n', [ __CLASS__, 'add_i18n_strings' ] );
+
 		// Enqueue assets.
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_frontend_assets' ] );
 	}
@@ -50,17 +53,91 @@ final class Plugin {
 			return;
 		}
 
+		// Register elements with explicit file, name, and fully-qualified class name.
 		$elements = [
-			'color-swatch' => Elements\ColorSwatch::class,
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Typography.php',
+				'name'  => 'at-typography',
+				'class' => 'AB\\ATStyleGuide\\Elements\\Typography',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/TypographyItem.php',
+				'name'  => 'at-typography-item',
+				'class' => 'AB\\ATStyleGuide\\Elements\\TypographyItem',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Spacing.php',
+				'name'  => 'at-spacing',
+				'class' => 'AB\\ATStyleGuide\\Elements\\Spacing',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/SpacingItem.php',
+				'name'  => 'at-spacing-item',
+				'class' => 'AB\\ATStyleGuide\\Elements\\SpacingItem',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Radii.php',
+				'name'  => 'at-radii',
+				'class' => 'AB\\ATStyleGuide\\Elements\\Radii',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/RadiiItem.php',
+				'name'  => 'at-radii-item',
+				'class' => 'AB\\ATStyleGuide\\Elements\\RadiiItem',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/BoxShadows.php',
+				'name'  => 'at-box-shadows',
+				'class' => 'AB\\ATStyleGuide\\Elements\\BoxShadows',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/BoxShadowsItem.php',
+				'name'  => 'at-box-shadows-item',
+				'class' => 'AB\\ATStyleGuide\\Elements\\BoxShadowsItem',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/ColorSwatch.php',
+				'name'  => 'at-color-swatch',
+				'class' => 'AB\\ATStyleGuide\\Elements\\ColorSwatch',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Buttons.php',
+				'name'  => 'at-buttons',
+				'class' => 'AB\\ATStyleGuide\\Elements\\Buttons',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/ButtonsItem.php',
+				'name'  => 'at-buttons-item',
+				'class' => 'AB\\ATStyleGuide\\Elements\\ButtonsItem',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Colors.php',
+				'name'  => 'at-colors',
+				'class' => 'AB\\ATStyleGuide\\Elements\\Colors',
+			],
+			[
+				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/ColorsItem.php',
+				'name'  => 'at-colors-item',
+				'class' => 'AB\\ATStyleGuide\\Elements\\ColorsItem',
+			],
 		];
 
-		foreach ( $elements as $name => $class ) {
-			$file = AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/' . str_replace( '_', '', ucwords( str_replace( '-', '_', $name ), '_' ) ) . '.php';
-
-			if ( class_exists( $class ) ) {
-				\Bricks\Elements::register_element( $file, $name, $class );
-			}
+		foreach ( $elements as $element ) {
+			\Bricks\Elements::register_element( $element['file'], $element['name'], $element['class'] );
 		}
+	}
+
+	/**
+	 * Add i18n strings for element categories.
+	 *
+	 * @param array $i18n Existing i18n strings.
+	 * @return array Modified i18n strings.
+	 */
+	public static function add_i18n_strings( array $i18n ): array {
+		// Add category label for our elements.
+		$i18n['at style guide'] = esc_html__( 'AT Style Guide', 'advanced-themer-style-guide' );
+
+		return $i18n;
 	}
 
 	/**
@@ -69,14 +146,20 @@ final class Plugin {
 	 * @return void
 	 */
 	public static function enqueue_frontend_assets(): void {
-		if ( ! function_exists( 'bricks_is_builder_preview' ) ) {
-			return;
-		}
+		// Register element scripts (Bricks will call these via $scripts property).
+		wp_register_script(
+			'at-style-guide-elements',
+			AT_STYLE_GUIDE_PLUGIN_URL . 'assets/js/elements.js',
+			[],
+			AT_STYLE_GUIDE_VERSION,
+			true
+		);
+		wp_enqueue_script( 'at-style-guide-elements' );
 
+		// Enqueue Svelte assets if they exist.
 		$dist_path = AT_STYLE_GUIDE_PLUGIN_PATH . 'assets/svelte/dist/';
 		$dist_url  = AT_STYLE_GUIDE_PLUGIN_URL . 'assets/svelte/dist/';
 
-		// Enqueue main Svelte app if it exists.
 		if ( file_exists( $dist_path . 'main.js' ) ) {
 			wp_enqueue_script(
 				'at-style-guide-svelte',
@@ -96,7 +179,6 @@ final class Plugin {
 			);
 		}
 
-		// Enqueue CSS if it exists.
 		if ( file_exists( $dist_path . 'main.css' ) ) {
 			wp_enqueue_style(
 				'at-style-guide-styles',

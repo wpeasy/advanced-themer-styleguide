@@ -10,6 +10,7 @@
 namespace AB\ATStyleGuide\Elements;
 
 use AB\ATStyleGuide\ATColors;
+use AB\ATStyleGuide\ATFrameworkDefaults;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -23,7 +24,7 @@ class ColorSwatch extends \Bricks\Element {
 	 *
 	 * @var string
 	 */
-	public $category = 'advanced-themer';
+	public $category = 'at style guide';
 
 	/**
 	 * Element name.
@@ -155,11 +156,11 @@ class ColorSwatch extends \Bricks\Element {
 			'css'     => [
 				[
 					'property' => 'width',
-					'selector' => '.at-color-swatch__item',
+					'selector' => '.atsg-swatch__item',
 				],
 				[
 					'property' => 'height',
-					'selector' => '.at-color-swatch__item',
+					'selector' => '.atsg-swatch__item',
 				],
 			],
 		];
@@ -184,7 +185,7 @@ class ColorSwatch extends \Bricks\Element {
 			'css'     => [
 				[
 					'property' => 'border-radius',
-					'selector' => '.at-color-swatch__item',
+					'selector' => '.atsg-swatch__item',
 				],
 			],
 		];
@@ -198,7 +199,7 @@ class ColorSwatch extends \Bricks\Element {
 			'css'     => [
 				[
 					'property' => 'gap',
-					'selector' => '.at-color-swatch__row',
+					'selector' => '.atsg-swatch__row',
 				],
 			],
 		];
@@ -239,13 +240,19 @@ class ColorSwatch extends \Bricks\Element {
 	 * @return void
 	 */
 	public function render(): void {
+		// Check for ATF variables.
+		if ( ! ATFrameworkDefaults::has_at_variables() ) {
+			echo ATFrameworkDefaults::render_warning(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			return;
+		}
+
 		$settings = $this->settings;
 
 		$color_id = $settings['atColor'] ?? '';
 
 		if ( empty( $color_id ) ) {
 			if ( bricks_is_builder() ) {
-				echo '<div class="at-color-swatch__placeholder">';
+				echo '<div class="atsg-swatch__placeholder">';
 				echo esc_html__( 'Please select a color from Advanced Themer', 'advanced-themer-style-guide' );
 				echo '</div>';
 			}
@@ -256,7 +263,7 @@ class ColorSwatch extends \Bricks\Element {
 
 		if ( ! $root_color ) {
 			if ( bricks_is_builder() ) {
-				echo '<div class="at-color-swatch__placeholder">';
+				echo '<div class="atsg-swatch__placeholder">';
 				echo esc_html__( 'Selected color not found. It may have been deleted from Advanced Themer.', 'advanced-themer-style-guide' );
 				echo '</div>';
 			}
@@ -302,33 +309,33 @@ class ColorSwatch extends \Bricks\Element {
 		}
 
 		// Build output.
-		$root_classes = [ 'at-color-swatch', 'at-color-swatch--' . $layout ];
+		$root_classes = [ 'atsg-swatch', 'atsg-swatch--' . $layout ];
 		$this->set_attribute( '_root', 'class', $root_classes );
 
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
 		// Color header.
 		if ( $show_color_name || $show_css_variable ) {
-			$output .= '<div class="at-color-swatch__header">';
+			$output .= '<div class="atsg-swatch__header">';
 
 			if ( $show_color_name ) {
-				$output .= '<h4 class="at-color-swatch__title">' . esc_html( $root_color['label'] ) . '</h4>';
+				$output .= '<h4 class="atsg-swatch__title">' . esc_html( $root_color['label'] ) . '</h4>';
 			}
 
 			if ( $show_css_variable ) {
-				$output .= '<code class="at-color-swatch__variable">' . esc_html( $root_color['raw'] ) . '</code>';
+				$output .= '<code class="atsg-swatch__variable">' . esc_html( $root_color['raw'] ) . '</code>';
 			}
 
 			$output .= '</div>';
 		}
 
 		// Color swatches row.
-		$output .= '<div class="at-color-swatch__row">';
+		$output .= '<div class="atsg-swatch__row">';
 
 		foreach ( $variations as $suffix => $variation ) {
 			$is_base     = 'base' === $suffix;
-			$item_class  = 'at-color-swatch__item';
-			$item_class .= $is_base ? ' at-color-swatch__item--base' : '';
+			$item_class  = 'atsg-swatch__item';
+			$item_class .= $is_base ? ' atsg-swatch__item--base' : '';
 
 			// Use CSS variable for background.
 			$css_var    = $variation['raw'];
@@ -343,25 +350,25 @@ class ColorSwatch extends \Bricks\Element {
 			$output .= ' title="' . esc_attr( $css_var ) . '">';
 
 			if ( $show_shade_label && ! $is_base ) {
-				$output .= '<span class="at-color-swatch__shade-label">' . esc_html( $suffix ) . '</span>';
+				$output .= '<span class="atsg-swatch__shade-label">' . esc_html( $suffix ) . '</span>';
 			}
 
 			$output .= '</div>';
 		}
 
-		$output .= '</div>'; // .at-color-swatch__row
+		$output .= '</div>'; // .atsg-swatch__row
 
 		// Hex value if enabled.
 		if ( $show_hex_value ) {
 			$hex_value = ATColors::get_color_value( $root_color, 'light' );
 			if ( $hex_value ) {
-				$output .= '<div class="at-color-swatch__hex">';
-				$output .= '<span class="at-color-swatch__hex-label">' . esc_html__( 'Light:', 'advanced-themer-style-guide' ) . '</span> ';
+				$output .= '<div class="atsg-swatch__hex">';
+				$output .= '<span class="atsg-swatch__hex-label">' . esc_html__( 'Light:', 'advanced-themer-style-guide' ) . '</span> ';
 				$output .= '<code>' . esc_html( $hex_value ) . '</code>';
 
 				$dark_value = ATColors::get_color_value( $root_color, 'dark' );
 				if ( $dark_value && $dark_value !== $hex_value ) {
-					$output .= ' <span class="at-color-swatch__hex-label">' . esc_html__( 'Dark:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= ' <span class="atsg-swatch__hex-label">' . esc_html__( 'Dark:', 'advanced-themer-style-guide' ) . '</span> ';
 					$output .= '<code>' . esc_html( $dark_value ) . '</code>';
 				}
 
@@ -369,7 +376,7 @@ class ColorSwatch extends \Bricks\Element {
 			}
 		}
 
-		$output .= '</div>'; // .at-color-swatch
+		$output .= '</div>'; // .atsg-swatch
 
 		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
@@ -397,58 +404,58 @@ class ColorSwatch extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
-			.at-color-swatch {
+			.atsg-swatch {
 				display: flex;
 				flex-direction: column;
-				gap: 1rem;
+				gap: var(--at-space--s, 1rem);
 			}
 
-			.at-color-swatch__placeholder {
-				padding: 2rem;
-				background: #f3f4f6;
-				border: 2px dashed #d1d5db;
-				border-radius: 8px;
+			.atsg-swatch__placeholder {
+				padding: var(--at-space--l, 2rem);
+				background: var(--at-neutral-t-6, #f3f4f6);
+				border: var(--at-border-width, 2px) dashed var(--at-border-color, #d1d5db);
+				border-radius: var(--at-radius--s, 8px);
 				text-align: center;
-				color: #6b7280;
+				color: var(--at-neutral-d-2, #6b7280);
 			}
 
-			.at-color-swatch__header {
+			.atsg-swatch__header {
 				display: flex;
 				flex-direction: column;
-				gap: 0.25rem;
+				gap: var(--at-space--3xs, 0.25rem);
 			}
 
-			.at-color-swatch__title {
+			.atsg-swatch__title {
 				margin: 0;
-				font-size: 1.125rem;
+				font-size: var(--at-text--m, 1.125rem);
 				font-weight: 600;
 			}
 
-			.at-color-swatch__variable {
-				font-size: 0.75rem;
-				color: #6b7280;
-				background: #f3f4f6;
-				padding: 0.25rem 0.5rem;
-				border-radius: 4px;
+			.atsg-swatch__variable {
+				font-size: var(--at-text--2xs, 0.75rem);
+				color: var(--at-neutral-d-2, #6b7280);
+				background: var(--at-neutral-t-6, #f3f4f6);
+				padding: var(--at-space--3xs, 0.25rem) var(--at-space--xs, 0.5rem);
+				border-radius: var(--at-radius--xs, 4px);
 				width: fit-content;
 			}
 
-			.at-color-swatch__row {
+			.atsg-swatch__row {
 				display: flex;
 				flex-wrap: wrap;
 				align-items: center;
-				gap: 8px;
+				gap: var(--at-space--2xs, 8px);
 			}
 
-			.at-color-swatch--vertical .at-color-swatch__row {
+			.atsg-swatch--vertical .atsg-swatch__row {
 				flex-direction: column;
 			}
 
-			.at-color-swatch__item {
+			.atsg-swatch__item {
 				width: 60px;
 				height: 60px;
-				border-radius: 8px;
-				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+				border-radius: var(--at-radius--s, 8px);
+				box-shadow: var(--at-shadow--s, 0 1px 3px rgba(0, 0, 0, 0.1)), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 				position: relative;
 				display: flex;
 				align-items: flex-end;
@@ -456,37 +463,37 @@ class ColorSwatch extends \Bricks\Element {
 				transition: transform 0.2s ease;
 			}
 
-			.at-color-swatch__item:hover {
-				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+			.atsg-swatch__item:hover {
+				box-shadow: var(--at-shadow--m, 0 4px 6px rgba(0, 0, 0, 0.15)), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 			}
 
-			.at-color-swatch__item--base {
-				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+			.atsg-swatch__item--base {
+				box-shadow: var(--at-shadow--s, 0 2px 4px rgba(0, 0, 0, 0.15)), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 			}
 
-			.at-color-swatch__shade-label {
-				font-size: 0.625rem;
+			.atsg-swatch__shade-label {
+				font-size: var(--at-text--3xs, 0.625rem);
 				font-weight: 500;
 				color: rgba(255, 255, 255, 0.9);
 				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-				padding: 0.125rem 0.25rem;
+				padding: var(--at-space--3xs, 0.125rem) var(--at-space--3xs, 0.25rem);
 				background: rgba(0, 0, 0, 0.2);
-				border-radius: 2px;
+				border-radius: var(--at-radius--2xs, 2px);
 				margin-bottom: 4px;
 			}
 
-			.at-color-swatch__hex {
-				font-size: 0.75rem;
-				color: #6b7280;
+			.atsg-swatch__hex {
+				font-size: var(--at-text--2xs, 0.75rem);
+				color: var(--at-neutral-d-2, #6b7280);
 			}
 
-			.at-color-swatch__hex code {
-				background: #f3f4f6;
-				padding: 0.125rem 0.375rem;
-				border-radius: 4px;
+			.atsg-swatch__hex code {
+				background: var(--at-neutral-t-6, #f3f4f6);
+				padding: var(--at-space--3xs, 0.125rem) var(--at-space--2xs, 0.375rem);
+				border-radius: var(--at-radius--xs, 4px);
 			}
 
-			.at-color-swatch__hex-label {
+			.atsg-swatch__hex-label {
 				font-weight: 500;
 			}
 		';
