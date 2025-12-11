@@ -462,6 +462,38 @@ class Typography extends \Bricks\Element {
 				width: auto;
 			}
 
+			/* Table layout - mobile: revert to stacked */
+			@media screen and (max-width: 768px) {
+				.atsg-typography--table {
+					display: flex !important;
+					flex-direction: column;
+					gap: var(--at-space--l, 2rem);
+				}
+
+				.atsg-typography--table .atsg-typography-item {
+					display: flex !important;
+					flex-direction: column;
+					gap: var(--at-space--xs, 0.5rem);
+					padding: 0;
+					padding-block-end: var(--at-space--m, 1.5rem);
+					border-block-end: var(--at-border--standard, 1px solid var(--at-border-color, #e5e7eb));
+				}
+
+				.atsg-typography--table .atsg-typography-item__label,
+				.atsg-typography--table .atsg-typography-item__sample-wrapper,
+				.atsg-typography--table .atsg-typography-item__meta {
+					display: block !important;
+					padding: 0;
+					width: auto !important;
+					border-block-end: none;
+				}
+
+				.atsg-typography--table .atsg-typography-item__meta {
+					display: flex !important;
+					flex-wrap: wrap;
+				}
+			}
+
 			/* Style: Minimal */
 			.atsg-typography--minimal .atsg-typography-item {
 				border-block-end: none;

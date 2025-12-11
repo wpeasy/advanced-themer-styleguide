@@ -2,6 +2,24 @@
 
 All notable changes to Advanced Themer Style Guide will be documented in this file.
 
+## [0.0.4-beta] - 2025-12-11
+
+### Added
+- **Buttons Element**: Rounded and Outline toggle switches to apply classes to all buttons
+- **Mobile Responsive**: Typography table layout reverts to stacked below 768px
+- **Mobile Responsive**: Buttons grid switches to 2 columns below 600px
+- **Mobile Responsive**: Colors default layout switches to stacked below 600px
+- **Mobile Responsive**: Spacing stacks vertically below 600px
+
+### Fixed
+- Button class names no longer wrap mid-word (each class wrapped in nowrap span)
+- Buttons grid layout fixed after adding toolbar wrapper
+- Removed grey background from Box Shadows container
+
+### Changed
+- Consistent label/value font sizing across all elements (label: 0.875rem, values: 0.75rem)
+- BoxShadows value text increased from 0.625rem to 0.75rem
+
 ## [0.0.3-beta] - 2025-12-11
 
 ### Fixed

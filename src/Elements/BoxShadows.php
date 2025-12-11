@@ -369,9 +369,6 @@ class BoxShadows extends \Bricks\Element {
 				display: flex;
 				flex-wrap: wrap;
 				gap: var(--at-space--l, 2rem);
-				padding: var(--at-space--l, 2rem);
-				background-color: var(--at-neutral-t-6, #f3f4f6);
-				border-radius: var(--at-radius--s, 8px);
 			}
 
 			.atsg-shadows__placeholder {
@@ -385,11 +382,6 @@ class BoxShadows extends \Bricks\Element {
 			}
 
 			/* Style: Minimal */
-			.atsg-shadows--minimal {
-				background: transparent;
-				padding: 0;
-			}
-
 			.atsg-shadows--minimal .atsg-shadows-item__variable {
 				display: none;
 			}
@@ -421,7 +413,6 @@ class BoxShadows extends \Bricks\Element {
 
 			/* Style: Compact */
 			.atsg-shadows--compact {
-				padding: var(--at-space--s, 1rem);
 				gap: var(--at-space--s, 1rem);
 			}
 

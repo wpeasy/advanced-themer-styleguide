@@ -278,21 +278,22 @@ class BoxShadowsItem extends \Bricks\Element {
 
 			.atsg-shadows-item__label {
 				font-weight: 600;
-				font-size: var(--at-text--xs, 0.875rem);
+				font-size: var(--at-text--s, 0.875rem);
+				color: var(--at-neutral-d-3, #374151);
 			}
 
 			.atsg-shadows-item__variable {
-				font-size: var(--at-text--2xs, 0.75rem);
+				font-size: var(--at-text--xs, 0.75rem);
 				color: var(--at-neutral-d-2, #6b7280);
-				background: rgba(255, 255, 255, 0.8);
+				background: var(--at-neutral-t-6, #f3f4f6);
 				padding: var(--at-space--3xs, 0.125rem) var(--at-space--2xs, 0.375rem);
 				border-radius: var(--at-radius--xs, 4px);
 			}
 
 			.atsg-shadows-item__value {
-				font-size: var(--at-text--3xs, 0.625rem);
+				font-size: var(--at-text--xs, 0.75rem);
 				color: var(--at-neutral-d-2, #6b7280);
-				max-width: 150px;
+				max-width: 200px;
 				word-break: break-all;
 				text-align: center;
 			}

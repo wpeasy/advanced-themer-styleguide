@@ -276,11 +276,12 @@ class RadiiItem extends \Bricks\Element {
 
 			.atsg-radii-item__label {
 				font-weight: 600;
-				font-size: var(--at-text--xs, 0.875rem);
+				font-size: var(--at-text--s, 0.875rem);
+				color: var(--at-neutral-d-3, #374151);
 			}
 
 			.atsg-radii-item__variable {
-				font-size: var(--at-text--2xs, 0.75rem);
+				font-size: var(--at-text--xs, 0.75rem);
 				color: var(--at-neutral-d-2, #6b7280);
 				background: var(--at-neutral-t-6, #f3f4f6);
 				padding: var(--at-space--3xs, 0.125rem) var(--at-space--2xs, 0.375rem);
@@ -288,13 +289,13 @@ class RadiiItem extends \Bricks\Element {
 			}
 
 			.atsg-radii-item__value {
-				font-size: var(--at-text--2xs, 0.75rem);
-				color: var(--at-neutral-d-3, #374151);
+				font-size: var(--at-text--xs, 0.75rem);
+				color: var(--at-neutral-d-2, #6b7280);
 			}
 
 			.atsg-radii-item__value-label {
 				font-weight: 600;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--at-neutral-d-3, #374151);
 			}
 		';
 	}

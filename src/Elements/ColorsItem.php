@@ -961,6 +961,48 @@ class ColorsItem extends \Bricks\Element {
 			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__menu-header {
 				font-size: var(--at-text--xs, 0.75rem);
 			}
+
+			/* =================================
+			   MOBILE RESPONSIVE
+			   Switch to stacked layout on small screens
+			   ================================= */
+			@media screen and (max-width: 600px) {
+				/* Default layout - switch to stacked on mobile */
+				.atsg-colors[data-layout="default"] .atsg-colors-item__grid {
+					flex-direction: column !important;
+					gap: var(--at-space--xs, 0.75rem);
+				}
+
+				.atsg-colors[data-layout="default"] .atsg-colors-item__base-column {
+					width: 100%;
+				}
+
+				.atsg-colors[data-layout="default"] .atsg-colors-item__base {
+					width: 100% !important;
+					height: var(--at-space--2xl, 80px);
+					min-height: var(--at-space--2xl, 80px);
+				}
+
+				.atsg-colors[data-layout="default"] .atsg-colors-item__column {
+					flex-direction: row;
+					flex-wrap: wrap;
+				}
+
+				.atsg-colors[data-layout="default"] .atsg-colors-item__swatch {
+					flex: 1 1 auto;
+					min-width: var(--at-space--l, 40px);
+				}
+
+				/* Compact layout - make swatches smaller on mobile */
+				.atsg-colors[data-layout="compact"] .atsg-colors-item__grid {
+					flex-wrap: wrap !important;
+				}
+
+				.atsg-colors[data-layout="compact"] .atsg-colors-item__swatch {
+					width: var(--at-space--s, 20px);
+					height: var(--at-space--s, 20px);
+				}
+			}
 		';
 	}
 }

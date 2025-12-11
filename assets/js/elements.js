@@ -181,6 +181,39 @@ function atBoxShadowsItemInit() {
  * Buttons Element (Nestable Container) - Initialize child items.
  */
 function atButtonsInit() {
+	// Initialize toggle switches
+	const containers = document.querySelectorAll('.atsg-buttons');
+	containers.forEach(container => {
+		const toggles = container.querySelectorAll('[data-toggle]');
+		toggles.forEach(toggle => {
+			if (toggle.dataset.initialized) return;
+			toggle.dataset.initialized = 'true';
+
+			toggle.addEventListener('change', () => {
+				const toggleType = toggle.dataset.toggle;
+				const buttons = container.querySelectorAll('.bricks-button');
+
+				if (toggleType === 'outline') {
+					buttons.forEach(btn => {
+						if (toggle.checked) {
+							btn.classList.add('outline');
+						} else {
+							btn.classList.remove('outline');
+						}
+					});
+				} else if (toggleType === 'rounded') {
+					buttons.forEach(btn => {
+						if (toggle.checked) {
+							btn.classList.add('circle');
+						} else {
+							btn.classList.remove('circle');
+						}
+					});
+				}
+			});
+		});
+	});
+
 	// The parent just needs to ensure children are initialized
 	atButtonsItemInit();
 }

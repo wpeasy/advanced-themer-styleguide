@@ -252,7 +252,13 @@ class ButtonsItem extends \Bricks\Element {
 			$output .= '<span class="atsg-buttons-item__description">' . esc_html( $description ) . '</span>';
 		}
 		if ( $show_classes ) {
-			$output .= '<code class="atsg-buttons-item__classes">' . esc_html( $button_class_string ) . '</code>';
+			$class_spans = array_map(
+				function ( $class ) {
+					return '<span class="class-name">' . esc_html( $class ) . '</span>';
+				},
+				$button_classes
+			);
+			$output .= '<code class="atsg-buttons-item__classes">' . implode( ' ', $class_spans ) . '</code>';
 		}
 		$output .= '</div>';
 
@@ -317,8 +323,12 @@ class ButtonsItem extends \Bricks\Element {
 				background: var(--at-neutral-t-6, #f3f4f6);
 				padding: var(--at-space--3xs, 0.125rem) var(--at-space--2xs, 0.375rem);
 				border-radius: var(--at-radius--xs, 4px);
-				max-width: 200px;
-				word-break: break-all;
+				word-spacing: 0.25em;
+			}
+
+			.atsg-buttons-item__classes .class-name {
+				white-space: nowrap;
+				display: inline;
 			}
 		';
 	}

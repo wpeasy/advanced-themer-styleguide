@@ -119,7 +119,7 @@ class Buttons extends \Bricks\Element {
 			'css'         => [
 				[
 					'property' => 'grid-template-columns',
-					'selector' => '&.atsg-buttons--grid',
+					'selector' => '&.atsg-buttons--grid .atsg-buttons__grid',
 					'value'    => 'repeat(%s, 1fr)',
 				],
 			],
@@ -134,7 +134,7 @@ class Buttons extends \Bricks\Element {
 			'css'     => [
 				[
 					'property' => 'gap',
-					'selector' => '',
+					'selector' => '.atsg-buttons__grid',
 				],
 			],
 		];
@@ -149,7 +149,7 @@ class Buttons extends \Bricks\Element {
 			'css'         => [
 				[
 					'property' => 'gap',
-					'selector' => '&.atsg-buttons--rows',
+					'selector' => '&.atsg-buttons--rows .atsg-buttons__grid',
 				],
 			],
 		];
@@ -289,9 +289,27 @@ class Buttons extends \Bricks\Element {
 
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
+		// Toolbar with toggle switches.
+		$output .= '<div class="atsg-buttons__toolbar">';
+		$output .= '<label class="atsg-buttons__toggle">';
+		$output .= '<input type="checkbox" class="atsg-buttons__toggle-input" data-toggle="rounded">';
+		$output .= '<span class="atsg-buttons__toggle-switch"></span>';
+		$output .= '<span class="atsg-buttons__toggle-label">' . esc_html__( 'Rounded', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '</label>';
+		$output .= '<label class="atsg-buttons__toggle">';
+		$output .= '<input type="checkbox" class="atsg-buttons__toggle-input" data-toggle="outline">';
+		$output .= '<span class="atsg-buttons__toggle-switch"></span>';
+		$output .= '<span class="atsg-buttons__toggle-label">' . esc_html__( 'Outline', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '</label>';
+		$output .= '</div>';
+
+		// Grid wrapper for button items.
+		$output .= '<div class="atsg-buttons__grid">';
+
 		// Render children elements (individual button items).
 		$output .= \Bricks\Frontend::render_children( $this );
 
+		$output .= '</div>'; // .atsg-buttons__grid
 		$output .= '</div>';
 
 		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -322,18 +340,30 @@ class Buttons extends \Bricks\Element {
 		return '
 			.atsg-buttons {
 				display: flex;
+				flex-direction: column;
+				gap: var(--at-space--s, 0.75rem);
+			}
+
+			.atsg-buttons__grid {
+				display: flex;
 				flex-wrap: wrap;
 				gap: var(--at-space--m, 1.5rem);
 			}
 
 			/* Grid layout */
-			.atsg-buttons--grid {
+			.atsg-buttons--grid .atsg-buttons__grid {
 				display: grid;
 				grid-template-columns: repeat(4, 1fr);
 			}
 
+			@media screen and (max-width: 600px) {
+				.atsg-buttons--grid .atsg-buttons__grid {
+					grid-template-columns: repeat(2, 1fr) !important;
+				}
+			}
+
 			/* Rows layout - items in a row */
-			.atsg-buttons--rows {
+			.atsg-buttons--rows .atsg-buttons__grid {
 				display: flex;
 				flex-direction: column;
 				gap: var(--at-space--l, 2rem);
@@ -361,7 +391,7 @@ class Buttons extends \Bricks\Element {
 				gap: var(--at-space--s, 1rem);
 			}
 
-			.atsg-buttons--compact.atsg-buttons--grid {
+			.atsg-buttons--compact.atsg-buttons--grid .atsg-buttons__grid {
 				grid-template-columns: repeat(4, auto);
 				justify-content: start;
 			}
@@ -385,6 +415,61 @@ class Buttons extends \Bricks\Element {
 
 			.atsg-buttons[data-override="true"][data-hide-classes="true"] .atsg-buttons-item__classes {
 				display: none;
+			}
+
+			/* Toolbar with toggles */
+			.atsg-buttons__toolbar {
+				display: flex;
+				gap: var(--at-space--m, 1rem);
+			}
+
+			.atsg-buttons__toggle {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				cursor: pointer;
+				user-select: none;
+			}
+
+			.atsg-buttons__toggle-input {
+				position: absolute;
+				opacity: 0;
+				width: 0;
+				height: 0;
+			}
+
+			.atsg-buttons__toggle-switch {
+				position: relative;
+				width: 24px;
+				height: 14px;
+				background: var(--at-neutral-t-4, #d1d5db);
+				border-radius: 7px;
+				transition: background 0.2s ease;
+			}
+
+			.atsg-buttons__toggle-switch::after {
+				content: "";
+				position: absolute;
+				top: 2px;
+				left: 2px;
+				width: 10px;
+				height: 10px;
+				background: var(--at-white, #ffffff);
+				border-radius: 50%;
+				transition: transform 0.2s ease;
+			}
+
+			.atsg-buttons__toggle-input:checked + .atsg-buttons__toggle-switch {
+				background: var(--at-primary, #3b82f6);
+			}
+
+			.atsg-buttons__toggle-input:checked + .atsg-buttons__toggle-switch::after {
+				transform: translateX(10px);
+			}
+
+			.atsg-buttons__toggle-label {
+				font-size: 11px;
+				color: var(--at-neutral-d-2, #6b7280);
 			}
 		';
 	}
