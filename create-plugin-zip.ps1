@@ -24,12 +24,17 @@ if (!(Test-Path $outputDir)) {
 # Remove old ZIP files
 Get-ChildItem "$outputDir\*.zip" | Remove-Item -Force
 
-# Files and folders to exclude
-$excludePatterns = @(
-    "*.md",
+# Files and folders to exclude (exact folder names or file patterns)
+$excludeFolders = @(
     "node_modules",
     "src-svelte",
     ".git",
+    ".claude",
+    "plugin"
+)
+
+$excludeFiles = @(
+    "*.md",
     ".gitignore",
     "package.json",
     "package-lock.json",
@@ -37,9 +42,7 @@ $excludePatterns = @(
     "tsconfig.json",
     "*.config.js",
     "*.config.ts",
-    "plugin",
-    "create-plugin-zip.ps1",
-    ".claude"
+    "create-plugin-zip.ps1"
 )
 
 # Load compression assembly
@@ -57,10 +60,21 @@ try {
         $relativePath = $file.FullName.Substring($pluginDir.Length + 1)
         $exclude = $false
 
-        foreach ($pattern in $excludePatterns) {
-            if ($relativePath -like "*$pattern*" -or $file.Name -like $pattern) {
+        # Check if file is in an excluded folder
+        foreach ($folder in $excludeFolders) {
+            if ($relativePath -like "$folder\*" -or $relativePath -like "*\$folder\*") {
                 $exclude = $true
                 break
+            }
+        }
+
+        # Check if file matches an excluded file pattern
+        if (!$exclude) {
+            foreach ($pattern in $excludeFiles) {
+                if ($file.Name -like $pattern) {
+                    $exclude = $true
+                    break
+                }
             }
         }
 
