@@ -263,14 +263,15 @@ class SpacingItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-spacing-item',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-spacing-item', $this->get_element_css() );
-		wp_enqueue_style( 'at-spacing-item' );
+		$handle = 'at-spacing-item';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -280,6 +281,7 @@ class SpacingItem extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-spacing-item {
 				display: flex;
 				align-items: center;
@@ -293,6 +295,33 @@ class SpacingItem extends \Bricks\Element {
 				min-width: 7.5em;
 			}
 
+			.atsg-spacing-item__bar-container {
+				display: flex;
+				align-items: center;
+				gap: 0.75em;
+				flex: 1;
+			}
+
+			/* Mobile responsive layout */
+			@media screen and (max-width: 600px) {
+				.atsg-spacing-item {
+					flex-direction: column;
+					align-items: flex-start;
+				}
+
+				.atsg-spacing-item__info {
+					min-width: auto;
+					flex-direction: row;
+					gap: 0.5em;
+					align-items: center;
+				}
+
+				.atsg-spacing-item__bar-container {
+					width: 100%;
+				}
+			}
+
+			@layer atsg {
 			.atsg-spacing-item__label {
 				font-weight: 600;
 				font-size: 0.875em;
@@ -306,13 +335,6 @@ class SpacingItem extends \Bricks\Element {
 				padding: 0.125em 0.375em;
 				border-radius: 0.25em;
 				width: fit-content;
-			}
-
-			.atsg-spacing-item__bar-container {
-				display: flex;
-				align-items: center;
-				gap: 0.75em;
-				flex: 1;
 			}
 
 			.atsg-spacing-item__bar {
@@ -333,25 +355,7 @@ class SpacingItem extends \Bricks\Element {
 				font-weight: 600;
 				color: var(--at-neutral-d-3, #374151);
 			}
-
-			/* Mobile responsive */
-			@media screen and (max-width: 600px) {
-				.atsg-spacing-item {
-					flex-direction: column;
-					align-items: flex-start;
-				}
-
-				.atsg-spacing-item__info {
-					min-width: auto;
-					flex-direction: row;
-					gap: 0.5em;
-					align-items: center;
-				}
-
-				.atsg-spacing-item__bar-container {
-					width: 100%;
-				}
-			}
+			} /* end @layer atsg */
 		';
 	}
 }

@@ -387,14 +387,15 @@ class ColorSwatch extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-color-swatch',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-color-swatch', $this->get_element_css() );
-		wp_enqueue_style( 'at-color-swatch' );
+		$handle = 'at-color-swatch';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -404,12 +405,38 @@ class ColorSwatch extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-swatch {
 				display: flex;
 				flex-direction: column;
 				gap: var(--at-space--s, 1rem);
 			}
 
+			.atsg-swatch__header {
+				display: flex;
+				flex-direction: column;
+				gap: var(--at-space--3xs, 0.25rem);
+			}
+
+			.atsg-swatch__row {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: var(--at-space--2xs, 8px);
+			}
+
+			.atsg-swatch--vertical .atsg-swatch__row {
+				flex-direction: column;
+			}
+
+			.atsg-swatch__item {
+				position: relative;
+				display: flex;
+				align-items: flex-end;
+				justify-content: center;
+			}
+
+			@layer atsg {
 			.atsg-swatch__placeholder {
 				padding: var(--at-space--l, 2rem);
 				background: var(--at-neutral-t-6, #f3f4f6);
@@ -417,12 +444,6 @@ class ColorSwatch extends \Bricks\Element {
 				border-radius: var(--at-radius--s, 8px);
 				text-align: center;
 				color: var(--at-neutral-d-2, #6b7280);
-			}
-
-			.atsg-swatch__header {
-				display: flex;
-				flex-direction: column;
-				gap: var(--at-space--3xs, 0.25rem);
 			}
 
 			.atsg-swatch__title {
@@ -440,26 +461,11 @@ class ColorSwatch extends \Bricks\Element {
 				width: fit-content;
 			}
 
-			.atsg-swatch__row {
-				display: flex;
-				flex-wrap: wrap;
-				align-items: center;
-				gap: var(--at-space--2xs, 8px);
-			}
-
-			.atsg-swatch--vertical .atsg-swatch__row {
-				flex-direction: column;
-			}
-
 			.atsg-swatch__item {
 				width: 60px;
 				height: 60px;
 				border-radius: var(--at-radius--s, 8px);
 				box-shadow: var(--at-shadow--s, 0 1px 3px rgba(0, 0, 0, 0.1)), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
-				position: relative;
-				display: flex;
-				align-items: flex-end;
-				justify-content: center;
 				transition: transform 0.2s ease;
 			}
 
@@ -496,6 +502,7 @@ class ColorSwatch extends \Bricks\Element {
 			.atsg-swatch__hex-label {
 				font-weight: 500;
 			}
+			} /* end @layer atsg */
 		';
 	}
 }

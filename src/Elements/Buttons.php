@@ -366,14 +366,15 @@ class Buttons extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-buttons',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-buttons', $this->get_element_css() );
-		wp_enqueue_style( 'at-buttons' );
+		$handle = 'at-buttons';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -383,6 +384,7 @@ class Buttons extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-buttons {
 				display: flex;
 				flex-direction: column;
@@ -426,6 +428,37 @@ class Buttons extends \Bricks\Element {
 				min-width: 9.375em;
 			}
 
+			/* Toolbar with toggles */
+			.atsg-buttons__toolbar {
+				display: flex;
+				gap: 1em;
+			}
+
+			.atsg-buttons__toggle {
+				display: flex;
+				align-items: center;
+				gap: 0.375em;
+				cursor: pointer;
+				user-select: none;
+			}
+
+			.atsg-buttons__toggle-input {
+				position: absolute;
+				opacity: 0;
+				width: 0;
+				height: 0;
+			}
+
+			/* Parent override styles - hide elements based on parent data attributes */
+			.atsg-buttons[data-override="true"][data-hide-description="true"] .atsg-buttons-item__description {
+				display: none;
+			}
+
+			.atsg-buttons[data-override="true"][data-hide-classes="true"] .atsg-buttons-item__classes {
+				display: none;
+			}
+
+			@layer atsg {
 			/* Style: Minimal */
 			.atsg-buttons--minimal .atsg-buttons-item__classes {
 				display: none;
@@ -451,36 +484,6 @@ class Buttons extends \Bricks\Element {
 
 			.atsg-buttons--compact .atsg-buttons-item__classes {
 				font-size: 0.625em;
-			}
-
-			/* Parent override styles - hide elements based on parent data attributes */
-			.atsg-buttons[data-override="true"][data-hide-description="true"] .atsg-buttons-item__description {
-				display: none;
-			}
-
-			.atsg-buttons[data-override="true"][data-hide-classes="true"] .atsg-buttons-item__classes {
-				display: none;
-			}
-
-			/* Toolbar with toggles */
-			.atsg-buttons__toolbar {
-				display: flex;
-				gap: 1em;
-			}
-
-			.atsg-buttons__toggle {
-				display: flex;
-				align-items: center;
-				gap: 0.375em;
-				cursor: pointer;
-				user-select: none;
-			}
-
-			.atsg-buttons__toggle-input {
-				position: absolute;
-				opacity: 0;
-				width: 0;
-				height: 0;
 			}
 
 			.atsg-buttons__toggle-switch {
@@ -516,6 +519,7 @@ class Buttons extends \Bricks\Element {
 				font-size: 0.6875em;
 				color: var(--at-neutral-d-2, #6b7280);
 			}
+			} /* end @layer atsg */
 		';
 	}
 }

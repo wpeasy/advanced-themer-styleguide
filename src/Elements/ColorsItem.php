@@ -440,14 +440,15 @@ class ColorsItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-colors-item',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-colors-item', $this->get_element_css() );
-		wp_enqueue_style( 'at-colors-item' );
+		$handle = 'at-colors-item';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -457,12 +458,102 @@ class ColorsItem extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-colors-item {
 				display: flex;
 				flex-direction: column;
 				gap: var(--at-space--xs, 0.75rem);
 			}
 
+			.atsg-colors-item__grid {
+				display: flex;
+				flex-wrap: nowrap;
+				gap: var(--at-space--2xs, 4px);
+			}
+
+			.atsg-colors-item__base-column {
+				display: flex;
+				flex-shrink: 0;
+			}
+
+			.atsg-colors-item__column {
+				display: flex;
+				flex-direction: column;
+				flex-shrink: 0;
+				gap: var(--at-space--2xs, 4px);
+			}
+
+			/* Context Menu - positioned by JavaScript */
+			.atsg-colors-item__menu {
+				position: fixed;
+				opacity: 0;
+				visibility: hidden;
+				z-index: 9999;
+				pointer-events: none;
+			}
+
+			/* Swatch contrast badges */
+			.atsg-colors-item__contrast-badges {
+				position: absolute;
+				bottom: 3px;
+				right: 3px;
+				display: flex;
+				gap: 2px;
+				pointer-events: none;
+			}
+
+			/* Layout variants - critical display rules */
+			.atsg-colors[data-layout="stacked"] .atsg-colors-item__grid {
+				flex-direction: column;
+				gap: var(--at-space--xs, 0.75rem);
+			}
+
+			.atsg-colors[data-layout="stacked"] .atsg-colors-item__base-column {
+				width: 100%;
+			}
+
+			.atsg-colors[data-layout="stacked"] .atsg-colors-item__column {
+				flex-direction: row;
+				flex-wrap: wrap;
+			}
+
+			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__grid {
+				flex-direction: column;
+				gap: 2px;
+			}
+
+			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__base-column {
+				width: 100%;
+			}
+
+			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__column {
+				flex-direction: row;
+				flex-wrap: wrap;
+				gap: 2px;
+			}
+
+			/* Mobile responsive - critical layout changes */
+			@media screen and (max-width: 600px) {
+				.atsg-colors[data-layout="default"] .atsg-colors-item__grid {
+					flex-direction: column !important;
+					gap: var(--at-space--xs, 0.75rem);
+				}
+
+				.atsg-colors[data-layout="default"] .atsg-colors-item__base-column {
+					width: 100%;
+				}
+
+				.atsg-colors[data-layout="default"] .atsg-colors-item__column {
+					flex-direction: row;
+					flex-wrap: wrap;
+				}
+
+				.atsg-colors[data-layout="compact"] .atsg-colors-item__grid {
+					flex-wrap: wrap !important;
+				}
+			}
+
+			@layer atsg {
 			.atsg-colors-item__placeholder {
 				padding: var(--at-space--l, 2rem);
 				background: var(--at-neutral-t-6, #f3f4f6);
@@ -476,17 +567,6 @@ class ColorsItem extends \Bricks\Element {
 				font-size: var(--at-text--m, 1.125rem);
 				font-weight: 600;
 				color: var(--at-neutral-d-4, #1f2937);
-			}
-
-			.atsg-colors-item__grid {
-				display: flex;
-				flex-wrap: nowrap;
-				gap: var(--at-space--2xs, 4px);
-			}
-
-			.atsg-colors-item__base-column {
-				display: flex;
-				flex-shrink: 0;
 			}
 
 			.atsg-colors-item__base {
@@ -503,13 +583,6 @@ class ColorsItem extends \Bricks\Element {
 			.atsg-colors-item__base:focus {
 				box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(59, 130, 246, 0.5);
 				outline: none;
-			}
-
-			.atsg-colors-item__column {
-				display: flex;
-				flex-direction: column;
-				flex-shrink: 0;
-				gap: var(--at-space--2xs, 4px);
 			}
 
 			.atsg-colors-item__swatch {
@@ -1015,6 +1088,7 @@ class ColorsItem extends \Bricks\Element {
 					height: var(--at-space--s, 20px);
 				}
 			}
+			} /* end @layer atsg */
 		';
 	}
 }

@@ -459,14 +459,15 @@ class Typography extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-typography',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-typography', $this->get_element_css() );
-		wp_enqueue_style( 'at-typography' );
+		$handle = 'at-typography';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -476,12 +477,14 @@ class Typography extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-typography {
 				display: flex;
 				flex-direction: column;
 				gap: 2em;
 			}
 
+			@layer atsg {
 			.atsg-typography__placeholder {
 				padding: 2em;
 				background: var(--at-neutral-t-6, #f3f4f6);
@@ -661,6 +664,7 @@ class Typography extends \Bricks\Element {
 			.atsg-typography[data-override="true"][data-hide-value-labels="true"] .atsg-typography-item__meta-label {
 				display: none;
 			}
+			} /* end @layer atsg */
 		';
 	}
 }

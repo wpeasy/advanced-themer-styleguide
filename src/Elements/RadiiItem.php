@@ -277,14 +277,15 @@ class RadiiItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-radii-item',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-radii-item', $this->get_element_css() );
-		wp_enqueue_style( 'at-radii-item' );
+		$handle = 'at-radii-item';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -294,18 +295,12 @@ class RadiiItem extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-radii-item {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
 				gap: 0.75em;
-			}
-
-			.atsg-radii-item__box {
-				width: 6.25em;
-				height: 6.25em;
-				background-color: var(--at-neutral-t-5, #e5e7eb);
-				border: 2px solid var(--at-neutral-t-4, #d1d5db);
 			}
 
 			.atsg-radii-item__info {
@@ -314,6 +309,14 @@ class RadiiItem extends \Bricks\Element {
 				align-items: center;
 				gap: 0.25em;
 				text-align: center;
+			}
+
+			@layer atsg {
+			.atsg-radii-item__box {
+				width: 6.25em;
+				height: 6.25em;
+				background-color: var(--at-neutral-t-5, #e5e7eb);
+				border: 2px solid var(--at-neutral-t-4, #d1d5db);
 			}
 
 			.atsg-radii-item__label {
@@ -339,6 +342,7 @@ class RadiiItem extends \Bricks\Element {
 				font-weight: 600;
 				color: var(--at-neutral-d-3, #374151);
 			}
+			} /* end @layer atsg */
 		';
 	}
 }

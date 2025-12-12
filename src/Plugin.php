@@ -7,6 +7,8 @@
 
 namespace AB\ATStyleGuide;
 
+use AB\ATStyleGuide\Admin\AdminMenu;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -32,6 +34,9 @@ final class Plugin {
 		}
 
 		self::$initialized = true;
+
+		// Initialize admin menu.
+		AdminMenu::init();
 
 		// Register Bricks elements.
 		add_action( 'init', [ __CLASS__, 'register_bricks_elements' ], 11 );

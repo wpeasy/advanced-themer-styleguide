@@ -389,14 +389,15 @@ class Spacing extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-spacing',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-spacing', $this->get_element_css() );
-		wp_enqueue_style( 'at-spacing' );
+		$handle = 'at-spacing';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -406,20 +407,12 @@ class Spacing extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-spacing {
 				--atsg-bar-thickness: 1.5em;
 				display: flex;
 				flex-direction: column;
 				gap: 1em;
-			}
-
-			.atsg-spacing__placeholder {
-				padding: 2em;
-				background: var(--at-neutral-t-6, #f3f4f6);
-				border: 2px dashed var(--at-border-color, #d1d5db);
-				border-radius: 0.5em;
-				text-align: center;
-				color: var(--at-neutral-d-2, #6b7280);
 			}
 
 			/* Horizontal layout: bar thickness = height, width = spacing value */
@@ -457,6 +450,16 @@ class Spacing extends \Bricks\Element {
 			.atsg-spacing--vertical .atsg-spacing-item__bar {
 				width: var(--atsg-bar-thickness) !important;
 				height: auto;
+			}
+
+			@layer atsg {
+			.atsg-spacing__placeholder {
+				padding: 2em;
+				background: var(--at-neutral-t-6, #f3f4f6);
+				border: 2px dashed var(--at-border-color, #d1d5db);
+				border-radius: 0.5em;
+				text-align: center;
+				color: var(--at-neutral-d-2, #6b7280);
 			}
 
 			/* Style: Minimal */
@@ -534,6 +537,7 @@ class Spacing extends \Bricks\Element {
 			.atsg-spacing[data-override="true"][data-hide-value-label="true"] .atsg-spacing-item__value-label {
 				display: none;
 			}
+			} /* end @layer atsg */
 		';
 	}
 }

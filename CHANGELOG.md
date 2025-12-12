@@ -2,6 +2,20 @@
 
 All notable changes to Advanced Themer Style Guide will be documented in this file.
 
+## [0.0.10-beta] - 2025-12-12
+
+### Added
+- **Admin Instructions Page**: New WordPress admin menu "AT Style Guide" with comprehensive documentation
+- **Admin Instructions Page**: Tab-based interface with Requirements, General, and element-specific tabs
+- **Admin Instructions Page**: Built with Svelte 5 using WPEA framework components
+- **General Tab**: Documentation on Nestable Elements and default child items behavior
+- **General Tab**: CSS Architecture section explaining BEM naming and @layer for easy overrides
+- **Colors Tab**: Detailed documentation for A11Y Badges toggle, Glossary, and Click-to-Copy features
+
+### Changed
+- All element CSS now uses `@layer atsg` for decorative styles, making overrides easier
+- CSS deduplication: styles only load once even when multiple instances of same element on page
+
 ## [0.0.9-beta] - 2025-12-12
 
 ### Changed

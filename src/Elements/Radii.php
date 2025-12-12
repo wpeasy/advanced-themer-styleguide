@@ -373,14 +373,15 @@ class Radii extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-radii',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-radii', $this->get_element_css() );
-		wp_enqueue_style( 'at-radii' );
+		$handle = 'at-radii';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -390,12 +391,31 @@ class Radii extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-radii {
 				display: flex;
 				flex-wrap: wrap;
 				gap: 1.5em;
 			}
 
+			/* Parent override styles - hide elements based on parent data attributes */
+			.atsg-radii[data-override="true"][data-hide-label="true"] .atsg-radii-item__label {
+				display: none;
+			}
+
+			.atsg-radii[data-override="true"][data-hide-variable="true"] .atsg-radii-item__variable {
+				display: none;
+			}
+
+			.atsg-radii[data-override="true"][data-hide-value="true"] .atsg-radii-item__value {
+				display: none;
+			}
+
+			.atsg-radii[data-override="true"][data-hide-value-label="true"] .atsg-radii-item__value-label {
+				display: none;
+			}
+
+			@layer atsg {
 			.atsg-radii__placeholder {
 				padding: 2em;
 				background: var(--at-neutral-t-6, #f3f4f6);
@@ -462,23 +482,7 @@ class Radii extends \Bricks\Element {
 			.atsg-radii--compact .atsg-radii-item__variable {
 				font-size: 0.75em;
 			}
-
-			/* Parent override styles - hide elements based on parent data attributes */
-			.atsg-radii[data-override="true"][data-hide-label="true"] .atsg-radii-item__label {
-				display: none;
-			}
-
-			.atsg-radii[data-override="true"][data-hide-variable="true"] .atsg-radii-item__variable {
-				display: none;
-			}
-
-			.atsg-radii[data-override="true"][data-hide-value="true"] .atsg-radii-item__value {
-				display: none;
-			}
-
-			.atsg-radii[data-override="true"][data-hide-value-label="true"] .atsg-radii-item__value-label {
-				display: none;
-			}
+			} /* end @layer atsg */
 		';
 	}
 }

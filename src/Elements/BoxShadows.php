@@ -386,14 +386,15 @@ class BoxShadows extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-box-shadows',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-box-shadows', $this->get_element_css() );
-		wp_enqueue_style( 'at-box-shadows' );
+		$handle = 'at-box-shadows';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -403,12 +404,31 @@ class BoxShadows extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-shadows {
 				display: flex;
 				flex-wrap: wrap;
 				gap: 2em;
 			}
 
+			/* Parent override styles - hide elements based on parent data attributes */
+			.atsg-shadows[data-override="true"][data-hide-label="true"] .atsg-shadows-item__label {
+				display: none;
+			}
+
+			.atsg-shadows[data-override="true"][data-hide-variable="true"] .atsg-shadows-item__variable {
+				display: none;
+			}
+
+			.atsg-shadows[data-override="true"][data-hide-value="true"] .atsg-shadows-item__value {
+				display: none;
+			}
+
+			.atsg-shadows[data-override="true"][data-hide-value-label="true"] .atsg-shadows-item__value-label {
+				display: none;
+			}
+
+			@layer atsg {
 			.atsg-shadows__placeholder {
 				padding: 2em;
 				background: var(--at-neutral-t-6, #f3f4f6);
@@ -470,23 +490,7 @@ class BoxShadows extends \Bricks\Element {
 			.atsg-shadows--compact .atsg-shadows-item__variable {
 				font-size: 0.75em;
 			}
-
-			/* Parent override styles - hide elements based on parent data attributes */
-			.atsg-shadows[data-override="true"][data-hide-label="true"] .atsg-shadows-item__label {
-				display: none;
-			}
-
-			.atsg-shadows[data-override="true"][data-hide-variable="true"] .atsg-shadows-item__variable {
-				display: none;
-			}
-
-			.atsg-shadows[data-override="true"][data-hide-value="true"] .atsg-shadows-item__value {
-				display: none;
-			}
-
-			.atsg-shadows[data-override="true"][data-hide-value-label="true"] .atsg-shadows-item__value-label {
-				display: none;
-			}
+			} /* end @layer atsg */
 		';
 	}
 }

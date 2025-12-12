@@ -580,14 +580,15 @@ class Colors extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-colors',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-colors', $this->get_element_css() );
-		wp_enqueue_style( 'at-colors' );
+		$handle = 'at-colors';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -597,6 +598,7 @@ class Colors extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-colors {
 				display: flex;
 				flex-direction: row;
@@ -653,6 +655,63 @@ class Colors extends \Bricks\Element {
 				height: 0;
 			}
 
+			/* A11Y badges - hidden by default */
+			.atsg-colors .atsg-colors-item__contrast-badges {
+				display: none;
+			}
+
+			/* Show A11Y badges when toggle is checked */
+			.atsg-colors[data-show-a11y-badges="true"] .atsg-colors-item__contrast-badges {
+				display: flex;
+			}
+
+			/* A11Y Glossary - completely hidden by default with smooth reveal */
+			.atsg-colors__glossary {
+				width: 100%;
+				display: grid;
+				grid-template-rows: 0fr;
+				transition: grid-template-rows 0.3s ease-out;
+			}
+
+			.atsg-colors__glossary-inner {
+				min-height: 0;
+				overflow: hidden;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1.5em;
+				padding: 0;
+				border: 1px solid transparent;
+				transition: padding 0.3s ease-out, border-color 0.3s ease-out;
+			}
+
+			/* Show glossary when A11Y toggle is enabled AND glossary setting is on */
+			.atsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .atsg-colors__glossary {
+				grid-template-rows: 1fr;
+			}
+
+			.atsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .atsg-colors__glossary-inner {
+				padding: 1em;
+				border-color: var(--at-neutral-t-4, #d1d5db);
+			}
+
+			.atsg-colors__glossary-section {
+				flex: 1 1 200px;
+				min-width: 180px;
+			}
+
+			.atsg-colors__glossary-badges {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5em;
+			}
+
+			.atsg-colors__glossary-badge-item {
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+			}
+
+			@layer atsg {
 			.atsg-colors__toggle-switch {
 				position: relative;
 				width: 1.5em;
@@ -687,50 +746,9 @@ class Colors extends \Bricks\Element {
 				color: var(--at-neutral-d-2, #6b7280);
 			}
 
-			/* A11Y badges - hidden by default */
-			.atsg-colors .atsg-colors-item__contrast-badges {
-				display: none;
-			}
-
-			/* Show A11Y badges when toggle is checked */
-			.atsg-colors[data-show-a11y-badges="true"] .atsg-colors-item__contrast-badges {
-				display: flex;
-			}
-
-			/* A11Y Glossary - completely hidden by default with smooth reveal */
-			.atsg-colors__glossary {
-				width: 100%;
-				display: grid;
-				grid-template-rows: 0fr;
-				transition: grid-template-rows 0.3s ease-out;
-			}
-
 			.atsg-colors__glossary-inner {
-				min-height: 0;
-				overflow: hidden;
-				display: flex;
-				flex-wrap: wrap;
-				gap: 1.5em;
-				padding: 0;
 				background: var(--at-neutral-t-6, #f3f4f6);
 				border-radius: var(--at-radius--s, 0.5em);
-				border: 1px solid transparent;
-				transition: padding 0.3s ease-out, border-color 0.3s ease-out;
-			}
-
-			/* Show glossary when A11Y toggle is enabled AND glossary setting is on */
-			.atsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .atsg-colors__glossary {
-				grid-template-rows: 1fr;
-			}
-
-			.atsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .atsg-colors__glossary-inner {
-				padding: 1em;
-				border-color: var(--at-neutral-t-4, #d1d5db);
-			}
-
-			.atsg-colors__glossary-section {
-				flex: 1 1 200px;
-				min-width: 180px;
 			}
 
 			.atsg-colors__glossary-title {
@@ -770,18 +788,6 @@ class Colors extends \Bricks\Element {
 				color: var(--at-neutral-d-1, #9ca3af);
 			}
 
-			.atsg-colors__glossary-badges {
-				display: flex;
-				flex-direction: column;
-				gap: 0.5em;
-			}
-
-			.atsg-colors__glossary-badge-item {
-				display: flex;
-				align-items: center;
-				gap: 0.5em;
-			}
-
 			.atsg-colors__glossary-badge {
 				display: inline-flex;
 				align-items: center;
@@ -813,6 +819,7 @@ class Colors extends \Bricks\Element {
 				font-size: 0.6875em;
 				color: var(--at-neutral-d-2, #6b7280);
 			}
+			} /* end @layer atsg */
 		';
 	}
 }

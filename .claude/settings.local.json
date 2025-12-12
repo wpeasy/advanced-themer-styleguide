@@ -14,7 +14,10 @@
       "SlashCommand(/zip-plugin)",
       "Bash(powershell -ExecutionPolicy Bypass -File create-plugin-zip.ps1)",
       "Bash(powershell -Command \"[System.IO.Compression.ZipFile]::OpenRead(''advanced-themer-styleguide-0.0.2-beta.zip'').Entries | Select-Object -First 10 FullName\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(composer dump-autoload:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

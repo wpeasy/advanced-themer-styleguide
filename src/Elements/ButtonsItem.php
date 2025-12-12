@@ -303,14 +303,15 @@ class ButtonsItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_register_style(
-			'at-buttons-item',
-			false,
-			[],
-			AT_STYLE_GUIDE_VERSION
-		);
-		wp_add_inline_style( 'at-buttons-item', $this->get_element_css() );
-		wp_enqueue_style( 'at-buttons-item' );
+		$handle = 'at-buttons-item';
+
+		// Only register and add inline styles once.
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_add_inline_style( $handle, $this->get_element_css() );
+		}
+
+		wp_enqueue_style( $handle );
 	}
 
 	/**
@@ -320,6 +321,7 @@ class ButtonsItem extends \Bricks\Element {
 	 */
 	private function get_element_css(): string {
 		return '
+			/* Critical layout */
 			.atsg-buttons-item {
 				display: flex;
 				flex-direction: column;
@@ -341,6 +343,7 @@ class ButtonsItem extends \Bricks\Element {
 				text-align: center;
 			}
 
+			@layer atsg {
 			.atsg-buttons-item__description {
 				font-weight: 600;
 				font-size: 0.875em;
@@ -360,6 +363,7 @@ class ButtonsItem extends \Bricks\Element {
 				white-space: nowrap;
 				display: inline;
 			}
+			} /* end @layer atsg */
 		';
 	}
 }
