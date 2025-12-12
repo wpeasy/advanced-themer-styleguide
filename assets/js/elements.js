@@ -116,6 +116,22 @@
  * Typography Element (Nestable Container) - Initialize child items.
  */
 function atTypographyInit() {
+	// Apply parent's default sample text to child items that should inherit
+	const containers = document.querySelectorAll('.atsg-typography');
+	containers.forEach(container => {
+		const parentSampleText = container.dataset.sampleText;
+		if (parentSampleText) {
+			// Find all child items that should inherit sample text
+			const inheritItems = container.querySelectorAll('.atsg-typography-item[data-inherit-sample="true"]');
+			inheritItems.forEach(item => {
+				const sample = item.querySelector('.atsg-typography-item__sample');
+				if (sample) {
+					sample.textContent = parentSampleText;
+				}
+			});
+		}
+	});
+
 	// The parent just needs to ensure children are initialized
 	atTypographyItemInit();
 }

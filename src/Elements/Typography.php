@@ -142,6 +142,14 @@ class Typography extends \Bricks\Element {
 			],
 		];
 
+		$this->controls['sampleText'] = [
+			'group'       => 'layout',
+			'label'       => esc_html__( 'Sample Text', 'advanced-themer-style-guide' ),
+			'type'        => 'text',
+			'default'     => 'The quick brown fox jumps over the lazy dog',
+			'description' => esc_html__( 'Sets the default sample text for all Typography Items. Individual items can override this.', 'advanced-themer-style-guide' ),
+		];
+
 		// Display Override controls - apply to all child items.
 		$this->controls['overrideChildDisplay'] = [
 			'group'       => 'displayOverride',
@@ -340,7 +348,6 @@ class Typography extends \Bricks\Element {
 			'settings' => [
 				'label'       => '{item_label}',
 				'tag'         => '{item_tag}',
-				'sampleText'  => 'The quick brown fox jumps over the lazy dog',
 				'sampleClass' => '{item_class}',
 			],
 		];
@@ -405,6 +412,10 @@ class Typography extends \Bricks\Element {
 		}
 
 		$this->set_attribute( '_root', 'class', $root_classes );
+
+		// Pass default sample text as data attribute for child elements to read.
+		$sample_text = $settings['sampleText'] ?? 'The quick brown fox jumps over the lazy dog';
+		$this->set_attribute( '_root', 'data-sample-text', esc_attr( $sample_text ) );
 
 		// Pass override settings as data attributes for child elements to read.
 		if ( isset( $settings['overrideChildDisplay'] ) ) {

@@ -2,6 +2,16 @@
 
 All notable changes to Advanced Themer Style Guide will be documented in this file.
 
+## [0.0.6-beta] - 2025-12-12
+
+### Added
+- **Typography Element**: Sample Text control on parent to set default text for all child items
+- **TypographyItem Element**: Sample text inheritance - items without custom text inherit from parent
+- Standalone TypographyItems use fallback text when not inside a Typography parent
+
+### Changed
+- **TypographyItem Element**: Sample Text field now empty by default (inherits from parent)
+
 ## [0.0.5-beta] - 2025-12-12
 
 ### Added

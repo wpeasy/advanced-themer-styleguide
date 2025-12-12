@@ -127,8 +127,8 @@ class TypographyItem extends \Bricks\Element {
 			'group'       => 'content',
 			'label'       => esc_html__( 'Sample Text', 'advanced-themer-style-guide' ),
 			'type'        => 'text',
-			'default'     => 'The quick brown fox jumps over the lazy dog',
-			'placeholder' => esc_html__( 'Enter sample text...', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'Inherits from parent...', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Leave empty to use the default from the parent Typography element.', 'advanced-themer-style-guide' ),
 		];
 
 		// Display controls - all "Hide X" for consistency.
@@ -272,8 +272,16 @@ class TypographyItem extends \Bricks\Element {
 
 		$label        = $settings['label'] ?? 'Heading 1';
 		$tag          = $settings['tag'] ?? 'h1';
-		$sample_text  = $settings['sampleText'] ?? 'The quick brown fox jumps over the lazy dog';
 		$sample_class = $settings['sampleClass'] ?? '';
+
+		// Sample text: use item's value if set, otherwise will be replaced by JS from parent.
+		// If standalone (no parent), fallback to default.
+		$sample_text     = $settings['sampleText'] ?? '';
+		$has_custom_text = ! empty( $sample_text );
+
+		// Fallback text for standalone items or initial render.
+		$fallback_text = 'The quick brown fox jumps over the lazy dog';
+		$display_text  = $has_custom_text ? $sample_text : $fallback_text;
 
 		// Bricks checkbox: key exists = checked (true), key missing = unchecked (false).
 		// Using "Hide" checkboxes: isset = hide, !isset = show (default).
@@ -306,6 +314,11 @@ class TypographyItem extends \Bricks\Element {
 		$this->set_attribute( '_root', 'class', [ 'atsg-typography-item' ] );
 		$this->set_attribute( '_root', 'data-label', esc_attr( $label ) );
 
+		// Mark whether this item has custom sample text or should inherit from parent.
+		if ( ! $has_custom_text ) {
+			$this->set_attribute( '_root', 'data-inherit-sample', 'true' );
+		}
+
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
 		// Label.
@@ -316,7 +329,7 @@ class TypographyItem extends \Bricks\Element {
 		// Sample text.
 		$output .= '<div class="atsg-typography-item__sample-wrapper">';
 		$output .= '<' . esc_attr( $tag ) . ' class="' . esc_attr( $sample_class_string ) . '">';
-		$output .= esc_html( $sample_text );
+		$output .= esc_html( $display_text );
 		$output .= '</' . esc_attr( $tag ) . '>';
 		$output .= '</div>';
 
