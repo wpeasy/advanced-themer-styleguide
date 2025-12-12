@@ -2,6 +2,12 @@
 
 All notable changes to Advanced Themer Style Guide will be documented in this file.
 
+## [0.0.9-beta] - 2025-12-12
+
+### Changed
+- **Colors Element**: A11Y glossary large text sizes now shown in px (24px+/19px+ bold) instead of pt
+- Added note about approximate px values at 96dpi
+
 ## [0.0.8-beta] - 2025-12-12
 
 ### Added

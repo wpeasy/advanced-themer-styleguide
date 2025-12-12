@@ -531,8 +531,9 @@ class Colors extends \Bricks\Element {
 		$output .= '<ul class="atsg-colors__glossary-list">';
 		$output .= '<li><strong>AAA</strong> ' . esc_html__( '(7:1+) - Enhanced contrast, best for body text', 'advanced-themer-style-guide' ) . '</li>';
 		$output .= '<li><strong>AA</strong> ' . esc_html__( '(4.5:1+) - Minimum for normal text', 'advanced-themer-style-guide' ) . '</li>';
-		$output .= '<li><strong>AA Large</strong> ' . esc_html__( '(3:1+) - Minimum for large text (18pt+ or 14pt+ bold)', 'advanced-themer-style-guide' ) . '</li>';
+		$output .= '<li><strong>AA Large</strong> ' . esc_html__( '(3:1+) - Minimum for large text (24px+ or 19px+ bold)*', 'advanced-themer-style-guide' ) . '</li>';
 		$output .= '</ul>';
+		$output .= '<p class="atsg-colors__glossary-note">' . esc_html__( '*Approximate px values at 96dpi', 'advanced-themer-style-guide' ) . '</p>';
 		$output .= '</div>';
 
 		// Badge legend.
@@ -760,6 +761,13 @@ class Colors extends \Bricks\Element {
 
 			.atsg-colors__glossary-list li {
 				margin-bottom: 0.25em;
+			}
+
+			.atsg-colors__glossary-note {
+				margin: 0.5em 0 0 0;
+				font-size: 0.625em;
+				font-style: italic;
+				color: var(--at-neutral-d-1, #9ca3af);
 			}
 
 			.atsg-colors__glossary-badges {
