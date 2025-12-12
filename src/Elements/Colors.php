@@ -191,6 +191,14 @@ class Colors extends \Bricks\Element {
 			],
 		];
 
+		$this->controls['showA11yGlossary'] = [
+			'group'       => 'layout',
+			'label'       => esc_html__( 'Show A11Y Glossary', 'advanced-themer-style-guide' ),
+			'type'        => 'checkbox',
+			'rerender'    => true,
+			'description' => esc_html__( 'Show the WCAG contrast standards glossary when A11Y badges are enabled.', 'advanced-themer-style-guide' ),
+		];
+
 		// Display Override controls.
 		$this->controls['overrideChildDisplay'] = [
 			'group'       => 'displayOverride',
@@ -486,6 +494,16 @@ class Colors extends \Bricks\Element {
 			}
 		}
 
+		// Check if glossary should be shown.
+		// Bricks checkbox: key exists = checked, key missing = unchecked.
+		// We want glossary shown by default, so show if key exists OR if never set.
+		$show_glossary = isset( $settings['showA11yGlossary'] );
+
+		// Pass glossary setting as data attribute.
+		if ( $show_glossary ) {
+			$this->set_attribute( '_root', 'data-show-glossary', 'true' );
+		}
+
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
 		// A11Y badges toggle switch.
@@ -496,6 +514,56 @@ class Colors extends \Bricks\Element {
 		$output .= '<span class="atsg-colors__toggle-label">' . esc_html__( 'A11Y Badges', 'advanced-themer-style-guide' ) . '</span>';
 		$output .= '</label>';
 		$output .= '</div>';
+
+		// A11Y Glossary - reveals when toggle is enabled (if glossary is enabled in settings).
+		$output .= '<div class="atsg-colors__glossary">';
+		$output .= '<div class="atsg-colors__glossary-inner">';
+
+		// WCAG Standard explanation.
+		$output .= '<div class="atsg-colors__glossary-section">';
+		$output .= '<h4 class="atsg-colors__glossary-title">' . esc_html__( 'WCAG Contrast Standards', 'advanced-themer-style-guide' ) . '</h4>';
+		$output .= '<p class="atsg-colors__glossary-text">' . esc_html__( 'The Web Content Accessibility Guidelines (WCAG) define minimum contrast ratios between text and background colors to ensure readability for users with visual impairments.', 'advanced-themer-style-guide' ) . '</p>';
+		$output .= '</div>';
+
+		// Contrast ratios.
+		$output .= '<div class="atsg-colors__glossary-section">';
+		$output .= '<h4 class="atsg-colors__glossary-title">' . esc_html__( 'Contrast Ratios', 'advanced-themer-style-guide' ) . '</h4>';
+		$output .= '<ul class="atsg-colors__glossary-list">';
+		$output .= '<li><strong>AAA</strong> ' . esc_html__( '(7:1+) - Enhanced contrast, best for body text', 'advanced-themer-style-guide' ) . '</li>';
+		$output .= '<li><strong>AA</strong> ' . esc_html__( '(4.5:1+) - Minimum for normal text', 'advanced-themer-style-guide' ) . '</li>';
+		$output .= '<li><strong>AA Large</strong> ' . esc_html__( '(3:1+) - Minimum for large text (18pt+ or 14pt+ bold)', 'advanced-themer-style-guide' ) . '</li>';
+		$output .= '</ul>';
+		$output .= '</div>';
+
+		// Badge legend.
+		$output .= '<div class="atsg-colors__glossary-section">';
+		$output .= '<h4 class="atsg-colors__glossary-title">' . esc_html__( 'Badge Legend', 'advanced-themer-style-guide' ) . '</h4>';
+		$output .= '<div class="atsg-colors__glossary-badges">';
+		$output .= '<div class="atsg-colors__glossary-badge-item">';
+		$output .= '<span class="atsg-colors__glossary-badge atsg-colors__glossary-badge--pass">' . esc_html__( 'AAA / AA', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '<span class="atsg-colors__glossary-badge-desc">' . esc_html__( 'Pass - Good contrast', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '</div>';
+		$output .= '<div class="atsg-colors__glossary-badge-item">';
+		$output .= '<span class="atsg-colors__glossary-badge atsg-colors__glossary-badge--large">' . esc_html__( 'AA Large', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '<span class="atsg-colors__glossary-badge-desc">' . esc_html__( 'Large text only', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '</div>';
+		$output .= '<div class="atsg-colors__glossary-badge-item">';
+		$output .= '<span class="atsg-colors__glossary-badge atsg-colors__glossary-badge--fail">' . esc_html__( 'Fail', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '<span class="atsg-colors__glossary-badge-desc">' . esc_html__( 'Insufficient contrast', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '</div>';
+		$output .= '</div>';
+		$output .= '</div>';
+
+		// W/B badges explanation.
+		$output .= '<div class="atsg-colors__glossary-section">';
+		$output .= '<p class="atsg-colors__glossary-text atsg-colors__glossary-text--small">';
+		$output .= '<strong>W</strong> = ' . esc_html__( 'contrast against white text', 'advanced-themer-style-guide' ) . '<br>';
+		$output .= '<strong>B</strong> = ' . esc_html__( 'contrast against black text', 'advanced-themer-style-guide' );
+		$output .= '</p>';
+		$output .= '</div>';
+
+		$output .= '</div>'; // .atsg-colors__glossary-inner
+		$output .= '</div>'; // .atsg-colors__glossary
 
 		// Render children elements (individual color items).
 		$output .= \Bricks\Frontend::render_children( $this );
@@ -626,6 +694,116 @@ class Colors extends \Bricks\Element {
 			/* Show A11Y badges when toggle is checked */
 			.atsg-colors[data-show-a11y-badges="true"] .atsg-colors-item__contrast-badges {
 				display: flex;
+			}
+
+			/* A11Y Glossary - completely hidden by default with smooth reveal */
+			.atsg-colors__glossary {
+				width: 100%;
+				display: grid;
+				grid-template-rows: 0fr;
+				transition: grid-template-rows 0.3s ease-out;
+			}
+
+			.atsg-colors__glossary-inner {
+				min-height: 0;
+				overflow: hidden;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1.5em;
+				padding: 0;
+				background: var(--at-neutral-t-6, #f3f4f6);
+				border-radius: var(--at-radius--s, 0.5em);
+				border: 1px solid transparent;
+				transition: padding 0.3s ease-out, border-color 0.3s ease-out;
+			}
+
+			/* Show glossary when A11Y toggle is enabled AND glossary setting is on */
+			.atsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .atsg-colors__glossary {
+				grid-template-rows: 1fr;
+			}
+
+			.atsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .atsg-colors__glossary-inner {
+				padding: 1em;
+				border-color: var(--at-neutral-t-4, #d1d5db);
+			}
+
+			.atsg-colors__glossary-section {
+				flex: 1 1 200px;
+				min-width: 180px;
+			}
+
+			.atsg-colors__glossary-title {
+				margin: 0 0 0.5em 0;
+				font-size: 0.8125em;
+				font-weight: 600;
+				color: var(--at-neutral-d-4, #1f2937);
+			}
+
+			.atsg-colors__glossary-text {
+				margin: 0;
+				font-size: 0.75em;
+				line-height: 1.5;
+				color: var(--at-neutral-d-2, #6b7280);
+			}
+
+			.atsg-colors__glossary-text--small {
+				font-size: 0.6875em;
+			}
+
+			.atsg-colors__glossary-list {
+				margin: 0;
+				padding-left: 1em;
+				font-size: 0.75em;
+				line-height: 1.6;
+				color: var(--at-neutral-d-2, #6b7280);
+			}
+
+			.atsg-colors__glossary-list li {
+				margin-bottom: 0.25em;
+			}
+
+			.atsg-colors__glossary-badges {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5em;
+			}
+
+			.atsg-colors__glossary-badge-item {
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+			}
+
+			.atsg-colors__glossary-badge {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				padding: 0.125em 0.5em;
+				font-size: 0.625em;
+				font-weight: 600;
+				border-radius: 0.25em;
+				min-width: 3.5em;
+				text-align: center;
+			}
+
+			.atsg-colors__glossary-badge--pass {
+				background: var(--at-success, #10b981);
+				color: #ffffff;
+			}
+
+			.atsg-colors__glossary-badge--large {
+				background: var(--at-warning, #f59e0b);
+				color: #ffffff;
+			}
+
+			.atsg-colors__glossary-badge--fail {
+				background: var(--at-error, #ef4444);
+				color: #ffffff;
+			}
+
+			.atsg-colors__glossary-badge-desc {
+				font-size: 0.6875em;
+				color: var(--at-neutral-d-2, #6b7280);
 			}
 		';
 	}

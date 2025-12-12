@@ -2,6 +2,16 @@
 
 All notable changes to Advanced Themer Style Guide will be documented in this file.
 
+## [0.0.8-beta] - 2025-12-12
+
+### Added
+- **Colors Element**: A11Y Glossary with WCAG contrast standards, ratio explanations, and badge legend
+- **Colors Element**: "Show A11Y Glossary" control to enable/disable glossary display
+- Smooth reveal animation for A11Y glossary when toggle is enabled
+
+### Fixed
+- **Colors Element**: A11Y glossary now properly respects the show/hide control setting
+
 ## [0.0.7-beta] - 2025-12-12
 
 ### Added
