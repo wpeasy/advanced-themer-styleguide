@@ -4,10 +4,10 @@
  *
  * Provides access to CSS variables defined in Advanced Themer.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide;
+namespace AB\BricksSG;
 
 defined( 'ABSPATH' ) || exit;
 

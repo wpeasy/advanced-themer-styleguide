@@ -1,20 +1,20 @@
-# Advanced Themer Styleguide
+# Bricks Style Guide
 
-A WordPress plugin that provides styleguide functionality for Advanced Themer.
+A WordPress plugin that provides styleguide functionality for Bricks Builder.
 
 ## Description
 
-This plugin extends Advanced Themer with styleguide capabilities for Bricks Builder.
+This plugin extends Bricks Builder with styleguide capabilities, supporting both Advanced Themer and Automatic CSS frameworks.
 
 ## Requirements
 
 - WordPress 6.0+
 - Bricks Builder
-- Advanced Themer
+- Advanced Themer OR Automatic CSS
 
 ## Installation
 
-1. Upload the plugin files to `/wp-content/plugins/advanced-themer-styleguide`
+1. Upload the plugin files to `/wp-content/plugins/bricks-style-guide`
 2. Activate the plugin through the 'Plugins' screen in WordPress
 
 ## License

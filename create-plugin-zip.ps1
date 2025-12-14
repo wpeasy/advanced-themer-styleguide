@@ -4,10 +4,19 @@
 $pluginDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $pluginName = Split-Path -Leaf $pluginDir
 
+# Find main plugin file (PHP file with "Plugin Name:" header in root)
+$mainPluginFile = Get-ChildItem -Path $pluginDir -Filter "*.php" -File | Where-Object {
+    (Get-Content $_.FullName -Raw) -match "Plugin Name:"
+} | Select-Object -First 1
+
 # Get version from main plugin file
-$mainFile = Get-Content "$pluginDir\$pluginName.php" -Raw
-if ($mainFile -match "Version:\s*([0-9a-zA-Z.-]+)") {
-    $version = $matches[1]
+if ($mainPluginFile) {
+    $mainFileContent = Get-Content $mainPluginFile.FullName -Raw
+    if ($mainFileContent -match "Version:\s*([0-9a-zA-Z.-]+)") {
+        $version = $matches[1]
+    } else {
+        $version = "1.0.0"
+    }
 } else {
     $version = "1.0.0"
 }

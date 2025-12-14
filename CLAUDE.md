@@ -1,4 +1,4 @@
-# CLAUDE.md – Advanced Themer Style Guide
+# CLAUDE.md – Bricks Style Guide
 
 ## Required Reading
 
@@ -12,15 +12,15 @@ This file contains essential context about Svelte 5 patterns used in this projec
 
 ## Purpose
 
-The **Advanced Themer Style Guide** plugin adds Svelte-based custom elements to the **Bricks Builder** editor to visually document and verify a site's design system, with a focus on setups using **Advanced Themer**.
+The **Bricks Style Guide** plugin adds Svelte-based custom elements to the **Bricks Builder** editor to visually document and verify a site's design system, with support for **Advanced Themer** and **Automatic CSS** frameworks.
 
-It allows implementers to build live, on-page style guide layouts that reflect the actual CSS variables, Bricks theme settings, and Advanced Themer configuration used on the site.
+It allows implementers to build live, on-page style guide layouts that reflect the actual CSS variables, Bricks theme settings, and framework configuration used on the site.
 
-- **Plugin Name:** Advanced Themer Style Guide
-- **Description:** Adds Svelte based Elements to Bricks Builder for creating Style Guides based on Advanced Themer
-- **PHP Namespace:** `AB\ATStyleGuide`
-- **Constants Prefix:** `AT_STYLE_GUIDE_`
-- **Textdomain (derived):** `advanced-themer-style-guide`
+- **Plugin Name:** Bricks Style Guide
+- **Description:** Adds Svelte based Elements to Bricks Builder for creating Style Guides
+- **PHP Namespace:** `AB\BricksSG`
+- **Constants Prefix:** `BRICKS_SG_`
+- **Textdomain (derived):** `bricks-style-guide`
 - **Admin functionality:** None (no dedicated settings pages initially)
 - **Frontend / Builder functionality:** Bricks Builder elements for live style guides
 
@@ -88,7 +88,7 @@ A visual representation of the spacing scale used in the design system.
 
 - A **bar** representing the visual space (e.g. height of the bar corresponds to spacing value)
 - A **calculated value in `px`**, based on the current viewport size (for clamp-based or responsive spacing)
-- The associated **CSS variable name** (e.g. `--at-space-m`, `--at-gap-xl`)
+- The associated **CSS variable name** (e.g. `--at-space-m`, `--space-m`)
 
 **Behavior:**
 
@@ -107,7 +107,7 @@ Displays box samples showing border radius tokens.
 
 - A grid/list of boxes, each styled with a particular radius variable.
 - Each box:
-  - Uses a border radius from a variable (e.g. `--at-radius-s`).
+  - Uses a border radius from a variable (e.g. `--at-radius-s`, `--radius-s`).
   - Shows the **variable name** centered in the box (e.g. `--at-radius-l`).
 - Optional display of computed `px` value.
 
@@ -139,7 +139,7 @@ Visually represents the site's shadow tokens.
 
 #### 6. Colours Element
 
-Displays color palettes and variations in a structured layout, sourced from Bricks and Advanced Themer.
+Displays color palettes and variations in a structured layout, sourced from Bricks and the active CSS framework.
 
 **Default color sets:**
 
@@ -173,7 +173,7 @@ Displays color palettes and variations in a structured layout, sourced from Bric
 
 - Resolves color values by reading:
   - Bricks color palette data
-  - Underlying CSS variables, especially those beginning with `at-`
+  - Underlying CSS variables from the active framework
 - Generates derived variations (if implemented) or maps to pre-defined tokens for light/dark/transparent sets.
 
 ---
@@ -184,7 +184,7 @@ Displays color palettes and variations in a structured layout, sourced from Bric
 - No dedicated WordPress admin menu, settings pages, or configuration panels.
 - All configuration is intended to occur:
   - Via Bricks Builder element controls
-  - Via CSS variables, Bricks theme settings, and Advanced Themer configuration
+  - Via CSS variables, Bricks theme settings, and framework configuration
 
 Future enhancements may add an optional admin "Preview Style Guide" link or minimal config, but the baseline assumption is **builder-only UI**.
 
@@ -204,7 +204,7 @@ Future enhancements may add an optional admin "Preview Style Guide" link or mini
 
 1. **Namespace**
    - All PHP classes must use the namespace:
-     `AB\ATStyleGuide`
+     `AB\BricksSG`
    - PSR-4 autoloading must map this namespace to the plugin's `src/` directory (or equivalent).
 
 2. **Loading (Autoloading)**
@@ -241,10 +241,10 @@ Future enhancements may add an optional admin "Preview Style Guide" link or mini
    - For REST API endpoints, define and validate a **custom nonce** field alongside any authentication you use.
 
 7. **Constants**
-   - Define plugin paths and URLs as constants using the **constants prefix** `AT_STYLE_GUIDE_`, for example:
-     - `AT_STYLE_GUIDE_PLUGIN_PATH`
-     - `AT_STYLE_GUIDE_PLUGIN_URL`
-     - `AT_STYLE_GUIDE_VERSION`
+   - Define plugin paths and URLs as constants using the **constants prefix** `BRICKS_SG_`, for example:
+     - `BRICKS_SG_PLUGIN_PATH`
+     - `BRICKS_SG_PLUGIN_URL`
+     - `BRICKS_SG_VERSION`
    - Use these constants consistently for asset loading and includes.
 
 ---
@@ -348,7 +348,7 @@ Where the plugin exposes REST API endpoints or interactive features:
   - REST API (for Svelte-based UIs if needed)
   - Transients / Options APIs for caching
 - Make the plugin **translation-ready**:
-  - Wrap strings in `__()`, `_e()`, `_x()`, etc. with textdomain `advanced-themer-style-guide`.
+  - Wrap strings in `__()`, `_e()`, `_x()`, etc. with textdomain `bricks-style-guide`.
 - Integrate cleanly with Bricks Builder APIs for:
   - Custom element registration
   - Nested Elements definition
@@ -369,7 +369,7 @@ Where the plugin exposes REST API endpoints or interactive features:
 
 - **Composer Autoloading (PSR-4)**
   - Use Composer for autoloading all PHP classes:
-    - Namespace: `AB\ATStyleGuide`
+    - Namespace: `AB\BricksSG`
     - PSR-4 mapping in `composer.json`
 
 - **Graceful Fallbacks**
@@ -380,7 +380,7 @@ Where the plugin exposes REST API endpoints or interactive features:
 - **Error Handling & Validation**
   - Fail gracefully when:
     - Bricks is not active
-    - Required Advanced Themer variables are missing
+    - Required framework variables are missing
     - Expected palettes or tokens cannot be resolved
   - Log meaningful errors (using `error_log` or a custom logger) in development scenarios, but avoid noisy logs in production environments.
 
@@ -405,17 +405,30 @@ These examples demonstrate the patterns and structure for creating custom nestab
 
 ---
 
-## Advanced Themer Integration
+## Framework Integration
 
-### Accessing AT Color Data
+The plugin supports multiple CSS frameworks through a provider architecture:
 
-The primary method to access Advanced Themer colors:
+### Supported Frameworks
+
+1. **Advanced Themer** (Priority 1)
+2. **Automatic CSS (ACSS)** (Priority 2)
+
+### Accessing Color Data
+
+The primary method to access colors from the active framework:
 
 ```php
-$palettes = get_option('bricks_color_palette', []);
+use AB\BricksSG\ATColors;
+
+// Get all colors from the active framework
+$colors = ATColors::get_framework_colors();
+
+// Get color shades
+$shades = ATColors::get_framework_color_shades('primary');
 ```
 
-### Color Palette Structure
+### Color Palette Structure (Advanced Themer)
 
 Each palette in the array contains:
 
@@ -443,21 +456,13 @@ Each palette in the array contains:
 
 ### Color Variations/Shades
 
-When `shadeChildren` is enabled on a color, AT generates these variations:
+**Advanced Themer:**
 - **Light shades:** `l-1`, `l-2`, `l-3`, `l-4`, `l-5`, `l-6`
 - **Dark shades:** `d-1`, `d-2`, `d-3`, `d-4`, `d-5`, `d-6`
 
-### Available Filter Hook
-
-```php
-// Modify palette settings before processing
-apply_filters('at/color_palettes/override_palette_settings', $palette);
-```
-
-### Key AT Classes
-
-- `AT__Global_Colors::load_colors_variables_on_frontend()` - Returns [light_css, dark_css, gutenberg_colors]
-- `AT__Global_Colors::load_converted_colors_variables_on_frontend()` - Returns CSS with HSL values
+**Automatic CSS:**
+- **Light shades:** `ultra-light`, `light`, `semi-light`
+- **Dark shades:** `hover`, `semi-dark`, `dark`, `ultra-dark`
 
 ### Storage Locations
 
@@ -474,3 +479,4 @@ Key files:
 - `classes/global_colors.php` - Main color management class
 - `classes/acf.php` - ACF field definitions (line 1308+)
 - `classes/ajax.php` - AJAX handlers for import/export
+- never halucinate and make stuff up

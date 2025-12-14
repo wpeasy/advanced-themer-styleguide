@@ -2,12 +2,12 @@
 /**
  * Main Plugin class.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide;
+namespace AB\BricksSG;
 
-use AB\ATStyleGuide\Admin\AdminMenu;
+use AB\BricksSG\Admin\AdminMenu;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -61,69 +61,69 @@ final class Plugin {
 		// Register elements with explicit file, name, and fully-qualified class name.
 		$elements = [
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Typography.php',
-				'name'  => 'at-typography',
-				'class' => 'AB\\ATStyleGuide\\Elements\\Typography',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/Typography.php',
+				'name'  => 'bsg-typography',
+				'class' => 'AB\\BricksSG\\Elements\\Typography',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/TypographyItem.php',
-				'name'  => 'at-typography-item',
-				'class' => 'AB\\ATStyleGuide\\Elements\\TypographyItem',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/TypographyItem.php',
+				'name'  => 'bsg-typography-item',
+				'class' => 'AB\\BricksSG\\Elements\\TypographyItem',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Spacing.php',
-				'name'  => 'at-spacing',
-				'class' => 'AB\\ATStyleGuide\\Elements\\Spacing',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/Spacing.php',
+				'name'  => 'bsg-spacing',
+				'class' => 'AB\\BricksSG\\Elements\\Spacing',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/SpacingItem.php',
-				'name'  => 'at-spacing-item',
-				'class' => 'AB\\ATStyleGuide\\Elements\\SpacingItem',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/SpacingItem.php',
+				'name'  => 'bsg-spacing-item',
+				'class' => 'AB\\BricksSG\\Elements\\SpacingItem',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Radii.php',
-				'name'  => 'at-radii',
-				'class' => 'AB\\ATStyleGuide\\Elements\\Radii',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/Radii.php',
+				'name'  => 'bsg-radii',
+				'class' => 'AB\\BricksSG\\Elements\\Radii',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/RadiiItem.php',
-				'name'  => 'at-radii-item',
-				'class' => 'AB\\ATStyleGuide\\Elements\\RadiiItem',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/RadiiItem.php',
+				'name'  => 'bsg-radii-item',
+				'class' => 'AB\\BricksSG\\Elements\\RadiiItem',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/BoxShadows.php',
-				'name'  => 'at-box-shadows',
-				'class' => 'AB\\ATStyleGuide\\Elements\\BoxShadows',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/BoxShadows.php',
+				'name'  => 'bsg-box-shadows',
+				'class' => 'AB\\BricksSG\\Elements\\BoxShadows',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/BoxShadowsItem.php',
-				'name'  => 'at-box-shadows-item',
-				'class' => 'AB\\ATStyleGuide\\Elements\\BoxShadowsItem',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/BoxShadowsItem.php',
+				'name'  => 'bsg-box-shadows-item',
+				'class' => 'AB\\BricksSG\\Elements\\BoxShadowsItem',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/ColorSwatch.php',
-				'name'  => 'at-color-swatch',
-				'class' => 'AB\\ATStyleGuide\\Elements\\ColorSwatch',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/ColorSwatch.php',
+				'name'  => 'bsg-color-swatch',
+				'class' => 'AB\\BricksSG\\Elements\\ColorSwatch',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Buttons.php',
-				'name'  => 'at-buttons',
-				'class' => 'AB\\ATStyleGuide\\Elements\\Buttons',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/Buttons.php',
+				'name'  => 'bsg-buttons',
+				'class' => 'AB\\BricksSG\\Elements\\Buttons',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/ButtonsItem.php',
-				'name'  => 'at-buttons-item',
-				'class' => 'AB\\ATStyleGuide\\Elements\\ButtonsItem',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/ButtonsItem.php',
+				'name'  => 'bsg-buttons-item',
+				'class' => 'AB\\BricksSG\\Elements\\ButtonsItem',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/Colors.php',
-				'name'  => 'at-colors',
-				'class' => 'AB\\ATStyleGuide\\Elements\\Colors',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/Colors.php',
+				'name'  => 'bsg-colors',
+				'class' => 'AB\\BricksSG\\Elements\\Colors',
 			],
 			[
-				'file'  => AT_STYLE_GUIDE_PLUGIN_PATH . 'src/Elements/ColorsItem.php',
-				'name'  => 'at-colors-item',
-				'class' => 'AB\\ATStyleGuide\\Elements\\ColorsItem',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/ColorsItem.php',
+				'name'  => 'bsg-colors-item',
+				'class' => 'AB\\BricksSG\\Elements\\ColorsItem',
 			],
 		];
 
@@ -140,7 +140,7 @@ final class Plugin {
 	 */
 	public static function add_i18n_strings( array $i18n ): array {
 		// Add category label for our elements.
-		$i18n['at style guide'] = esc_html__( 'AT Style Guide', 'advanced-themer-style-guide' );
+		$i18n['bricks style guide'] = esc_html__( 'Bricks Style Guide', 'bricks-style-guide' );
 
 		return $i18n;
 	}
@@ -153,43 +153,43 @@ final class Plugin {
 	public static function enqueue_frontend_assets(): void {
 		// Register element scripts (Bricks will call these via $scripts property).
 		wp_register_script(
-			'at-style-guide-elements',
-			AT_STYLE_GUIDE_PLUGIN_URL . 'assets/js/elements.js',
+			'bricks-style-guide-elements',
+			BRICKS_SG_PLUGIN_URL . 'assets/js/elements.js',
 			[],
-			AT_STYLE_GUIDE_VERSION,
+			BRICKS_SG_VERSION,
 			true
 		);
-		wp_enqueue_script( 'at-style-guide-elements' );
+		wp_enqueue_script( 'bricks-style-guide-elements' );
 
 		// Enqueue Svelte assets if they exist.
-		$dist_path = AT_STYLE_GUIDE_PLUGIN_PATH . 'assets/svelte/dist/';
-		$dist_url  = AT_STYLE_GUIDE_PLUGIN_URL . 'assets/svelte/dist/';
+		$dist_path = BRICKS_SG_PLUGIN_PATH . 'assets/svelte/dist/';
+		$dist_url  = BRICKS_SG_PLUGIN_URL . 'assets/svelte/dist/';
 
 		if ( file_exists( $dist_path . 'main.js' ) ) {
 			wp_enqueue_script(
-				'at-style-guide-svelte',
+				'bricks-style-guide-svelte',
 				$dist_url . 'main.js',
 				[],
-				AT_STYLE_GUIDE_VERSION,
+				BRICKS_SG_VERSION,
 				true
 			);
 
 			wp_localize_script(
-				'at-style-guide-svelte',
-				'atStyleGuideData',
+				'bricks-style-guide-svelte',
+				'bricksStyleGuideData',
 				[
 					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => wp_create_nonce( 'at_style_guide_nonce' ),
+					'nonce'   => wp_create_nonce( 'bricks_style_guide_nonce' ),
 				]
 			);
 		}
 
 		if ( file_exists( $dist_path . 'main.css' ) ) {
 			wp_enqueue_style(
-				'at-style-guide-styles',
+				'bricks-style-guide-styles',
 				$dist_url . 'main.css',
 				[],
-				AT_STYLE_GUIDE_VERSION
+				BRICKS_SG_VERSION
 			);
 		}
 	}

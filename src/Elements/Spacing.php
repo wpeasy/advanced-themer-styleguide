@@ -4,12 +4,14 @@
  *
  * Container element for spacing samples with computed pixel values.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
 
-use AB\ATStyleGuide\ATFrameworkDefaults;
+use AB\BricksSG\ATFrameworkDefaults;
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,18 +21,31 @@ defined( 'ABSPATH' ) || exit;
 class Spacing extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-spacing';
+	public $name = 'bsg-spacing';
 
 	/**
 	 * Element icon.
@@ -44,7 +59,7 @@ class Spacing extends \Bricks\Element {
 	 *
 	 * @var array
 	 */
-	public $scripts = [ 'atSpacingInit' ];
+	public $scripts = [ 'bsgSpacingInit' ];
 
 	/**
 	 * Nestable element.
@@ -59,7 +74,7 @@ class Spacing extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'Spacing', 'advanced-themer-style-guide' ) . ' (' . esc_html__( 'Nestable', 'advanced-themer-style-guide' ) . ')';
+		return esc_html__( 'Spacing', 'bricks-style-guide' ) . ' (' . esc_html__( 'Nestable', 'bricks-style-guide' ) . ')';
 	}
 
 	/**
@@ -78,17 +93,17 @@ class Spacing extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['layout'] = [
-			'title' => esc_html__( 'Layout', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Layout', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['displayOverride'] = [
-			'title' => esc_html__( 'Display Override', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display Override', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['style'] = [
-			'title' => esc_html__( 'Item Styling', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Item Styling', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 	}
@@ -102,35 +117,38 @@ class Spacing extends \Bricks\Element {
 		// Layout controls.
 		$this->controls['layout'] = [
 			'group'    => 'layout',
-			'label'    => esc_html__( 'Layout', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Layout', 'bricks-style-guide' ),
 			'type'     => 'select',
 			'options'  => [
-				'horizontal' => esc_html__( 'Horizontal Bars', 'advanced-themer-style-guide' ),
-				'vertical'   => esc_html__( 'Vertical Bars', 'advanced-themer-style-guide' ),
+				'horizontal' => esc_html__( 'Horizontal Bars', 'bricks-style-guide' ),
+				'vertical'   => esc_html__( 'Vertical Bars', 'bricks-style-guide' ),
 			],
 			'default'  => 'horizontal',
 			'inline'   => true,
 			'rerender' => true,
 		];
 
+		// Get framework-specific example variables.
+		$examples = FrameworkDetector::get_example_variables();
+
 		$this->controls['baseFontSize'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Base Font Size', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Base Font Size', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'default'     => 'var(--at-text--s)',
+			'default'     => $examples['text_s'],
 			'css'         => [
 				[
 					'property' => 'font-size',
 					'selector' => '',
 				],
 			],
-			'description' => esc_html__( 'Base font size for the element. Sub-components use em units relative to this.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Base font size for the element. Sub-components use em units relative to this.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['gap'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Gap', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Gap', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => '1em',
@@ -145,14 +163,14 @@ class Spacing extends \Bricks\Element {
 		// Style preset.
 		$this->controls['stylePreset'] = [
 			'group'    => 'layout',
-			'label'    => esc_html__( 'Style Preset', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Style Preset', 'bricks-style-guide' ),
 			'type'     => 'select',
 			'options'  => [
-				'default'   => esc_html__( 'Default', 'advanced-themer-style-guide' ),
-				'minimal'   => esc_html__( 'Minimal', 'advanced-themer-style-guide' ),
-				'bold'      => esc_html__( 'Bold', 'advanced-themer-style-guide' ),
-				'colourful' => esc_html__( 'Colourful', 'advanced-themer-style-guide' ),
-				'compact'   => esc_html__( 'Compact', 'advanced-themer-style-guide' ),
+				'default'   => esc_html__( 'Default', 'bricks-style-guide' ),
+				'minimal'   => esc_html__( 'Minimal', 'bricks-style-guide' ),
+				'bold'      => esc_html__( 'Bold', 'bricks-style-guide' ),
+				'colourful' => esc_html__( 'Colourful', 'bricks-style-guide' ),
+				'compact'   => esc_html__( 'Compact', 'bricks-style-guide' ),
 			],
 			'default'  => 'default',
 			'inline'   => true,
@@ -162,15 +180,15 @@ class Spacing extends \Bricks\Element {
 		// Display Override controls - apply to all child items.
 		$this->controls['overrideChildDisplay'] = [
 			'group'       => 'displayOverride',
-			'label'       => esc_html__( 'Override Child Display Settings', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Override Child Display Settings', 'bricks-style-guide' ),
 			'type'        => 'checkbox',
 			'rerender'    => true,
-			'description' => esc_html__( 'Enable to control display settings for all child items from here.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Enable to control display settings for all child items from here.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['hideLabel'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Label', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Label', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -178,7 +196,7 @@ class Spacing extends \Bricks\Element {
 
 		$this->controls['hideVariable'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Variable Name', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Variable Name', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -186,7 +204,7 @@ class Spacing extends \Bricks\Element {
 
 		$this->controls['hideValue'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Computed Value', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Computed Value', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -194,7 +212,7 @@ class Spacing extends \Bricks\Element {
 
 		$this->controls['hideValueLabel'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Value Label', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Value Label', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -203,77 +221,77 @@ class Spacing extends \Bricks\Element {
 		// Item styling controls.
 		$this->controls['barColor'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Bar Color', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Bar Color', 'bricks-style-guide' ),
 			'type'  => 'color',
 			'css'   => [
 				[
 					'property' => 'background-color',
-					'selector' => '.atsg-spacing-item__bar',
+					'selector' => '.bsg-spacing-item__bar',
 				],
 			],
 		];
 
 		$this->controls['barThickness'] = [
 			'group'       => 'style',
-			'label'       => esc_html__( 'Bar Thickness', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Bar Thickness', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => '1.5em',
 			'css'         => [
 				[
-					'property' => '--atsg-bar-thickness',
+					'property' => '--bsg-bar-thickness',
 					'selector' => '',
 				],
 			],
-			'description' => esc_html__( 'Thickness of the spacing bars (height in horizontal, width in vertical layout).', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Thickness of the spacing bars (height in horizontal, width in vertical layout).', 'bricks-style-guide' ),
 		];
 
 		$this->controls['labelTypography'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Label Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Label Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-spacing-item__label',
+					'selector' => '.bsg-spacing-item__label',
 				],
 			],
 		];
 
 		$this->controls['variableTypography'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Variable Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Variable Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-spacing-item__variable',
+					'selector' => '.bsg-spacing-item__variable',
 				],
 			],
 		];
 
 		$this->controls['valueTypography'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Value Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Value Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-spacing-item__value',
+					'selector' => '.bsg-spacing-item__value',
 				],
 			],
 		];
 
 		$this->controls['infoMinWidth'] = [
 			'group'       => 'style',
-			'label'       => esc_html__( 'Info Min Width', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Info Min Width', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'placeholder' => 'var(--at-space--3xl)',
+			'placeholder' => $examples['space_3xl'],
 			'css'         => [
 				[
 					'property' => 'min-width',
-					'selector' => '.atsg-spacing-item__info',
+					'selector' => '.bsg-spacing-item__info',
 				],
 			],
 		];
@@ -286,8 +304,8 @@ class Spacing extends \Bricks\Element {
 	 */
 	public function get_nestable_item(): array {
 		return [
-			'name'     => 'at-spacing-item',
-			'label'    => esc_html__( 'Spacing Item', 'advanced-themer-style-guide' ),
+			'name'     => 'bsg-spacing-item',
+			'label'    => esc_html__( 'Spacing Item', 'bricks-style-guide' ),
 			'settings' => [
 				'label'    => '{item_label}',
 				'variable' => '{item_variable}',
@@ -301,26 +319,33 @@ class Spacing extends \Bricks\Element {
 	 * @return array
 	 */
 	public function get_nestable_children(): array {
-		$default_items = [
-			[ 'label' => '3XS', 'variable' => '--at-space--3xs' ],
-			[ 'label' => '2XS', 'variable' => '--at-space--2xs' ],
-			[ 'label' => 'XS', 'variable' => '--at-space--xs' ],
-			[ 'label' => 'S', 'variable' => '--at-space--s' ],
-			[ 'label' => 'M', 'variable' => '--at-space--m' ],
-			[ 'label' => 'L', 'variable' => '--at-space--l' ],
-			[ 'label' => 'XL', 'variable' => '--at-space--xl' ],
-			[ 'label' => '2XL', 'variable' => '--at-space--2xl' ],
-			[ 'label' => '3XL', 'variable' => '--at-space--3xl' ],
-		];
+		// Get spacing variables from the active framework.
+		$framework = FrameworkDetector::get_active_framework();
+		if ( $framework ) {
+			$spacing_vars = $framework::get_spacing_variables();
+		} else {
+			// Fallback to generic items.
+			$spacing_vars = [
+				[ 'name' => '3xs', 'variable' => '--space-3xs' ],
+				[ 'name' => '2xs', 'variable' => '--space-2xs' ],
+				[ 'name' => 'xs', 'variable' => '--space-xs' ],
+				[ 'name' => 's', 'variable' => '--space-s' ],
+				[ 'name' => 'm', 'variable' => '--space-m' ],
+				[ 'name' => 'l', 'variable' => '--space-l' ],
+				[ 'name' => 'xl', 'variable' => '--space-xl' ],
+				[ 'name' => '2xl', 'variable' => '--space-2xl' ],
+				[ 'name' => '3xl', 'variable' => '--space-3xl' ],
+			];
+		}
 
 		$children = [];
 
-		foreach ( $default_items as $item ) {
+		foreach ( $spacing_vars as $item ) {
 			$child = $this->get_nestable_item();
 
 			// Replace placeholders.
 			$child      = wp_json_encode( $child );
-			$child      = str_replace( '{item_label}', $item['label'], $child );
+			$child      = str_replace( '{item_label}', strtoupper( $item['name'] ), $child );
 			$child      = str_replace( '{item_variable}', $item['variable'], $child );
 			$child      = json_decode( $child, true );
 			$children[] = $child;
@@ -335,8 +360,8 @@ class Spacing extends \Bricks\Element {
 	 * @return void
 	 */
 	public function render(): void {
-		// Check for ATF variables.
-		if ( ! ATFrameworkDefaults::has_at_variables() ) {
+		// Check for framework variables (AT or ACSS).
+		if ( ! ATFrameworkDefaults::has_framework_variables() ) {
 			echo ATFrameworkDefaults::render_warning(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			return;
 		}
@@ -346,9 +371,9 @@ class Spacing extends \Bricks\Element {
 		$layout       = $settings['layout'] ?? 'horizontal';
 		$style_preset = $settings['stylePreset'] ?? 'default';
 
-		$root_classes = [ 'atsg-spacing', 'atsg-spacing--' . $layout ];
+		$root_classes = [ 'bsg-spacing', 'bsg-spacing--' . $layout ];
 		if ( 'default' !== $style_preset ) {
-			$root_classes[] = 'atsg-spacing--' . $style_preset;
+			$root_classes[] = 'bsg-spacing--' . $style_preset;
 		}
 
 		$this->set_attribute( '_root', 'class', $root_classes );
@@ -389,11 +414,11 @@ class Spacing extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-spacing';
+		$handle = 'bsg-spacing';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -406,40 +431,43 @@ class Spacing extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
 			/* Critical layout */
-			.atsg-spacing {
-				--atsg-bar-thickness: 1.5em;
+			.bsg-spacing {
+				' . $framework_vars . '
+				--bsg-bar-thickness: 1.5em;
 				display: flex;
 				flex-direction: column;
 				gap: 1em;
 			}
 
 			/* Horizontal layout: bar thickness = height, width = spacing value */
-			.atsg-spacing--horizontal .atsg-spacing-item__bar {
-				height: var(--atsg-bar-thickness) !important;
+			.bsg-spacing--horizontal .bsg-spacing-item__bar {
+				height: var(--bsg-bar-thickness) !important;
 			}
 
 			/* Vertical layout */
-			.atsg-spacing--vertical {
+			.bsg-spacing--vertical {
 				flex-direction: row;
 				flex-wrap: wrap;
 				align-items: flex-end;
 				gap: 1.5em;
 			}
 
-			.atsg-spacing--vertical .atsg-spacing-item {
+			.bsg-spacing--vertical .bsg-spacing-item {
 				flex-direction: column;
 				align-items: center;
 			}
 
-			.atsg-spacing--vertical .atsg-spacing-item__info {
+			.bsg-spacing--vertical .bsg-spacing-item__info {
 				min-width: auto;
 				align-items: center;
 				order: 2;
 			}
 
-			.atsg-spacing--vertical .atsg-spacing-item__bar-container {
+			.bsg-spacing--vertical .bsg-spacing-item__bar-container {
 				flex-direction: column;
 				justify-content: flex-end;
 				height: 12em;
@@ -447,97 +475,97 @@ class Spacing extends \Bricks\Element {
 			}
 
 			/* Vertical layout: bar thickness = width, height = spacing value */
-			.atsg-spacing--vertical .atsg-spacing-item__bar {
-				width: var(--atsg-bar-thickness) !important;
+			.bsg-spacing--vertical .bsg-spacing-item__bar {
+				width: var(--bsg-bar-thickness) !important;
 				height: auto;
 			}
 
-			@layer atsg {
-			.atsg-spacing__placeholder {
+			@layer bsg {
+			.bsg-spacing__placeholder {
 				padding: 2em;
-				background: var(--at-neutral-t-6, #f3f4f6);
-				border: 2px dashed var(--at-border-color, #d1d5db);
+				background: var(--bsg-neutral-light, #f3f4f6);
+				border: 2px dashed var(--bsg-border-color, #d1d5db);
 				border-radius: 0.5em;
 				text-align: center;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
 			/* Style: Minimal */
-			.atsg-spacing--minimal .atsg-spacing-item__label {
+			.bsg-spacing--minimal .bsg-spacing-item__label {
 				font-weight: 400;
 			}
 
-			.atsg-spacing--minimal .atsg-spacing-item__variable {
+			.bsg-spacing--minimal .bsg-spacing-item__variable {
 				display: none;
 			}
 
 			/* Style: Bold */
-			.atsg-spacing--bold .atsg-spacing-item__label {
+			.bsg-spacing--bold .bsg-spacing-item__label {
 				font-size: 0.875em;
 				font-weight: 700;
 			}
 
-			.atsg-spacing--bold .atsg-spacing-item__bar {
-				--atsg-bar-thickness: 2em;
+			.bsg-spacing--bold .bsg-spacing-item__bar {
+				--bsg-bar-thickness: 2em;
 			}
 
 			/* Style: Colourful */
-			.atsg-spacing--colourful .atsg-spacing-item__bar {
-				background: linear-gradient(90deg, var(--at-primary, #3b82f6), var(--at-secondary, #8b5cf6));
+			.bsg-spacing--colourful .bsg-spacing-item__bar {
+				background: linear-gradient(90deg, var(--bsg-primary, #3b82f6), var(--bsg-secondary, #8b5cf6));
 			}
 
-			.atsg-spacing--colourful .atsg-spacing-item__label {
-				color: var(--at-primary, #3b82f6);
+			.bsg-spacing--colourful .bsg-spacing-item__label {
+				color: var(--bsg-primary, #3b82f6);
 			}
 
-			.atsg-spacing--colourful .atsg-spacing-item__variable {
-				background: var(--at-primary-l-5, #dbeafe);
-				color: var(--at-primary-d-2, #1d4ed8);
+			.bsg-spacing--colourful .bsg-spacing-item__variable {
+				background: var(--bsg-primary-light, #dbeafe);
+				color: var(--bsg-primary-dark, #1d4ed8);
 			}
 
 			/* Style: Compact */
-			.atsg-spacing--compact {
+			.bsg-spacing--compact {
 				gap: 0.25em;
 			}
 
-			.atsg-spacing--compact .atsg-spacing-item {
+			.bsg-spacing--compact .bsg-spacing-item {
 				gap: 0.5em;
 			}
 
-			.atsg-spacing--compact .atsg-spacing-item__info {
+			.bsg-spacing--compact .bsg-spacing-item__info {
 				min-width: 5em;
 				gap: 0.125em;
 			}
 
-			.atsg-spacing--compact .atsg-spacing-item__label {
+			.bsg-spacing--compact .bsg-spacing-item__label {
 				font-size: 0.75em;
 			}
 
-			.atsg-spacing--compact .atsg-spacing-item__variable {
+			.bsg-spacing--compact .bsg-spacing-item__variable {
 				font-size: 0.75em;
 			}
 
-			.atsg-spacing--compact .atsg-spacing-item__bar {
-				--atsg-bar-thickness: 1em;
+			.bsg-spacing--compact .bsg-spacing-item__bar {
+				--bsg-bar-thickness: 1em;
 			}
 
 			/* Parent override styles - hide elements based on parent data attributes */
-			.atsg-spacing[data-override="true"][data-hide-label="true"] .atsg-spacing-item__label {
+			.bsg-spacing[data-override="true"][data-hide-label="true"] .bsg-spacing-item__label {
 				display: none;
 			}
 
-			.atsg-spacing[data-override="true"][data-hide-variable="true"] .atsg-spacing-item__variable {
+			.bsg-spacing[data-override="true"][data-hide-variable="true"] .bsg-spacing-item__variable {
 				display: none;
 			}
 
-			.atsg-spacing[data-override="true"][data-hide-value="true"] .atsg-spacing-item__value {
+			.bsg-spacing[data-override="true"][data-hide-value="true"] .bsg-spacing-item__value {
 				display: none;
 			}
 
-			.atsg-spacing[data-override="true"][data-hide-value-label="true"] .atsg-spacing-item__value-label {
+			.bsg-spacing[data-override="true"][data-hide-value-label="true"] .bsg-spacing-item__value-label {
 				display: none;
 			}
-			} /* end @layer atsg */
+			} /* end @layer bsg */
 		';
 	}
 }

@@ -3,6 +3,18 @@
   import Card from '$lib/Card.svelte';
   import Alert from '$lib/Alert.svelte';
 
+  // Props passed from PHP via wp_localize_script
+  interface Props {
+    activeFramework?: 'at' | 'acss';
+    frameworkName?: string;
+  }
+
+  let { activeFramework = 'at', frameworkName = 'Advanced Themer' }: Props = $props();
+
+  // Reactive check for which framework
+  const isAT = $derived(activeFramework === 'at');
+  const isACSS = $derived(activeFramework === 'acss');
+
   // Tab content snippets must be defined inline
   const tabs = [
     { id: 'requirements', label: 'Requirements', content: requirementsContent },
@@ -17,47 +29,97 @@
 </script>
 
 {#snippet requirementsContent()}
-  <div class="atsg-instructions__content">
+  <div class="bsg-instructions__content">
     <Card title="Requirements">
-      <Alert variant="warning">
-        <strong>Required Plugins:</strong> This plugin requires both <strong>Bricks Builder</strong> and <strong>Advanced Themer for Bricks</strong> to be installed and activated.
+      <Alert variant="success">
+        <strong>Active Framework:</strong> {frameworkName}
       </Alert>
 
-      <div class="atsg-instructions__section">
-        <h4>Advanced Themer Variables</h4>
-        <p>The Style Guide elements read CSS variables defined by Advanced Themer. Ensure you have configured:</p>
-        <ul>
-          <li><code>--at-primary</code>, <code>--at-secondary</code>, <code>--at-neutral</code> - Core color palette</li>
-          <li><code>--at-text--*</code> - Typography scale variables</li>
-          <li><code>--at-space--*</code> - Spacing scale variables</li>
-          <li><code>--at-radius--*</code> - Border radius variables</li>
-          <li><code>--at-shadow--*</code> - Box shadow variables</li>
-        </ul>
-      </div>
+      {#if isAT}
+        <div class="bsg-instructions__section">
+          <h4>Advanced Themer Variables</h4>
+          <p>The Style Guide elements read CSS variables defined by Advanced Themer. Ensure you have configured:</p>
+          <ul>
+            <li><code>--at-primary</code>, <code>--at-secondary</code>, <code>--at-neutral</code> - Core color palette</li>
+            <li><code>--at-text--*</code> - Typography scale variables (2xs, xs, s, m, l, xl, 2xl, 3xl)</li>
+            <li><code>--at-space--*</code> - Spacing scale variables (3xs, 2xs, xs, s, m, l, xl, 2xl, 3xl)</li>
+            <li><code>--at-radius--*</code> - Border radius variables (xs, s, m, l)</li>
+            <li><code>--at-shadow--*</code> - Box shadow variables (s, m, l, xl, 2xl)</li>
+          </ul>
+        </div>
 
-      <div class="atsg-instructions__section">
-        <h4>Bricks Theme Styles</h4>
-        <p>The Button element uses Bricks' built-in button classes:</p>
-        <ul>
-          <li><code>.bricks-button</code> - Base button class</li>
-          <li><code>.bricks-color-*</code> - Color variants (primary, secondary, dark, light, etc.)</li>
-          <li><code>.sm</code>, <code>.md</code>, <code>.lg</code>, <code>.xl</code> - Size classes</li>
-          <li><code>.outline</code> - Outline variant</li>
-          <li><code>.round</code>, <code>.square</code>, <code>.circle</code> - Shape variants</li>
-        </ul>
-      </div>
+        <div class="bsg-instructions__section">
+          <h4>Color Shades</h4>
+          <p>Advanced Themer generates light and dark shades for each color:</p>
+          <ul>
+            <li><strong>Light shades:</strong> <code>-l-1</code> through <code>-l-6</code> (e.g., <code>--at-primary-l-3</code>)</li>
+            <li><strong>Dark shades:</strong> <code>-d-1</code> through <code>-d-6</code> (e.g., <code>--at-primary-d-2</code>)</li>
+            <li><strong>Transparent:</strong> <code>-t-1</code> through <code>-t-6</code> (e.g., <code>--at-primary-t-4</code>)</li>
+          </ul>
+        </div>
+      {:else}
+        <div class="bsg-instructions__section">
+          <h4>Automatic CSS Variables</h4>
+          <p>The Style Guide elements read CSS variables defined by Automatic CSS. Ensure you have configured:</p>
+          <ul>
+            <li><code>--primary</code>, <code>--secondary</code>, <code>--neutral</code> - Core color palette</li>
+            <li><code>--text-*</code> - Typography scale variables (xs, s, m, l, xl, xxl)</li>
+            <li><code>--space-*</code> - Spacing scale variables (xs, s, m, l, xl, xxl)</li>
+            <li><code>--radius-*</code> - Border radius variables (xs, s, m, l, xl, xxl)</li>
+            <li><code>--box-shadow-*</code> - Box shadow variables (m, l, xl)</li>
+          </ul>
+        </div>
+
+        <div class="bsg-instructions__section">
+          <h4>Color Shades</h4>
+          <p>Automatic CSS uses named shades for each color:</p>
+          <ul>
+            <li><strong>Light shades:</strong> <code>-ultra-light</code>, <code>-light</code>, <code>-semi-light</code></li>
+            <li><strong>Dark shades:</strong> <code>-semi-dark</code>, <code>-dark</code>, <code>-ultra-dark</code></li>
+            <li><strong>Hover:</strong> <code>-hover</code> (e.g., <code>--primary-hover</code>)</li>
+            <li><strong>Transparent:</strong> <code>-trans-*</code> (e.g., <code>--primary-trans-50</code>)</li>
+          </ul>
+        </div>
+      {/if}
+
+      {#if isAT}
+        <div class="bsg-instructions__section">
+          <h4>Bricks Theme Styles</h4>
+          <p>The Button element uses Bricks' built-in button classes:</p>
+          <ul>
+            <li><code>.bricks-button</code> - Base button class</li>
+            <li><code>.bricks-color-*</code> - Color variants (primary, secondary, dark, light, etc.)</li>
+            <li><code>.sm</code>, <code>.md</code>, <code>.lg</code>, <code>.xl</code> - Size classes</li>
+            <li><code>.outline</code> - Outline variant</li>
+            <li><code>.round</code>, <code>.square</code>, <code>.circle</code> - Shape variants</li>
+          </ul>
+        </div>
+      {:else}
+        <div class="bsg-instructions__section">
+          <h4>ACSS Button Classes</h4>
+          <p>The Button element uses Automatic CSS button classes:</p>
+          <ul>
+            <li><code>.btn</code> - Base button class</li>
+            <li><code>.btn--primary</code>, <code>.btn--primary-dark</code>, <code>.btn--primary-light</code> - Primary variants</li>
+            <li><code>.btn--secondary</code>, <code>.btn--secondary-dark</code>, <code>.btn--secondary-light</code> - Secondary variants</li>
+            <li><code>.btn--s</code>, <code>.btn--m</code>, <code>.btn--l</code>, <code>.btn--xl</code> - Size classes</li>
+            <li><code>.btn--outline</code> - Outline variant (combine with color class)</li>
+          </ul>
+          <p><em>Note: ACSS does not have a rounded/pill button class.</em></p>
+        </div>
+      {/if}
     </Card>
   </div>
 {/snippet}
 
 {#snippet generalContent()}
-  <div class="atsg-instructions__content">
+  <div class="bsg-instructions__content">
     <Card title="General Usage">
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Nestable Elements with Default Children</h4>
-        <p>All Style Guide elements use Bricks' <strong>Nestable Elements</strong> pattern. When you add a parent element (e.g., Colors, Typography, Spacing), it automatically creates a set of default child items based on your Advanced Themer configuration.</p>
+        <p>All Style Guide elements use Bricks' <strong>Nestable Elements</strong> pattern. When you add a parent element (e.g., Colors, Typography, Spacing), it automatically creates a set of default child items based on your {frameworkName} configuration.</p>
         <ul>
-          <li><strong>Colors</strong> - Creates Color Items for each root color in your AT palette</li>
+          <li><strong>Colors</strong> - Creates Color Items for each root color in your {isAT ? 'AT' : 'ACSS'} palette</li>
           <li><strong>Typography</strong> - Creates Typography Items for common heading and text styles</li>
           <li><strong>Spacing</strong> - Creates Spacing Items for your spacing scale tokens</li>
           <li><strong>Radii</strong> - Creates Radii Items for your border radius tokens</li>
@@ -67,7 +129,7 @@
         <p>You can add, remove, or reorder child items as needed. The defaults are just a starting point.</p>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Using Child Items Independently</h4>
         <p>While child items are designed to work within their parent containers, they can also be used independently:</p>
         <ul>
@@ -80,29 +142,29 @@
     </Card>
 
     <Card title="CSS Architecture">
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>BEM Naming Convention</h4>
         <p>All Style Guide elements follow the <strong>BEM (Block Element Modifier)</strong> naming methodology for predictable, maintainable CSS:</p>
         <ul>
-          <li><strong>Block:</strong> <code>.atsg-colors</code>, <code>.atsg-typography</code>, <code>.atsg-spacing</code></li>
-          <li><strong>Element:</strong> <code>.atsg-colors__toolbar</code>, <code>.atsg-colors-item__swatch</code></li>
-          <li><strong>Modifier:</strong> <code>.atsg-colors--compact</code>, <code>.atsg-buttons--grid</code></li>
+          <li><strong>Block:</strong> <code>.bsg-colors</code>, <code>.bsg-typography</code>, <code>.bsg-spacing</code></li>
+          <li><strong>Element:</strong> <code>.bsg-colors__toolbar</code>, <code>.bsg-colors-item__swatch</code></li>
+          <li><strong>Modifier:</strong> <code>.bsg-colors--compact</code>, <code>.bsg-buttons--grid</code></li>
         </ul>
-        <p>The <code>atsg-</code> prefix (AT Style Guide) prevents conflicts with other plugins and themes.</p>
+        <p>The <code>bsg-</code> prefix (Bricks Style Guide) prevents conflicts with other plugins and themes.</p>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>CSS @layer for Easy Overrides</h4>
-        <p>Decorative styles are wrapped in <code>@layer atsg</code>, making them easy to override without specificity battles:</p>
-        <div class="atsg-instructions__code-block">
+        <p>Decorative styles are wrapped in <code>@layer bsg</code>, making them easy to override without specificity battles:</p>
+        <div class="bsg-instructions__code-block">
           <code>/* Plugin styles use @layer */<br>
-@layer atsg &#123;<br>
-&nbsp;&nbsp;.atsg-colors-item__label &#123;<br>
+@layer bsg &#123;<br>
+&nbsp;&nbsp;.bsg-colors-item__label &#123;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;font-weight: 600;<br>
 &nbsp;&nbsp;&#125;<br>
 &#125;<br><br>
 /* Your overrides win automatically */<br>
-.atsg-colors-item__label &#123;<br>
+.bsg-colors-item__label &#123;<br>
 &nbsp;&nbsp;font-weight: 400;<br>
 &nbsp;&nbsp;text-transform: uppercase;<br>
 &#125;</code>
@@ -110,24 +172,32 @@
         <p>Critical layout styles (display, flex, grid) remain outside the layer to ensure proper rendering.</p>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>CSS Variables</h4>
-        <p>Elements use AT CSS variables with fallback values, ensuring graceful degradation:</p>
-        <ul>
-          <li><code>var(--at-space--m, 1rem)</code> - Spacing with fallback</li>
-          <li><code>var(--at-radius--m, 8px)</code> - Radius with fallback</li>
-          <li><code>var(--at-neutral-d-2, #6b7280)</code> - Colors with fallback</li>
-        </ul>
+        <p>Elements use {isAT ? 'AT' : 'ACSS'} CSS variables with fallback values, ensuring graceful degradation:</p>
+        {#if isAT}
+          <ul>
+            <li><code>var(--at-space--m, 1rem)</code> - Spacing with fallback</li>
+            <li><code>var(--at-radius--m, 8px)</code> - Radius with fallback</li>
+            <li><code>var(--at-neutral-d-2, #6b7280)</code> - Colors with fallback</li>
+          </ul>
+        {:else}
+          <ul>
+            <li><code>var(--space-m, 1rem)</code> - Spacing with fallback</li>
+            <li><code>var(--radius-m, 8px)</code> - Radius with fallback</li>
+            <li><code>var(--neutral-dark, #6b7280)</code> - Colors with fallback</li>
+          </ul>
+        {/if}
       </div>
     </Card>
 
     <Card title="Important Notes">
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Base Font Size Control</h4>
         <p>Each parent element includes a <strong>Base Font Size</strong> setting. Child elements use <code>em</code> units relative to this base, allowing you to scale the entire style guide proportionally.</p>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Responsive Behavior</h4>
         <p>Style Guide elements are responsive by default:</p>
         <ul>
@@ -137,12 +207,12 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Builder vs Frontend</h4>
         <p>Elements behave identically in the Bricks Builder and on the frontend. JavaScript features (like click-to-copy) work in both contexts, allowing you to test functionality while editing.</p>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Performance</h4>
         <p>CSS is output inline with each element and deduplicated automatically. If the same element appears multiple times on a page, styles are only loaded once.</p>
       </div>
@@ -151,11 +221,11 @@
 {/snippet}
 
 {#snippet colorsContent()}
-  <div class="atsg-instructions__content">
+  <div class="bsg-instructions__content">
     <Card title="Colors Element">
       <p>The <strong>Colors (Nestable)</strong> element displays your color palette with light, dark, and transparent variations, featuring accessibility testing and click-to-copy functionality.</p>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Structure</h4>
         <ul>
           <li><strong>Colors</strong> - Parent container element with toolbar and glossary</li>
@@ -163,7 +233,7 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>A11Y Badges Toggle</h4>
         <p>The parent Colors element includes an <strong>A11Y Badges</strong> toggle switch in the toolbar:</p>
         <ul>
@@ -173,7 +243,7 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>A11Y Glossary</h4>
         <p>When A11Y Badges are enabled and "Show A11Y Glossary" is checked in settings, an expandable glossary appears explaining:</p>
         <ul>
@@ -184,11 +254,11 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Click-to-Copy Context Menu</h4>
         <p>Clicking any color swatch opens a context menu with:</p>
         <ul>
-          <li><strong>CSS Variable</strong> - Click to copy <code>var(--at-primary)</code> format</li>
+          <li><strong>CSS Variable</strong> - Click to copy <code>var({isAT ? '--at-primary' : '--primary'})</code> format</li>
           <li><strong>Copy Hex</strong> - Copy the computed hex value (e.g., <code>#3b82f6</code>)</li>
           <li><strong>Copy RGB</strong> - Copy RGB format (e.g., <code>rgb(59, 130, 246)</code>)</li>
           <li><strong>Copy HSL</strong> - Copy HSL format (e.g., <code>hsl(217, 91%, 60%)</code>)</li>
@@ -198,7 +268,7 @@
         <p>A visual "Copied!" confirmation appears after copying any value.</p>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Layout Modes</h4>
         <p>The parent Colors element supports different layout modes:</p>
         <ul>
@@ -209,10 +279,10 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Colors Item Settings</h4>
         <ul>
-          <li><strong>Select Color</strong> - Choose from Advanced Themer Color Manager palette</li>
+          <li><strong>Select Color</strong> - Choose from {isAT ? 'Advanced Themer Color Manager' : 'Automatic CSS'} palette</li>
           <li><strong>Variation Count</strong> - Number of variations per column (1-6)</li>
           <li><strong>Hide Dark/Light/Transparency Variants</strong> - Toggle individual variant columns</li>
           <li><strong>Hide Color Name</strong> - Hide the color label above the swatches</li>
@@ -220,7 +290,7 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Parent Override Controls</h4>
         <p>The parent Colors element can override settings for all child items:</p>
         <ul>
@@ -234,11 +304,11 @@
 {/snippet}
 
 {#snippet typographyContent()}
-  <div class="atsg-instructions__content">
+  <div class="bsg-instructions__content">
     <Card title="Typography Element">
       <p>The <strong>Typography (Nestable)</strong> element displays your typography scale with live computed values.</p>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Structure</h4>
         <ul>
           <li><strong>Typography</strong> - Parent container element</li>
@@ -246,17 +316,17 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Typography Item Settings</h4>
         <ul>
           <li><strong>Label</strong> - Display name (e.g., "Heading 1", "Body Text")</li>
           <li><strong>Sample Text</strong> - Preview text to display</li>
-          <li><strong>CSS Variable</strong> - The AT font-size variable (e.g., <code>--at-text--3xl</code>)</li>
+          <li><strong>CSS Variable</strong> - The {isAT ? 'AT' : 'ACSS'} font-size variable (e.g., <code>{isAT ? '--at-text--3xl' : '--text-xxl'}</code>)</li>
           <li><strong>HTML Element</strong> - The semantic element to use (h1-h6, p, span)</li>
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Live Updates</h4>
         <p>The element automatically calculates and displays:</p>
         <ul>
@@ -271,11 +341,11 @@
 {/snippet}
 
 {#snippet spacingContent()}
-  <div class="atsg-instructions__content">
+  <div class="bsg-instructions__content">
     <Card title="Spacing Element">
       <p>The <strong>Spacing (Nestable)</strong> element visualizes your spacing scale with responsive bars.</p>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Structure</h4>
         <ul>
           <li><strong>Spacing</strong> - Parent container element</li>
@@ -283,16 +353,16 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Spacing Item Settings</h4>
         <ul>
           <li><strong>Label</strong> - Display name (e.g., "Small", "Medium", "Large")</li>
-          <li><strong>CSS Variable</strong> - The AT spacing variable (e.g., <code>--at-space--m</code>)</li>
+          <li><strong>CSS Variable</strong> - The {isAT ? 'AT' : 'ACSS'} spacing variable (e.g., <code>{isAT ? '--at-space--m' : '--space-m'}</code>)</li>
           <li><strong>Bar Color</strong> - Color for the visual bar</li>
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Live Updates</h4>
         <p>The element calculates the current pixel value from clamp() expressions and updates on window resize.</p>
       </div>
@@ -301,11 +371,11 @@
 {/snippet}
 
 {#snippet radiiContent()}
-  <div class="atsg-instructions__content">
+  <div class="bsg-instructions__content">
     <Card title="Radii Element">
       <p>The <strong>Radii (Nestable)</strong> element displays your border radius tokens as visual boxes.</p>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Structure</h4>
         <ul>
           <li><strong>Radii</strong> - Parent container with grid layout</li>
@@ -313,11 +383,11 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Radii Item Settings</h4>
         <ul>
           <li><strong>Label</strong> - Display name (e.g., "Small", "Large", "Pill")</li>
-          <li><strong>CSS Variable</strong> - The AT radius variable (e.g., <code>--at-radius--m</code>)</li>
+          <li><strong>CSS Variable</strong> - The {isAT ? 'AT' : 'ACSS'} radius variable (e.g., <code>{isAT ? '--at-radius--m' : '--radius-m'}</code>)</li>
           <li><strong>Show Variable Name</strong> - Display the CSS variable name</li>
           <li><strong>Show Computed Value</strong> - Display the pixel value</li>
         </ul>
@@ -327,11 +397,11 @@
 {/snippet}
 
 {#snippet boxShadowsContent()}
-  <div class="atsg-instructions__content">
+  <div class="bsg-instructions__content">
     <Card title="Box Shadows Element">
       <p>The <strong>Box Shadows (Nestable)</strong> element showcases your shadow tokens on preview cards.</p>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Structure</h4>
         <ul>
           <li><strong>Box Shadows</strong> - Parent container with grid layout</li>
@@ -339,11 +409,11 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Box Shadow Item Settings</h4>
         <ul>
-          <li><strong>Label</strong> - Display name (e.g., "Soft", "Medium", "Heavy")</li>
-          <li><strong>CSS Variable</strong> - The AT shadow variable (e.g., <code>--at-shadow--m</code>)</li>
+          <li><strong>Label</strong> - Display name (e.g., "Small", "Medium", "Large")</li>
+          <li><strong>CSS Variable</strong> - The {isAT ? 'AT' : 'ACSS'} shadow variable (e.g., <code>{isAT ? '--at-shadow--m' : '--box-shadow-m'}</code>)</li>
           <li><strong>Show Variable Name</strong> - Display the CSS variable name</li>
           <li><strong>Show Shadow Definition</strong> - Display the raw shadow value</li>
         </ul>
@@ -353,11 +423,11 @@
 {/snippet}
 
 {#snippet buttonsContent()}
-  <div class="atsg-instructions__content">
+  <div class="bsg-instructions__content">
     <Card title="Buttons Element">
-      <p>The <strong>Buttons (Nestable)</strong> element displays button variants using Bricks' native button styles.</p>
+      <p>The <strong>Buttons (Nestable)</strong> element displays button variants using {isAT ? "Bricks' native button styles" : 'Automatic CSS button classes'}.</p>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Structure</h4>
         <ul>
           <li><strong>Buttons</strong> - Parent container with toolbar toggles</li>
@@ -365,7 +435,7 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Button Item Settings</h4>
         <ul>
           <li><strong>Label</strong> - Button text</li>
@@ -377,7 +447,7 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Interactive Toolbar</h4>
         <p>The parent element includes toggle switches to:</p>
         <ul>
@@ -386,7 +456,7 @@
         </ul>
       </div>
 
-      <div class="atsg-instructions__section">
+      <div class="bsg-instructions__section">
         <h4>Layout Modes</h4>
         <ul>
           <li><strong>Grid</strong> - Buttons arranged in a configurable grid</li>
@@ -397,74 +467,74 @@
   </div>
 {/snippet}
 
-<div class="atsg-instructions">
-  <header class="atsg-instructions__header">
-    <h1>AT Style Guide</h1>
-    <p class="atsg-instructions__subtitle">Bricks Builder Elements for Advanced Themer Style Guides</p>
+<div class="bsg-instructions">
+  <header class="bsg-instructions__header">
+    <h1>Bricks Style Guide</h1>
+    <p class="bsg-instructions__subtitle">Bricks Builder Elements for {frameworkName}</p>
   </header>
 
   <Tabs {tabs} />
 </div>
 
 <style>
-  .atsg-instructions {
+  .bsg-instructions {
     max-width: 960px;
     margin: 0 auto;
     padding: var(--wpea-space--lg) var(--wpea-space--md);
   }
 
-  .atsg-instructions__header {
+  .bsg-instructions__header {
     text-align: center;
     margin-bottom: var(--wpea-space--xl);
   }
 
-  .atsg-instructions__header h1 {
+  .bsg-instructions__header h1 {
     font-size: var(--wpea-text--3xl);
     font-weight: 700;
     margin: 0 0 var(--wpea-space--xs) 0;
     color: var(--wpea-surface--text);
   }
 
-  .atsg-instructions__subtitle {
+  .bsg-instructions__subtitle {
     font-size: var(--wpea-text--md);
     color: var(--wpea-surface--text-muted);
     margin: 0;
   }
 
-  .atsg-instructions__content {
+  .bsg-instructions__content {
     padding: var(--wpea-space--md) 0;
     display: flex;
     flex-direction: column;
     gap: var(--wpea-space--lg);
   }
 
-  .atsg-instructions__section {
+  .bsg-instructions__section {
     margin-top: var(--wpea-space--lg);
   }
 
-  .atsg-instructions__section h4 {
+  .bsg-instructions__section h4 {
     font-size: var(--wpea-text--md);
     font-weight: 600;
     margin: 0 0 var(--wpea-space--sm) 0;
     color: var(--wpea-surface--text);
   }
 
-  .atsg-instructions__section p {
+  .bsg-instructions__section p {
     margin: 0 0 var(--wpea-space--sm) 0;
     color: var(--wpea-surface--text-muted);
   }
 
-  .atsg-instructions__section ul {
+  .bsg-instructions__section ul {
     margin: 0;
     padding-left: var(--wpea-space--lg);
     color: var(--wpea-surface--text-muted);
   }
 
-  .atsg-instructions__section li {
+  .bsg-instructions__section li {
     margin-bottom: var(--wpea-space--xs);
   }
 
-  .atsg-instructions__section code {
+  .bsg-instructions__section code {
     background: var(--wpea-surface--muted);
     padding: 0.125em 0.375em;
     border-radius: var(--wpea-radius--xs);
@@ -472,7 +542,7 @@
     color: var(--wpea-color--primary);
   }
 
-  .atsg-instructions__code-block {
+  .bsg-instructions__code-block {
     background: var(--wpea-surface--muted);
     border-radius: var(--wpea-radius--sm);
     padding: var(--wpea-space--md);
@@ -480,7 +550,7 @@
     overflow-x: auto;
   }
 
-  .atsg-instructions__code-block code {
+  .bsg-instructions__code-block code {
     background: transparent;
     padding: 0;
     font-size: 0.8125em;

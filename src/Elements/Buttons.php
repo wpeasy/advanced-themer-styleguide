@@ -4,12 +4,14 @@
  *
  * Container element for button samples showing variants and sizes.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
 
-use AB\ATStyleGuide\ATFrameworkDefaults;
+use AB\BricksSG\ATFrameworkDefaults;
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,18 +21,31 @@ defined( 'ABSPATH' ) || exit;
 class Buttons extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-buttons';
+	public $name = 'bsg-buttons';
 
 	/**
 	 * Element icon.
@@ -44,7 +59,7 @@ class Buttons extends \Bricks\Element {
 	 *
 	 * @var array
 	 */
-	public $scripts = [ 'atButtonsInit' ];
+	public $scripts = [ 'bsgButtonsInit' ];
 
 	/**
 	 * Nestable element.
@@ -59,7 +74,7 @@ class Buttons extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'Buttons', 'advanced-themer-style-guide' ) . ' (' . esc_html__( 'Nestable', 'advanced-themer-style-guide' ) . ')';
+		return esc_html__( 'Buttons', 'bricks-style-guide' ) . ' (' . esc_html__( 'Nestable', 'bricks-style-guide' ) . ')';
 	}
 
 	/**
@@ -78,17 +93,17 @@ class Buttons extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['layout'] = [
-			'title' => esc_html__( 'Layout', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Layout', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['displayOverride'] = [
-			'title' => esc_html__( 'Display Override', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display Override', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['style'] = [
-			'title' => esc_html__( 'Item Styling', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Item Styling', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 	}
@@ -99,29 +114,32 @@ class Buttons extends \Bricks\Element {
 	 * @return void
 	 */
 	public function set_controls(): void {
+		// Get framework-specific example variables.
+		$examples = FrameworkDetector::get_example_variables();
+
 		// Layout controls.
 		$this->controls['baseFontSize'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Base Font Size', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Base Font Size', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'default'     => 'var(--at-text--s)',
+			'default'     => $examples['text_s'],
 			'css'         => [
 				[
 					'property' => 'font-size',
 					'selector' => '',
 				],
 			],
-			'description' => esc_html__( 'Base font size for the element. Sub-components use em units relative to this.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Base font size for the element. Sub-components use em units relative to this.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['layout'] = [
 			'group'    => 'layout',
-			'label'    => esc_html__( 'Layout', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Layout', 'bricks-style-guide' ),
 			'type'     => 'select',
 			'options'  => [
-				'grid' => esc_html__( 'Grid', 'advanced-themer-style-guide' ),
-				'rows' => esc_html__( 'Rows (by Color)', 'advanced-themer-style-guide' ),
+				'grid' => esc_html__( 'Grid', 'bricks-style-guide' ),
+				'rows' => esc_html__( 'Rows (by Color)', 'bricks-style-guide' ),
 			],
 			'default'  => 'grid',
 			'inline'   => true,
@@ -130,7 +148,7 @@ class Buttons extends \Bricks\Element {
 
 		$this->controls['columns'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Columns', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Columns', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'min'         => 1,
 			'max'         => 8,
@@ -139,7 +157,7 @@ class Buttons extends \Bricks\Element {
 			'css'         => [
 				[
 					'property' => 'grid-template-columns',
-					'selector' => '&.atsg-buttons--grid .atsg-buttons__grid',
+					'selector' => '&.bsg-buttons--grid .bsg-buttons__grid',
 					'value'    => 'repeat(%s, 1fr)',
 				],
 			],
@@ -147,21 +165,21 @@ class Buttons extends \Bricks\Element {
 
 		$this->controls['gap'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Gap', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Gap', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => '1.5em',
 			'css'         => [
 				[
 					'property' => 'gap',
-					'selector' => '.atsg-buttons__grid',
+					'selector' => '.bsg-buttons__grid',
 				],
 			],
 		];
 
 		$this->controls['rowGap'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Row Gap', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Row Gap', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => '2em',
@@ -169,7 +187,7 @@ class Buttons extends \Bricks\Element {
 			'css'         => [
 				[
 					'property' => 'gap',
-					'selector' => '.atsg-buttons--rows .atsg-buttons__grid',
+					'selector' => '.bsg-buttons--rows .bsg-buttons__grid',
 				],
 			],
 		];
@@ -177,12 +195,12 @@ class Buttons extends \Bricks\Element {
 		// Style preset.
 		$this->controls['stylePreset'] = [
 			'group'    => 'layout',
-			'label'    => esc_html__( 'Style Preset', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Style Preset', 'bricks-style-guide' ),
 			'type'     => 'select',
 			'options'  => [
-				'default' => esc_html__( 'Default', 'advanced-themer-style-guide' ),
-				'minimal' => esc_html__( 'Minimal', 'advanced-themer-style-guide' ),
-				'compact' => esc_html__( 'Compact', 'advanced-themer-style-guide' ),
+				'default' => esc_html__( 'Default', 'bricks-style-guide' ),
+				'minimal' => esc_html__( 'Minimal', 'bricks-style-guide' ),
+				'compact' => esc_html__( 'Compact', 'bricks-style-guide' ),
 			],
 			'default'  => 'default',
 			'inline'   => true,
@@ -192,15 +210,15 @@ class Buttons extends \Bricks\Element {
 		// Display Override controls - apply to all child items.
 		$this->controls['overrideChildDisplay'] = [
 			'group'       => 'displayOverride',
-			'label'       => esc_html__( 'Override Child Display Settings', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Override Child Display Settings', 'bricks-style-guide' ),
 			'type'        => 'checkbox',
 			'rerender'    => true,
-			'description' => esc_html__( 'Enable to control display settings for all child items from here.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Enable to control display settings for all child items from here.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['hideDescription'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Description', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Description', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -208,7 +226,7 @@ class Buttons extends \Bricks\Element {
 
 		$this->controls['hideClasses'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide CSS Classes', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide CSS Classes', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -217,24 +235,24 @@ class Buttons extends \Bricks\Element {
 		// Typography controls for item styling.
 		$this->controls['descriptionTypography'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Description Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Description Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-buttons-item__description',
+					'selector' => '.bsg-buttons-item__description',
 				],
 			],
 		];
 
 		$this->controls['classesTypography'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Classes Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Classes Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-buttons-item__classes',
+					'selector' => '.bsg-buttons-item__classes',
 				],
 			],
 		];
@@ -247,8 +265,8 @@ class Buttons extends \Bricks\Element {
 	 */
 	public function get_nestable_item(): array {
 		return [
-			'name'     => 'at-buttons-item',
-			'label'    => esc_html__( 'Button Item', 'advanced-themer-style-guide' ),
+			'name'     => 'bsg-buttons-item',
+			'label'    => esc_html__( 'Button Item', 'bricks-style-guide' ),
 			'settings' => [
 				'label'   => '{item_label}',
 				'variant' => '{item_variant}',
@@ -261,13 +279,18 @@ class Buttons extends \Bricks\Element {
 	/**
 	 * Get nestable children.
 	 *
-	 * Creates a grid of buttons: 4 colors × 4 sizes = 16 buttons (solid variant).
+	 * Creates a grid of buttons: colors × sizes (solid variant).
+	 * Colors are framework-specific.
 	 *
 	 * @return array
 	 */
 	public function get_nestable_children(): array {
-		$colors = [ 'primary', 'secondary', 'dark', 'light' ];
-		$sizes  = [ 'sm', 'md', 'lg', 'xl' ];
+		// Use framework-specific colors.
+		$is_acss = FrameworkDetector::is_acss_active();
+		$colors  = $is_acss
+			? [ 'primary', 'primary-dark', 'primary-light', 'secondary', 'secondary-dark', 'secondary-light' ]
+			: [ 'primary', 'secondary', 'dark', 'light' ];
+		$sizes   = [ 'sm', 'md', 'lg', 'xl' ];
 
 		$children = [];
 
@@ -296,8 +319,8 @@ class Buttons extends \Bricks\Element {
 	 * @return void
 	 */
 	public function render(): void {
-		// Check for ATF variables.
-		if ( ! ATFrameworkDefaults::has_at_variables() ) {
+		// Check for framework variables (AT or ACSS).
+		if ( ! ATFrameworkDefaults::has_framework_variables() ) {
 			echo ATFrameworkDefaults::render_warning(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			return;
 		}
@@ -307,9 +330,9 @@ class Buttons extends \Bricks\Element {
 		$layout       = $settings['layout'] ?? 'grid';
 		$style_preset = $settings['stylePreset'] ?? 'default';
 
-		$root_classes = [ 'atsg-buttons', 'atsg-buttons--' . $layout ];
+		$root_classes = [ 'bsg-buttons', 'bsg-buttons--' . $layout ];
 		if ( 'default' !== $style_preset ) {
-			$root_classes[] = 'atsg-buttons--' . $style_preset;
+			$root_classes[] = 'bsg-buttons--' . $style_preset;
 		}
 
 		$this->set_attribute( '_root', 'class', $root_classes );
@@ -332,29 +355,36 @@ class Buttons extends \Bricks\Element {
 			}
 		}
 
-		$output = "<div {$this->render_attributes( '_root' )}>";
+		$output  = "<div {$this->render_attributes( '_root' )}>";
+		$is_acss = FrameworkDetector::is_acss_active();
 
 		// Toolbar with toggle switches.
-		$output .= '<div class="atsg-buttons__toolbar">';
-		$output .= '<label class="atsg-buttons__toggle">';
-		$output .= '<input type="checkbox" class="atsg-buttons__toggle-input" data-toggle="rounded">';
-		$output .= '<span class="atsg-buttons__toggle-switch"></span>';
-		$output .= '<span class="atsg-buttons__toggle-label">' . esc_html__( 'Rounded', 'advanced-themer-style-guide' ) . '</span>';
-		$output .= '</label>';
-		$output .= '<label class="atsg-buttons__toggle">';
-		$output .= '<input type="checkbox" class="atsg-buttons__toggle-input" data-toggle="outline">';
-		$output .= '<span class="atsg-buttons__toggle-switch"></span>';
-		$output .= '<span class="atsg-buttons__toggle-label">' . esc_html__( 'Outline', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '<div class="bsg-buttons__toolbar">';
+
+		// Rounded toggle - only for Bricks/AT (ACSS has no rounded button class).
+		if ( ! $is_acss ) {
+			$output .= '<label class="bsg-buttons__toggle">';
+			$output .= '<input type="checkbox" class="bsg-buttons__toggle-input" data-toggle="rounded">';
+			$output .= '<span class="bsg-buttons__toggle-switch"></span>';
+			$output .= '<span class="bsg-buttons__toggle-label">' . esc_html__( 'Rounded', 'bricks-style-guide' ) . '</span>';
+			$output .= '</label>';
+		}
+
+		// Outline toggle - available for both frameworks.
+		$output .= '<label class="bsg-buttons__toggle">';
+		$output .= '<input type="checkbox" class="bsg-buttons__toggle-input" data-toggle="outline">';
+		$output .= '<span class="bsg-buttons__toggle-switch"></span>';
+		$output .= '<span class="bsg-buttons__toggle-label">' . esc_html__( 'Outline', 'bricks-style-guide' ) . '</span>';
 		$output .= '</label>';
 		$output .= '</div>';
 
 		// Grid wrapper for button items.
-		$output .= '<div class="atsg-buttons__grid">';
+		$output .= '<div class="bsg-buttons__grid">';
 
 		// Render children elements (individual button items).
 		$output .= \Bricks\Frontend::render_children( $this );
 
-		$output .= '</div>'; // .atsg-buttons__grid
+		$output .= '</div>'; // .bsg-buttons__grid
 		$output .= '</div>';
 
 		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -366,11 +396,11 @@ class Buttons extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-buttons';
+		$handle = 'bsg-buttons';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -383,58 +413,66 @@ class Buttons extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		// Get framework-agnostic CSS variables that map to the active framework.
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
-			/* Critical layout */
-			.atsg-buttons {
-				display: flex;
-				flex-direction: column;
-				gap: 0.75em;
+			/* Framework Variable Mappings */
+			.bsg-buttons {
+				' . $framework_vars . '
 			}
 
-			.atsg-buttons__grid {
+			/* Layout only - button styling handled by Bricks/AT */
+			.bsg-buttons {
+				display: flex;
+				flex-direction: column;
+				gap: var(--bsg-space-m, 0.75em);
+			}
+
+			.bsg-buttons__grid {
 				display: flex;
 				flex-wrap: wrap;
 				gap: 1.5em;
 			}
 
 			/* Grid layout */
-			.atsg-buttons--grid .atsg-buttons__grid {
+			.bsg-buttons--grid .bsg-buttons__grid {
 				display: grid;
 				grid-template-columns: repeat(4, 1fr);
 			}
 
 			@media screen and (max-width: 600px) {
-				.atsg-buttons--grid .atsg-buttons__grid {
+				.bsg-buttons--grid .bsg-buttons__grid {
 					grid-template-columns: repeat(2, 1fr) !important;
 				}
 			}
 
 			/* Rows layout - items in a row */
-			.atsg-buttons--rows .atsg-buttons__grid {
+			.bsg-buttons--rows .bsg-buttons__grid {
 				display: flex;
 				flex-direction: column;
 				gap: 2em;
 			}
 
-			.atsg-buttons--rows .atsg-buttons-item {
+			.bsg-buttons--rows .bsg-buttons-item {
 				flex-direction: row;
 				justify-content: flex-start;
 				gap: 1.5em;
 			}
 
-			.atsg-buttons--rows .atsg-buttons-item__info {
+			.bsg-buttons--rows .bsg-buttons-item__info {
 				align-items: flex-start;
 				text-align: left;
 				min-width: 9.375em;
 			}
 
 			/* Toolbar with toggles */
-			.atsg-buttons__toolbar {
+			.bsg-buttons__toolbar {
 				display: flex;
 				gap: 1em;
 			}
 
-			.atsg-buttons__toggle {
+			.bsg-buttons__toggle {
 				display: flex;
 				align-items: center;
 				gap: 0.375em;
@@ -442,7 +480,7 @@ class Buttons extends \Bricks\Element {
 				user-select: none;
 			}
 
-			.atsg-buttons__toggle-input {
+			.bsg-buttons__toggle-input {
 				position: absolute;
 				opacity: 0;
 				width: 0;
@@ -450,76 +488,76 @@ class Buttons extends \Bricks\Element {
 			}
 
 			/* Parent override styles - hide elements based on parent data attributes */
-			.atsg-buttons[data-override="true"][data-hide-description="true"] .atsg-buttons-item__description {
+			.bsg-buttons[data-override="true"][data-hide-description="true"] .bsg-buttons-item__description {
 				display: none;
 			}
 
-			.atsg-buttons[data-override="true"][data-hide-classes="true"] .atsg-buttons-item__classes {
+			.bsg-buttons[data-override="true"][data-hide-classes="true"] .bsg-buttons-item__classes {
 				display: none;
 			}
 
-			@layer atsg {
+			@layer bsg {
 			/* Style: Minimal */
-			.atsg-buttons--minimal .atsg-buttons-item__classes {
+			.bsg-buttons--minimal .bsg-buttons-item__classes {
 				display: none;
 			}
 
 			/* Style: Compact */
-			.atsg-buttons--compact {
+			.bsg-buttons--compact {
 				gap: 1em;
 			}
 
-			.atsg-buttons--compact.atsg-buttons--grid .atsg-buttons__grid {
+			.bsg-buttons--compact.bsg-buttons--grid .bsg-buttons__grid {
 				grid-template-columns: repeat(4, auto);
 				justify-content: start;
 			}
 
-			.atsg-buttons--compact .atsg-buttons-item {
+			.bsg-buttons--compact .bsg-buttons-item {
 				gap: 0.5em;
 			}
 
-			.atsg-buttons--compact .atsg-buttons-item__description {
+			.bsg-buttons--compact .bsg-buttons-item__description {
 				font-size: 0.75em;
 			}
 
-			.atsg-buttons--compact .atsg-buttons-item__classes {
+			.bsg-buttons--compact .bsg-buttons-item__classes {
 				font-size: 0.625em;
 			}
 
-			.atsg-buttons__toggle-switch {
+			.bsg-buttons__toggle-switch {
 				position: relative;
 				width: 1.5em;
 				height: 0.875em;
-				background: var(--at-neutral-t-4, #d1d5db);
+				background: var(--bsg-border-color, #d1d5db);
 				border-radius: 0.4375em;
 				transition: background 0.2s ease;
 			}
 
-			.atsg-buttons__toggle-switch::after {
+			.bsg-buttons__toggle-switch::after {
 				content: "";
 				position: absolute;
 				top: 0.125em;
 				left: 0.125em;
 				width: 0.625em;
 				height: 0.625em;
-				background: var(--at-white, #ffffff);
+				background: var(--bsg-white, #ffffff);
 				border-radius: 50%;
 				transition: transform 0.2s ease;
 			}
 
-			.atsg-buttons__toggle-input:checked + .atsg-buttons__toggle-switch {
-				background: var(--at-primary, #3b82f6);
+			.bsg-buttons__toggle-input:checked + .bsg-buttons__toggle-switch {
+				background: var(--bsg-primary, #3b82f6);
 			}
 
-			.atsg-buttons__toggle-input:checked + .atsg-buttons__toggle-switch::after {
+			.bsg-buttons__toggle-input:checked + .bsg-buttons__toggle-switch::after {
 				transform: translateX(0.625em);
 			}
 
-			.atsg-buttons__toggle-label {
+			.bsg-buttons__toggle-label {
 				font-size: 0.6875em;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
-			} /* end @layer atsg */
+			} /* end @layer bsg */
 		';
 	}
 }

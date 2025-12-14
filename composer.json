@@ -1,11 +1,12 @@
 {
-    "name": "wpeasy/advanced-themer-styleguide",
-    "description": "Adds Svelte based Elements to Bricks Builder for creating Style Guides based on Advanced Themer",
+    "name": "wpeasy/bricks-style-guide",
+    "description": "Adds Svelte based Elements to Bricks Builder for creating Style Guides",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "autoload": {
         "psr-4": {
-            "AB\\ATStyleGuide\\": "src/"
+            "AB\\BricksSG\\": "src/",
+            "AB\\BricksSG\\Framework\\": "src/Framework/"
         }
     },
     "require": {

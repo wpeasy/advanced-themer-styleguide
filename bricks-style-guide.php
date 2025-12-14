@@ -1,32 +1,34 @@
 <?php
 /**
- * Plugin Name: Advanced Themer Style Guide
- * Description: Adds Svelte based Elements to Bricks Builder for creating Style Guides based on Advanced Themer
- * Version: 0.0.10-beta
+ * Plugin Name: Bricks Style Guide
+ * Description: Adds Svelte based Elements to Bricks Builder for creating Style Guides
+ * Version: 0.0.13-beta
  * Author: WP Easy
  * Author URI: https://wpeasy.au
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: advanced-themer-style-guide
+ * Text Domain: bricks-style-guide
  * Domain Path: /languages
  * Requires at least: 6.0
  * Tested up to: 6.7
  * Requires PHP: 7.4
  */
 
-namespace AB\ATStyleGuide;
+namespace AB\BricksSG;
+
+use AB\BricksSG\Framework\FrameworkDetector;
 
 defined( 'ABSPATH' ) || exit;
 
 // Plugin constants.
-define( 'AT_STYLE_GUIDE_VERSION', '0.0.10-beta' );
-define( 'AT_STYLE_GUIDE_PLUGIN_FILE', __FILE__ );
-define( 'AT_STYLE_GUIDE_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
-define( 'AT_STYLE_GUIDE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'BRICKS_SG_VERSION', '0.0.13-beta' );
+define( 'BRICKS_SG_PLUGIN_FILE', __FILE__ );
+define( 'BRICKS_SG_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'BRICKS_SG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 // Load Composer autoloader.
-if ( file_exists( AT_STYLE_GUIDE_PLUGIN_PATH . 'vendor/autoload.php' ) ) {
-	require_once AT_STYLE_GUIDE_PLUGIN_PATH . 'vendor/autoload.php';
+if ( file_exists( BRICKS_SG_PLUGIN_PATH . 'vendor/autoload.php' ) ) {
+	require_once BRICKS_SG_PLUGIN_PATH . 'vendor/autoload.php';
 }
 
 
@@ -42,9 +44,9 @@ function init(): void {
 		return;
 	}
 
-	// Check if Advanced Themer is active.
-	if ( ! is_advanced_themer_active() ) {
-		add_action( 'admin_notices', __NAMESPACE__ . '\\missing_at_notice' );
+	// Check if a supported CSS framework is active (AT or ACSS).
+	if ( ! FrameworkDetector::has_framework() ) {
+		add_action( 'admin_notices', __NAMESPACE__ . '\\missing_framework_notice' );
 		return;
 	}
 
@@ -78,25 +80,6 @@ function is_bricks_active(): bool {
 }
 
 /**
- * Check if Advanced Themer plugin is active.
- *
- * @return bool
- */
-function is_advanced_themer_active(): bool {
-	// Check for AT constant (defined in bricks-advanced-themer.php).
-	if ( defined( 'BRICKS_ADVANCED_THEMER_PATH' ) ) {
-		return true;
-	}
-
-	// Fallback: Check for AT classes.
-	if ( class_exists( 'AT__Global_Colors' ) || class_exists( 'AT__Admin' ) ) {
-		return true;
-	}
-
-	return false;
-}
-
-/**
  * Admin notice for missing Bricks Builder.
  *
  * @return void
@@ -104,20 +87,30 @@ function is_advanced_themer_active(): bool {
 function missing_bricks_notice(): void {
 	?>
 	<div class="notice notice-error">
-		<p><?php esc_html_e( 'Advanced Themer Style Guide requires Bricks Builder to be installed and activated.', 'advanced-themer-style-guide' ); ?></p>
+		<p><?php esc_html_e( 'Bricks Style Guide requires Bricks Builder to be installed and activated.', 'bricks-style-guide' ); ?></p>
 	</div>
 	<?php
 }
 
 /**
- * Admin notice for missing Advanced Themer.
+ * Admin notice for missing CSS framework.
  *
  * @return void
  */
-function missing_at_notice(): void {
+function missing_framework_notice(): void {
 	?>
 	<div class="notice notice-error">
-		<p><?php esc_html_e( 'Advanced Themer Style Guide requires Advanced Themer for Bricks to be installed and activated.', 'advanced-themer-style-guide' ); ?></p>
+		<p><?php esc_html_e( 'Bricks Style Guide requires either Advanced Themer for Bricks or Automatic CSS to be installed and activated.', 'bricks-style-guide' ); ?></p>
 	</div>
 	<?php
+}
+
+/**
+ * Check if Advanced Themer plugin is active.
+ *
+ * @deprecated Use FrameworkDetector::is_at_active() instead.
+ * @return bool
+ */
+function is_advanced_themer_active(): bool {
+	return FrameworkDetector::is_at_active();
 }

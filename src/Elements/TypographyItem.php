@@ -4,10 +4,13 @@
  *
  * Individual typography sample row for use within Typography (Nestable) element.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
+
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,18 +20,31 @@ defined( 'ABSPATH' ) || exit;
 class TypographyItem extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-typography-item';
+	public $name = 'bsg-typography-item';
 
 	/**
 	 * Element icon.
@@ -42,7 +58,7 @@ class TypographyItem extends \Bricks\Element {
 	 *
 	 * @var array
 	 */
-	public $scripts = [ 'atTypographyItemInit' ];
+	public $scripts = [ 'bsgTypographyItemInit' ];
 
 	/**
 	 * Get element label.
@@ -50,7 +66,7 @@ class TypographyItem extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'Typography Item', 'advanced-themer-style-guide' );
+		return esc_html__( 'Typography Item', 'bricks-style-guide' );
 	}
 
 	/**
@@ -69,22 +85,22 @@ class TypographyItem extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['content'] = [
-			'title' => esc_html__( 'Content', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Content', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['display'] = [
-			'title' => esc_html__( 'Display', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['style'] = [
-			'title' => esc_html__( 'Item Style', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Item Style', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['typography'] = [
-			'title' => esc_html__( 'Sample Typography', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Sample Typography', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 	}
@@ -98,15 +114,15 @@ class TypographyItem extends \Bricks\Element {
 		// Content controls.
 		$this->controls['label'] = [
 			'group'       => 'content',
-			'label'       => esc_html__( 'Label', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Label', 'bricks-style-guide' ),
 			'type'        => 'text',
 			'default'     => 'Heading 1',
-			'placeholder' => esc_html__( 'e.g. Heading 1, Body, Lead...', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'e.g. Heading 1, Body, Lead...', 'bricks-style-guide' ),
 		];
 
 		$this->controls['tag'] = [
 			'group'   => 'content',
-			'label'   => esc_html__( 'HTML Tag', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'HTML Tag', 'bricks-style-guide' ),
 			'type'    => 'select',
 			'options' => [
 				'h1'   => 'H1',
@@ -125,80 +141,80 @@ class TypographyItem extends \Bricks\Element {
 
 		$this->controls['sampleText'] = [
 			'group'       => 'content',
-			'label'       => esc_html__( 'Sample Text', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Sample Text', 'bricks-style-guide' ),
 			'type'        => 'text',
-			'placeholder' => esc_html__( 'Inherits from parent...', 'advanced-themer-style-guide' ),
-			'description' => esc_html__( 'Leave empty to use the default from the parent Typography element.', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'Inherits from parent...', 'bricks-style-guide' ),
+			'description' => esc_html__( 'Leave empty to use the default from the parent Typography element.', 'bricks-style-guide' ),
 		];
 
 		// Display controls - all "Hide X" for consistency.
 		// Unchecked = show (default), Checked = hide.
 		$this->controls['hideLabel'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Label', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Label', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideFontFamily'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Font Family', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Font Family', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideFontSize'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Font Size', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Font Size', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideLineHeight'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Line Height', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Line Height', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideFontWeight'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Font Weight', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Font Weight', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideLetterSpacing'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Letter Spacing', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Letter Spacing', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideColor'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Color', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Color', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideTextTransform'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Text Transform', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Text Transform', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideFontStyle'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Font Style', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Font Style', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideValueLabels'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Value Labels', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Value Labels', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
@@ -206,7 +222,7 @@ class TypographyItem extends \Bricks\Element {
 		// Item style controls.
 		$this->controls['itemBackground'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Background', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Background', 'bricks-style-guide' ),
 			'type'  => 'color',
 			'css'   => [
 				[
@@ -219,44 +235,44 @@ class TypographyItem extends \Bricks\Element {
 		// Typography controls for the sample.
 		$this->controls['sampleClass'] = [
 			'group'       => 'typography',
-			'label'       => esc_html__( 'Class', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Class', 'bricks-style-guide' ),
 			'type'        => 'text',
-			'placeholder' => esc_html__( 'e.g. .text--xs', 'advanced-themer-style-guide' ),
-			'description' => esc_html__( 'You need to define these classes in your CSS.', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'e.g. .text--xs', 'bricks-style-guide' ),
+			'description' => esc_html__( 'You need to define these classes in your CSS.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['sampleTypography'] = [
 			'group' => 'typography',
-			'label' => esc_html__( 'Sample Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Sample Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-typography-item__sample',
+					'selector' => '.bsg-typography-item__sample',
 				],
 			],
 		];
 
 		$this->controls['labelTypography'] = [
 			'group' => 'typography',
-			'label' => esc_html__( 'Label Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Label Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-typography-item__label',
+					'selector' => '.bsg-typography-item__label',
 				],
 			],
 		];
 
 		$this->controls['metaTypography'] = [
 			'group' => 'typography',
-			'label' => esc_html__( 'Meta Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Meta Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-typography-item__meta',
+					'selector' => '.bsg-typography-item__meta',
 				],
 			],
 		];
@@ -303,7 +319,7 @@ class TypographyItem extends \Bricks\Element {
 		}
 
 		// Build sample classes.
-		$sample_classes = [ 'atsg-typography-item__sample' ];
+		$sample_classes = [ 'bsg-typography-item__sample' ];
 		if ( ! empty( $sample_class ) ) {
 			// Remove leading dots and split by spaces/dots for multiple classes.
 			$custom_classes = preg_split( '/[\s.]+/', $sample_class, -1, PREG_SPLIT_NO_EMPTY );
@@ -311,7 +327,7 @@ class TypographyItem extends \Bricks\Element {
 		}
 		$sample_class_string = implode( ' ', $sample_classes );
 
-		$this->set_attribute( '_root', 'class', [ 'atsg-typography-item' ] );
+		$this->set_attribute( '_root', 'class', [ 'bsg-typography-item' ] );
 		$this->set_attribute( '_root', 'data-label', esc_attr( $label ) );
 
 		// Mark whether this item has custom sample text or should inherit from parent.
@@ -323,11 +339,11 @@ class TypographyItem extends \Bricks\Element {
 
 		// Label.
 		if ( $show_label ) {
-			$output .= '<div class="atsg-typography-item__label">' . esc_html( $label ) . '</div>';
+			$output .= '<div class="bsg-typography-item__label">' . esc_html( $label ) . '</div>';
 		}
 
 		// Sample text.
-		$output .= '<div class="atsg-typography-item__sample-wrapper">';
+		$output .= '<div class="bsg-typography-item__sample-wrapper">';
 		$output .= '<' . esc_attr( $tag ) . ' class="' . esc_attr( $sample_class_string ) . '">';
 		$output .= esc_html( $display_text );
 		$output .= '</' . esc_attr( $tag ) . '>';
@@ -337,75 +353,75 @@ class TypographyItem extends \Bricks\Element {
 		$has_meta = $show_font_family || $show_font_size || $show_line_height || $show_font_weight || $show_letter_spacing || $show_color || $show_text_transform || $show_font_style;
 
 		if ( $has_meta ) {
-			$output .= '<div class="atsg-typography-item__meta">';
+			$output .= '<div class="bsg-typography-item__meta">';
 
 			if ( $show_font_family ) {
-				$output .= '<span class="atsg-typography-item__font-family">';
+				$output .= '<span class="bsg-typography-item__font-family">';
 				if ( $show_value_labels ) {
-					$output .= '<span class="atsg-typography-item__meta-label">' . esc_html__( 'Font:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= '<span class="bsg-typography-item__meta-label">' . esc_html__( 'Font:', 'bricks-style-guide' ) . '</span> ';
 				}
 				$output .= '<span data-computed="font-family"></span>';
 				$output .= '</span>';
 			}
 
 			if ( $show_font_size ) {
-				$output .= '<span class="atsg-typography-item__font-size">';
+				$output .= '<span class="bsg-typography-item__font-size">';
 				if ( $show_value_labels ) {
-					$output .= '<span class="atsg-typography-item__meta-label">' . esc_html__( 'Size:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= '<span class="bsg-typography-item__meta-label">' . esc_html__( 'Size:', 'bricks-style-guide' ) . '</span> ';
 				}
 				$output .= '<span data-computed="font-size"></span>';
 				$output .= '</span>';
 			}
 
 			if ( $show_line_height ) {
-				$output .= '<span class="atsg-typography-item__line-height">';
+				$output .= '<span class="bsg-typography-item__line-height">';
 				if ( $show_value_labels ) {
-					$output .= '<span class="atsg-typography-item__meta-label">' . esc_html__( 'Line Height:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= '<span class="bsg-typography-item__meta-label">' . esc_html__( 'Line Height:', 'bricks-style-guide' ) . '</span> ';
 				}
 				$output .= '<span data-computed="line-height"></span>';
 				$output .= '</span>';
 			}
 
 			if ( $show_font_weight ) {
-				$output .= '<span class="atsg-typography-item__font-weight">';
+				$output .= '<span class="bsg-typography-item__font-weight">';
 				if ( $show_value_labels ) {
-					$output .= '<span class="atsg-typography-item__meta-label">' . esc_html__( 'Weight:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= '<span class="bsg-typography-item__meta-label">' . esc_html__( 'Weight:', 'bricks-style-guide' ) . '</span> ';
 				}
 				$output .= '<span data-computed="font-weight"></span>';
 				$output .= '</span>';
 			}
 
 			if ( $show_letter_spacing ) {
-				$output .= '<span class="atsg-typography-item__letter-spacing">';
+				$output .= '<span class="bsg-typography-item__letter-spacing">';
 				if ( $show_value_labels ) {
-					$output .= '<span class="atsg-typography-item__meta-label">' . esc_html__( 'Spacing:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= '<span class="bsg-typography-item__meta-label">' . esc_html__( 'Spacing:', 'bricks-style-guide' ) . '</span> ';
 				}
 				$output .= '<span data-computed="letter-spacing"></span>';
 				$output .= '</span>';
 			}
 
 			if ( $show_color ) {
-				$output .= '<span class="atsg-typography-item__color">';
+				$output .= '<span class="bsg-typography-item__color">';
 				if ( $show_value_labels ) {
-					$output .= '<span class="atsg-typography-item__meta-label">' . esc_html__( 'Color:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= '<span class="bsg-typography-item__meta-label">' . esc_html__( 'Color:', 'bricks-style-guide' ) . '</span> ';
 				}
 				$output .= '<span data-computed="color"></span>';
 				$output .= '</span>';
 			}
 
 			if ( $show_text_transform ) {
-				$output .= '<span class="atsg-typography-item__text-transform">';
+				$output .= '<span class="bsg-typography-item__text-transform">';
 				if ( $show_value_labels ) {
-					$output .= '<span class="atsg-typography-item__meta-label">' . esc_html__( 'Transform:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= '<span class="bsg-typography-item__meta-label">' . esc_html__( 'Transform:', 'bricks-style-guide' ) . '</span> ';
 				}
 				$output .= '<span data-computed="text-transform"></span>';
 				$output .= '</span>';
 			}
 
 			if ( $show_font_style ) {
-				$output .= '<span class="atsg-typography-item__font-style">';
+				$output .= '<span class="bsg-typography-item__font-style">';
 				if ( $show_value_labels ) {
-					$output .= '<span class="atsg-typography-item__meta-label">' . esc_html__( 'Style:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= '<span class="bsg-typography-item__meta-label">' . esc_html__( 'Style:', 'bricks-style-guide' ) . '</span> ';
 				}
 				$output .= '<span data-computed="font-style"></span>';
 				$output .= '</span>';
@@ -425,11 +441,11 @@ class TypographyItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-typography-item';
+		$handle = 'bsg-typography-item';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -442,55 +458,59 @@ class TypographyItem extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
 			/* Critical layout */
-			.atsg-typography-item {
+			.bsg-typography-item {
+				' . $framework_vars . '
 				display: flex;
 				flex-direction: column;
 				gap: 0.5em;
 				padding: 1.5em;
 			}
 
-			.atsg-typography-item__meta {
+			.bsg-typography-item__meta {
 				display: flex;
 				flex-wrap: wrap;
 				gap: 1em;
 			}
 
-			@layer atsg {
-			.atsg-typography-item__label {
+			@layer bsg {
+			.bsg-typography-item__label {
 				font-size: 0.75em;
 				font-weight: 600;
 				text-transform: uppercase;
 				letter-spacing: 0.05em;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-typography-item__sample-wrapper {
+			.bsg-typography-item__sample-wrapper {
 				overflow: hidden;
 			}
 
-			.atsg-typography-item__sample {
+			.bsg-typography-item__sample {
 				margin: 0;
 				font-size: revert;
 			}
 
-			.atsg-typography-item__meta {
+			.bsg-typography-item__meta {
 				font-size: 0.75em;
-				color: var(--at-neutral-d-2, #6b7280);
+				line-height: 1;
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-typography-item__meta > span {
-				background: var(--at-neutral-t-6, #f3f4f6);
+			.bsg-typography-item__meta > span {
+				background: var(--bsg-neutral-light, #f3f4f6);
 				padding: 0.25em 0.5em;
 				border-radius: 0.25em;
 			}
 
-			.atsg-typography-item__meta-label {
+			.bsg-typography-item__meta-label {
 				font-weight: 600;
-				color: var(--at-neutral-d-3, #374151);
+				color: var(--bsg-neutral-darker, #374151);
 			}
-			} /* end @layer atsg */
+			} /* end @layer bsg */
 		';
 	}
 }

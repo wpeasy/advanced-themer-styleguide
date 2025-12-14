@@ -4,10 +4,13 @@
  *
  * Individual border radius sample for use within Radii (Nestable) element.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
+
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,18 +20,31 @@ defined( 'ABSPATH' ) || exit;
 class RadiiItem extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-radii-item';
+	public $name = 'bsg-radii-item';
 
 	/**
 	 * Element icon.
@@ -42,7 +58,7 @@ class RadiiItem extends \Bricks\Element {
 	 *
 	 * @var array
 	 */
-	public $scripts = [ 'atRadiiItemInit' ];
+	public $scripts = [ 'bsgRadiiItemInit' ];
 
 	/**
 	 * Get element label.
@@ -50,7 +66,7 @@ class RadiiItem extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'Radii Item', 'advanced-themer-style-guide' );
+		return esc_html__( 'Radii Item', 'bricks-style-guide' );
 	}
 
 	/**
@@ -69,22 +85,22 @@ class RadiiItem extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['content'] = [
-			'title' => esc_html__( 'Content', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Content', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['display'] = [
-			'title' => esc_html__( 'Display', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['boxStyle'] = [
-			'title' => esc_html__( 'Box Style', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Box Style', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['typography'] = [
-			'title' => esc_html__( 'Typography', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Typography', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 	}
@@ -95,48 +111,51 @@ class RadiiItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function set_controls(): void {
+		// Get framework-specific example variables.
+		$examples = FrameworkDetector::get_example_variables();
+
 		// Content controls.
 		$this->controls['label'] = [
 			'group'       => 'content',
-			'label'       => esc_html__( 'Label', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Label', 'bricks-style-guide' ),
 			'type'        => 'text',
 			'default'     => 'Medium',
-			'placeholder' => esc_html__( 'e.g. Small, Medium, Large...', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'e.g. Small, Medium, Large...', 'bricks-style-guide' ),
 		];
 
 		$this->controls['variable'] = [
 			'group'       => 'content',
-			'label'       => esc_html__( 'CSS Variable', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'CSS Variable', 'bricks-style-guide' ),
 			'type'        => 'text',
-			'default'     => '--at-radius--m',
-			'placeholder' => esc_html__( 'e.g. --at-radius--m', 'advanced-themer-style-guide' ),
+			'default'     => $examples['radius_m_raw'],
+			'placeholder' => esc_html__( 'e.g.', 'bricks-style-guide' ) . ' ' . $examples['radius_m_raw'],
 		];
 
 		// Display controls - all "Hide X" for consistency.
 		$this->controls['hideLabel'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Label', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Label', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideVariable'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Variable Name', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Variable Name', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideValue'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Computed Value', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Computed Value', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideValueLabel'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Value Label', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Value Label', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
@@ -144,42 +163,42 @@ class RadiiItem extends \Bricks\Element {
 		// Box style controls.
 		$this->controls['boxSize'] = [
 			'group'       => 'boxStyle',
-			'label'       => esc_html__( 'Box Size', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Box Size', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => '6.25em',
 			'css'         => [
 				[
 					'property' => 'width',
-					'selector' => '.atsg-radii-item__box',
+					'selector' => '.bsg-radii-item__box',
 				],
 				[
 					'property' => 'height',
-					'selector' => '.atsg-radii-item__box',
+					'selector' => '.bsg-radii-item__box',
 				],
 			],
 		];
 
 		$this->controls['boxBackground'] = [
 			'group' => 'boxStyle',
-			'label' => esc_html__( 'Box Background', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Box Background', 'bricks-style-guide' ),
 			'type'  => 'color',
 			'css'   => [
 				[
 					'property' => 'background-color',
-					'selector' => '.atsg-radii-item__box',
+					'selector' => '.bsg-radii-item__box',
 				],
 			],
 		];
 
 		$this->controls['boxBorder'] = [
 			'group' => 'boxStyle',
-			'label' => esc_html__( 'Box Border', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Box Border', 'bricks-style-guide' ),
 			'type'  => 'border',
 			'css'   => [
 				[
 					'property' => 'border',
-					'selector' => '.atsg-radii-item__box',
+					'selector' => '.bsg-radii-item__box',
 				],
 			],
 		];
@@ -187,36 +206,36 @@ class RadiiItem extends \Bricks\Element {
 		// Typography controls.
 		$this->controls['labelTypography'] = [
 			'group' => 'typography',
-			'label' => esc_html__( 'Label Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Label Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-radii-item__label',
+					'selector' => '.bsg-radii-item__label',
 				],
 			],
 		];
 
 		$this->controls['variableTypography'] = [
 			'group' => 'typography',
-			'label' => esc_html__( 'Variable Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Variable Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-radii-item__variable',
+					'selector' => '.bsg-radii-item__variable',
 				],
 			],
 		];
 
 		$this->controls['valueTypography'] = [
 			'group' => 'typography',
-			'label' => esc_html__( 'Value Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Value Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-radii-item__value',
+					'selector' => '.bsg-radii-item__value',
 				],
 			],
 		];
@@ -230,8 +249,9 @@ class RadiiItem extends \Bricks\Element {
 	public function render(): void {
 		$settings = $this->settings;
 
+		$examples = FrameworkDetector::get_example_variables();
 		$label    = $settings['label'] ?? 'Medium';
-		$variable = $settings['variable'] ?? '--at-radius--m';
+		$variable = $settings['variable'] ?? $examples['radius_m_raw'];
 
 		// Bricks checkbox: key exists = checked (true), key missing = unchecked (false).
 		// Using "Hide" checkboxes: isset = hide, !isset = show (default).
@@ -240,28 +260,28 @@ class RadiiItem extends \Bricks\Element {
 		$show_value       = ! isset( $settings['hideValue'] );
 		$show_value_label = ! isset( $settings['hideValueLabel'] );
 
-		$this->set_attribute( '_root', 'class', [ 'atsg-radii-item' ] );
+		$this->set_attribute( '_root', 'class', [ 'bsg-radii-item' ] );
 		$this->set_attribute( '_root', 'data-var', esc_attr( $variable ) );
 
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
 		// Box with border-radius applied.
-		$output .= '<div class="atsg-radii-item__box" style="border-radius: var(' . esc_attr( $variable ) . ');"></div>';
+		$output .= '<div class="bsg-radii-item__box" style="border-radius: var(' . esc_attr( $variable ) . ');"></div>';
 
 		// Info section.
-		$output .= '<div class="atsg-radii-item__info">';
+		$output .= '<div class="bsg-radii-item__info">';
 		if ( $show_label ) {
-			$output .= '<span class="atsg-radii-item__label">' . esc_html( $label ) . '</span>';
+			$output .= '<span class="bsg-radii-item__label">' . esc_html( $label ) . '</span>';
 		}
 		if ( $show_variable ) {
-			$output .= '<code class="atsg-radii-item__variable">' . esc_html( $variable ) . '</code>';
+			$output .= '<code class="bsg-radii-item__variable">' . esc_html( $variable ) . '</code>';
 		}
 		if ( $show_value ) {
-			$output .= '<span class="atsg-radii-item__value">';
+			$output .= '<span class="bsg-radii-item__value">';
 			if ( $show_value_label ) {
-				$output .= '<span class="atsg-radii-item__value-label">' . esc_html__( 'Value:', 'advanced-themer-style-guide' ) . '</span> ';
+				$output .= '<span class="bsg-radii-item__value-label">' . esc_html__( 'Value:', 'bricks-style-guide' ) . '</span> ';
 			}
-			$output .= '<span class="atsg-radii-item__computed"></span>';
+			$output .= '<span class="bsg-radii-item__computed"></span>';
 			$output .= '</span>';
 		}
 		$output .= '</div>';
@@ -277,11 +297,11 @@ class RadiiItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-radii-item';
+		$handle = 'bsg-radii-item';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -294,16 +314,19 @@ class RadiiItem extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
 			/* Critical layout */
-			.atsg-radii-item {
+			.bsg-radii-item {
+				' . $framework_vars . '
 				display: flex;
 				flex-direction: column;
 				align-items: center;
 				gap: 0.75em;
 			}
 
-			.atsg-radii-item__info {
+			.bsg-radii-item__info {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
@@ -311,38 +334,40 @@ class RadiiItem extends \Bricks\Element {
 				text-align: center;
 			}
 
-			@layer atsg {
-			.atsg-radii-item__box {
+			@layer bsg {
+			.bsg-radii-item__box {
 				width: 6.25em;
 				height: 6.25em;
-				background-color: var(--at-neutral-t-5, #e5e7eb);
-				border: 2px solid var(--at-neutral-t-4, #d1d5db);
+				background-color: var(--bsg-neutral-light, #e5e7eb);
+				border: 2px solid var(--bsg-border-color, #d1d5db);
 			}
 
-			.atsg-radii-item__label {
+			.bsg-radii-item__label {
 				font-weight: 600;
 				font-size: 0.875em;
-				color: var(--at-neutral-d-3, #374151);
+				color: var(--bsg-neutral-darker, #374151);
 			}
 
-			.atsg-radii-item__variable {
+			.bsg-radii-item__variable {
 				font-size: 0.75em;
-				color: var(--at-neutral-d-2, #6b7280);
-				background: var(--at-neutral-t-6, #f3f4f6);
+				line-height: 1;
+				color: var(--bsg-neutral-medium, #6b7280);
+				background: var(--bsg-neutral-light, #f3f4f6);
 				padding: 0.125em 0.375em;
 				border-radius: 0.25em;
 			}
 
-			.atsg-radii-item__value {
+			.bsg-radii-item__value {
 				font-size: 0.75em;
-				color: var(--at-neutral-d-2, #6b7280);
+				line-height: 1;
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-radii-item__value-label {
+			.bsg-radii-item__value-label {
 				font-weight: 600;
-				color: var(--at-neutral-d-3, #374151);
+				color: var(--bsg-neutral-darker, #374151);
 			}
-			} /* end @layer atsg */
+			} /* end @layer bsg */
 		';
 	}
 }

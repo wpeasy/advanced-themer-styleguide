@@ -2,15 +2,17 @@
 /**
  * Colors Element (Nestable) for Bricks Builder.
  *
- * Container element for color swatches from Advanced Themer.
+ * Container element for color swatches from Advanced Themer or Automatic CSS.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
 
-use AB\ATStyleGuide\ATColors;
-use AB\ATStyleGuide\ATFrameworkDefaults;
+use AB\BricksSG\ATColors;
+use AB\BricksSG\ATFrameworkDefaults;
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,18 +22,31 @@ defined( 'ABSPATH' ) || exit;
 class Colors extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-colors';
+	public $name = 'bsg-colors';
 
 	/**
 	 * Element icon.
@@ -45,7 +60,7 @@ class Colors extends \Bricks\Element {
 	 *
 	 * @var array
 	 */
-	public $scripts = [ 'atColorsInit' ];
+	public $scripts = [ 'bsgColorsInit' ];
 
 	/**
 	 * Nestable element.
@@ -60,7 +75,7 @@ class Colors extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'Colors', 'advanced-themer-style-guide' ) . ' (' . esc_html__( 'Nestable', 'advanced-themer-style-guide' ) . ')';
+		return esc_html__( 'Colors', 'bricks-style-guide' ) . ' (' . esc_html__( 'Nestable', 'bricks-style-guide' ) . ')';
 	}
 
 	/**
@@ -69,7 +84,7 @@ class Colors extends \Bricks\Element {
 	 * @return array
 	 */
 	public function get_keywords(): array {
-		return [ 'color', 'swatch', 'palette', 'style guide', 'nestable', 'advanced themer' ];
+		return [ 'color', 'swatch', 'palette', 'style guide', 'nestable', 'advanced themer', 'automatic css', 'acss' ];
 	}
 
 	/**
@@ -79,22 +94,22 @@ class Colors extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['layout'] = [
-			'title' => esc_html__( 'Layout', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Layout', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['displayOverride'] = [
-			'title' => esc_html__( 'Display Override', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display Override', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['variationsOverride'] = [
-			'title' => esc_html__( 'Variations Override', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Variations Override', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['styleOverride'] = [
-			'title' => esc_html__( 'Style Override', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Style Override', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 	}
@@ -105,42 +120,45 @@ class Colors extends \Bricks\Element {
 	 * @return void
 	 */
 	public function set_controls(): void {
+		// Get framework-specific example variables.
+		$examples = FrameworkDetector::get_example_variables();
+
 		// Base font size control.
 		$this->controls['baseFontSize'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Base Font Size', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Base Font Size', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'default'     => 'var(--at-text--s)',
+			'default'     => $examples['text_s'],
 			'css'         => [
 				[
 					'property' => 'font-size',
 					'selector' => '',
 				],
 			],
-			'description' => esc_html__( 'Base font size for the element. Sub-components use em units relative to this.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Base font size for the element. Sub-components use em units relative to this.', 'bricks-style-guide' ),
 		];
 
 		// Layout mode control.
 		$this->controls['layoutMode'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Layout Mode', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Layout Mode', 'bricks-style-guide' ),
 			'type'        => 'select',
 			'options'     => [
-				'default'          => esc_html__( 'Default (Grid)', 'advanced-themer-style-guide' ),
-				'stacked'          => esc_html__( 'Stacked (Vertical)', 'advanced-themer-style-guide' ),
-				'compact'          => esc_html__( 'Compact', 'advanced-themer-style-guide' ),
-				'compact-vertical' => esc_html__( 'Compact Vertical', 'advanced-themer-style-guide' ),
+				'default'          => esc_html__( 'Default (Grid)', 'bricks-style-guide' ),
+				'stacked'          => esc_html__( 'Stacked (Vertical)', 'bricks-style-guide' ),
+				'compact'          => esc_html__( 'Compact', 'bricks-style-guide' ),
+				'compact-vertical' => esc_html__( 'Compact Vertical', 'bricks-style-guide' ),
 			],
 			'default'     => 'default',
-			'placeholder' => esc_html__( 'Default (Grid)', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'Default (Grid)', 'bricks-style-guide' ),
 			'rerender'    => true,
 		];
 
 		// Layout controls - Flex options using Bricks dedicated control types.
 		$this->controls['flexDirection'] = [
 			'group'   => 'layout',
-			'label'   => esc_html__( 'Direction', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Direction', 'bricks-style-guide' ),
 			'type'    => 'direction',
 			'inline'  => true,
 			'css'     => [
@@ -153,7 +171,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['justifyContent'] = [
 			'group'   => 'layout',
-			'label'   => esc_html__( 'Justify', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Justify', 'bricks-style-guide' ),
 			'type'    => 'justify-content',
 			'inline'  => true,
 			'css'     => [
@@ -166,7 +184,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['alignItems'] = [
 			'group'   => 'layout',
-			'label'   => esc_html__( 'Align', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Align', 'bricks-style-guide' ),
 			'type'    => 'align-items',
 			'inline'  => true,
 			'css'     => [
@@ -179,7 +197,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['gap'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Gap', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Gap', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => '2em',
@@ -193,24 +211,24 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['showA11yGlossary'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Show A11Y Glossary', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Show A11Y Glossary', 'bricks-style-guide' ),
 			'type'        => 'checkbox',
 			'rerender'    => true,
-			'description' => esc_html__( 'Show the WCAG contrast standards glossary when A11Y badges are enabled.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Show the WCAG contrast standards glossary when A11Y badges are enabled.', 'bricks-style-guide' ),
 		];
 
 		// Display Override controls.
 		$this->controls['overrideChildDisplay'] = [
 			'group'       => 'displayOverride',
-			'label'       => esc_html__( 'Override Child Display Settings', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Override Child Display Settings', 'bricks-style-guide' ),
 			'type'        => 'checkbox',
 			'rerender'    => true,
-			'description' => esc_html__( 'Enable to control display settings for all child items from here.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Enable to control display settings for all child items from here.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['hideColorName'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Color Name', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Color Name', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -218,7 +236,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['hideCssVariable'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide CSS Variable', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide CSS Variable', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -226,7 +244,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['hideHexValue'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Hex/Color Value', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Hex/Color Value', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -234,7 +252,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['hideShadeLabels'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Shade Labels', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Shade Labels', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -243,15 +261,15 @@ class Colors extends \Bricks\Element {
 		// Variations Override controls.
 		$this->controls['overrideChildVariations'] = [
 			'group'       => 'variationsOverride',
-			'label'       => esc_html__( 'Override Child Variation Settings', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Override Child Variation Settings', 'bricks-style-guide' ),
 			'type'        => 'checkbox',
 			'rerender'    => true,
-			'description' => esc_html__( 'Enable to control variation settings for all child items from here.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Enable to control variation settings for all child items from here.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['hideVariations'] = [
 			'group'    => 'variationsOverride',
-			'label'    => esc_html__( 'Hide All Variations', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide All Variations', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildVariations', '!=', '' ],
@@ -259,7 +277,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['hideLightShades'] = [
 			'group'    => 'variationsOverride',
-			'label'    => esc_html__( 'Hide Light Shades', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Light Shades', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildVariations', '!=', '' ],
@@ -267,7 +285,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['hideDarkShades'] = [
 			'group'    => 'variationsOverride',
-			'label'    => esc_html__( 'Hide Dark Shades', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Dark Shades', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildVariations', '!=', '' ],
@@ -275,7 +293,7 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['hideTransparencyShades'] = [
 			'group'    => 'variationsOverride',
-			'label'    => esc_html__( 'Hide Transparency Shades', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Transparency Shades', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildVariations', '!=', '' ],
@@ -284,31 +302,31 @@ class Colors extends \Bricks\Element {
 		// Style Override controls.
 		$this->controls['overrideChildStyle'] = [
 			'group'       => 'styleOverride',
-			'label'       => esc_html__( 'Override Child Style Settings', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Override Child Style Settings', 'bricks-style-guide' ),
 			'type'        => 'checkbox',
 			'rerender'    => true,
-			'description' => esc_html__( 'Enable to control swatch styling for all child items from here.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Enable to control swatch styling for all child items from here.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['parentSwatchSize'] = [
 			'group'       => 'styleOverride',
-			'label'       => esc_html__( 'Variant Swatch Size', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Variant Swatch Size', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'placeholder' => 'var(--at-space--xl)',
+			'placeholder' => $examples['space_xl'],
 			'required'    => [ 'overrideChildStyle', '!=', '' ],
 			'css'         => [
 				[
 					'property' => 'width',
-					'selector' => '.atsg-colors-item__swatch',
+					'selector' => '.bsg-colors-item__swatch',
 				],
 				[
 					'property' => 'height',
-					'selector' => '.atsg-colors-item__swatch',
+					'selector' => '.bsg-colors-item__swatch',
 				],
 				[
 					'property'  => 'min-width',
-					'selector'  => '.atsg-colors-item__swatch',
+					'selector'  => '.bsg-colors-item__swatch',
 					'important' => true,
 				],
 			],
@@ -316,20 +334,20 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['parentBaseSize'] = [
 			'group'       => 'styleOverride',
-			'label'       => esc_html__( 'Base Swatch Width', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Base Swatch Width', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'placeholder' => 'var(--at-space--xl)',
+			'placeholder' => $examples['space_xl'],
 			'required'    => [ 'overrideChildStyle', '!=', '' ],
 			'css'         => [
 				[
 					'property'  => 'width',
-					'selector'  => '.atsg-colors-item__base-column',
+					'selector'  => '.bsg-colors-item__base-column',
 					'important' => true,
 				],
 				[
 					'property'  => 'width',
-					'selector'  => '.atsg-colors-item__base',
+					'selector'  => '.bsg-colors-item__base',
 					'important' => true,
 				],
 			],
@@ -337,51 +355,51 @@ class Colors extends \Bricks\Element {
 
 		$this->controls['parentSwatchGap'] = [
 			'group'       => 'styleOverride',
-			'label'       => esc_html__( 'Swatch Gap', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Swatch Gap', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'placeholder' => 'var(--at-space--3xs)',
+			'placeholder' => $examples['space_3xs'],
 			'required'    => [ 'overrideChildStyle', '!=', '' ],
 			'css'         => [
 				[
 					'property' => 'gap',
-					'selector' => '.atsg-colors-item__grid',
+					'selector' => '.bsg-colors-item__grid',
 				],
 				[
 					'property' => 'gap',
-					'selector' => '.atsg-colors-item__column',
+					'selector' => '.bsg-colors-item__column',
 				],
 			],
 		];
 
 		$this->controls['parentSwatchBorderRadius'] = [
 			'group'       => 'styleOverride',
-			'label'       => esc_html__( 'Swatch Border Radius', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Swatch Border Radius', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'placeholder' => 'var(--at-radius--m)',
+			'placeholder' => $examples['radius_m'],
 			'required'    => [ 'overrideChildStyle', '!=', '' ],
 			'css'         => [
 				[
 					'property' => 'border-radius',
-					'selector' => '.atsg-colors-item__swatch',
+					'selector' => '.bsg-colors-item__swatch',
 				],
 				[
 					'property' => 'border-radius',
-					'selector' => '.atsg-colors-item__base',
+					'selector' => '.bsg-colors-item__base',
 				],
 			],
 		];
 
 		$this->controls['labelTypography'] = [
 			'group'    => 'styleOverride',
-			'label'    => esc_html__( 'Label Typography', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Label Typography', 'bricks-style-guide' ),
 			'type'     => 'typography',
 			'required' => [ 'overrideChildStyle', '!=', '' ],
 			'css'      => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-colors-item__label',
+					'selector' => '.bsg-colors-item__label',
 				],
 			],
 		];
@@ -394,8 +412,8 @@ class Colors extends \Bricks\Element {
 	 */
 	public function get_nestable_item(): array {
 		return [
-			'name'     => 'at-colors-item',
-			'label'    => esc_html__( 'Color Item', 'advanced-themer-style-guide' ),
+			'name'     => 'bsg-colors-item',
+			'label'    => esc_html__( 'Color Item', 'bricks-style-guide' ),
 			'settings' => [
 				'atColor' => '{item_color_id}',
 			],
@@ -405,12 +423,13 @@ class Colors extends \Bricks\Element {
 	/**
 	 * Get nestable children.
 	 *
-	 * Creates a color item for each defined AT color.
+	 * Creates a color item for each defined color from the active framework.
 	 *
 	 * @return array
 	 */
 	public function get_nestable_children(): array {
-		$root_colors = ATColors::get_root_colors();
+		// Use framework-agnostic method to get colors.
+		$root_colors = ATColors::get_framework_colors();
 		$children    = [];
 
 		foreach ( $root_colors as $color_id => $color ) {
@@ -438,8 +457,8 @@ class Colors extends \Bricks\Element {
 	 * @return void
 	 */
 	public function render(): void {
-		// Check for ATF variables.
-		if ( ! ATFrameworkDefaults::has_at_variables() ) {
+		// Check for framework variables.
+		if ( ! ATFrameworkDefaults::has_framework_variables() ) {
 			echo ATFrameworkDefaults::render_warning(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			return;
 		}
@@ -447,10 +466,10 @@ class Colors extends \Bricks\Element {
 		$settings = $this->settings;
 
 		$layout_mode  = $settings['layoutMode'] ?? 'default';
-		$root_classes = [ 'atsg-colors' ];
+		$root_classes = [ 'bsg-colors' ];
 
 		if ( 'default' !== $layout_mode ) {
-			$root_classes[] = 'atsg-colors--' . $layout_mode;
+			$root_classes[] = 'bsg-colors--' . $layout_mode;
 		}
 
 		$this->set_attribute( '_root', 'class', $root_classes );
@@ -507,64 +526,64 @@ class Colors extends \Bricks\Element {
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
 		// A11Y badges toggle switch.
-		$output .= '<div class="atsg-colors__toolbar">';
-		$output .= '<label class="atsg-colors__toggle">';
-		$output .= '<input type="checkbox" class="atsg-colors__toggle-input" data-toggle="a11y-badges">';
-		$output .= '<span class="atsg-colors__toggle-switch"></span>';
-		$output .= '<span class="atsg-colors__toggle-label">' . esc_html__( 'A11Y Badges', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '<div class="bsg-colors__toolbar">';
+		$output .= '<label class="bsg-colors__toggle">';
+		$output .= '<input type="checkbox" class="bsg-colors__toggle-input" data-toggle="a11y-badges">';
+		$output .= '<span class="bsg-colors__toggle-switch"></span>';
+		$output .= '<span class="bsg-colors__toggle-label">' . esc_html__( 'A11Y Badges', 'bricks-style-guide' ) . '</span>';
 		$output .= '</label>';
 		$output .= '</div>';
 
 		// A11Y Glossary - reveals when toggle is enabled (if glossary is enabled in settings).
-		$output .= '<div class="atsg-colors__glossary">';
-		$output .= '<div class="atsg-colors__glossary-inner">';
+		$output .= '<div class="bsg-colors__glossary">';
+		$output .= '<div class="bsg-colors__glossary-inner">';
 
 		// WCAG Standard explanation.
-		$output .= '<div class="atsg-colors__glossary-section">';
-		$output .= '<h4 class="atsg-colors__glossary-title">' . esc_html__( 'WCAG Contrast Standards', 'advanced-themer-style-guide' ) . '</h4>';
-		$output .= '<p class="atsg-colors__glossary-text">' . esc_html__( 'The Web Content Accessibility Guidelines (WCAG) define minimum contrast ratios between text and background colors to ensure readability for users with visual impairments.', 'advanced-themer-style-guide' ) . '</p>';
+		$output .= '<div class="bsg-colors__glossary-section">';
+		$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'WCAG Contrast Standards', 'bricks-style-guide' ) . '</h4>';
+		$output .= '<p class="bsg-colors__glossary-text">' . esc_html__( 'The Web Content Accessibility Guidelines (WCAG) define minimum contrast ratios between text and background colors to ensure readability for users with visual impairments.', 'bricks-style-guide' ) . '</p>';
 		$output .= '</div>';
 
 		// Contrast ratios.
-		$output .= '<div class="atsg-colors__glossary-section">';
-		$output .= '<h4 class="atsg-colors__glossary-title">' . esc_html__( 'Contrast Ratios', 'advanced-themer-style-guide' ) . '</h4>';
-		$output .= '<ul class="atsg-colors__glossary-list">';
-		$output .= '<li><strong>AAA</strong> ' . esc_html__( '(7:1+) - Enhanced contrast, best for body text', 'advanced-themer-style-guide' ) . '</li>';
-		$output .= '<li><strong>AA</strong> ' . esc_html__( '(4.5:1+) - Minimum for normal text', 'advanced-themer-style-guide' ) . '</li>';
-		$output .= '<li><strong>AA Large</strong> ' . esc_html__( '(3:1+) - Minimum for large text (24px+ or 19px+ bold)*', 'advanced-themer-style-guide' ) . '</li>';
+		$output .= '<div class="bsg-colors__glossary-section">';
+		$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'Contrast Ratios', 'bricks-style-guide' ) . '</h4>';
+		$output .= '<ul class="bsg-colors__glossary-list">';
+		$output .= '<li><strong>AAA</strong> ' . esc_html__( '(7:1+) - Enhanced contrast, best for body text', 'bricks-style-guide' ) . '</li>';
+		$output .= '<li><strong>AA</strong> ' . esc_html__( '(4.5:1+) - Minimum for normal text', 'bricks-style-guide' ) . '</li>';
+		$output .= '<li><strong>AA Large</strong> ' . esc_html__( '(3:1+) - Minimum for large text (24px+ or 19px+ bold)*', 'bricks-style-guide' ) . '</li>';
 		$output .= '</ul>';
-		$output .= '<p class="atsg-colors__glossary-note">' . esc_html__( '*Approximate px values at 96dpi', 'advanced-themer-style-guide' ) . '</p>';
+		$output .= '<p class="bsg-colors__glossary-note">' . esc_html__( '*Approximate px values at 96dpi', 'bricks-style-guide' ) . '</p>';
 		$output .= '</div>';
 
 		// Badge legend.
-		$output .= '<div class="atsg-colors__glossary-section">';
-		$output .= '<h4 class="atsg-colors__glossary-title">' . esc_html__( 'Badge Legend', 'advanced-themer-style-guide' ) . '</h4>';
-		$output .= '<div class="atsg-colors__glossary-badges">';
-		$output .= '<div class="atsg-colors__glossary-badge-item">';
-		$output .= '<span class="atsg-colors__glossary-badge atsg-colors__glossary-badge--pass">' . esc_html__( 'AAA / AA', 'advanced-themer-style-guide' ) . '</span>';
-		$output .= '<span class="atsg-colors__glossary-badge-desc">' . esc_html__( 'Pass - Good contrast', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '<div class="bsg-colors__glossary-section">';
+		$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'Badge Legend', 'bricks-style-guide' ) . '</h4>';
+		$output .= '<div class="bsg-colors__glossary-badges">';
+		$output .= '<div class="bsg-colors__glossary-badge-item">';
+		$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--pass">' . esc_html__( 'AAA / AA', 'bricks-style-guide' ) . '</span>';
+		$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Pass - Good contrast', 'bricks-style-guide' ) . '</span>';
 		$output .= '</div>';
-		$output .= '<div class="atsg-colors__glossary-badge-item">';
-		$output .= '<span class="atsg-colors__glossary-badge atsg-colors__glossary-badge--large">' . esc_html__( 'AA Large', 'advanced-themer-style-guide' ) . '</span>';
-		$output .= '<span class="atsg-colors__glossary-badge-desc">' . esc_html__( 'Large text only', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '<div class="bsg-colors__glossary-badge-item">';
+		$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--large">' . esc_html__( 'AA Large', 'bricks-style-guide' ) . '</span>';
+		$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Large text only', 'bricks-style-guide' ) . '</span>';
 		$output .= '</div>';
-		$output .= '<div class="atsg-colors__glossary-badge-item">';
-		$output .= '<span class="atsg-colors__glossary-badge atsg-colors__glossary-badge--fail">' . esc_html__( 'Fail', 'advanced-themer-style-guide' ) . '</span>';
-		$output .= '<span class="atsg-colors__glossary-badge-desc">' . esc_html__( 'Insufficient contrast', 'advanced-themer-style-guide' ) . '</span>';
+		$output .= '<div class="bsg-colors__glossary-badge-item">';
+		$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--fail">' . esc_html__( 'Fail', 'bricks-style-guide' ) . '</span>';
+		$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Insufficient contrast', 'bricks-style-guide' ) . '</span>';
 		$output .= '</div>';
 		$output .= '</div>';
 		$output .= '</div>';
 
 		// W/B badges explanation.
-		$output .= '<div class="atsg-colors__glossary-section">';
-		$output .= '<p class="atsg-colors__glossary-text atsg-colors__glossary-text--small">';
-		$output .= '<strong>W</strong> = ' . esc_html__( 'contrast against white text', 'advanced-themer-style-guide' ) . '<br>';
-		$output .= '<strong>B</strong> = ' . esc_html__( 'contrast against black text', 'advanced-themer-style-guide' );
+		$output .= '<div class="bsg-colors__glossary-section">';
+		$output .= '<p class="bsg-colors__glossary-text bsg-colors__glossary-text--small">';
+		$output .= '<strong>W</strong> = ' . esc_html__( 'contrast against white text', 'bricks-style-guide' ) . '<br>';
+		$output .= '<strong>B</strong> = ' . esc_html__( 'contrast against black text', 'bricks-style-guide' );
 		$output .= '</p>';
 		$output .= '</div>';
 
-		$output .= '</div>'; // .atsg-colors__glossary-inner
-		$output .= '</div>'; // .atsg-colors__glossary
+		$output .= '</div>'; // .bsg-colors__glossary-inner
+		$output .= '</div>'; // .bsg-colors__glossary
 
 		// Render children elements (individual color items).
 		$output .= \Bricks\Frontend::render_children( $this );
@@ -580,11 +599,11 @@ class Colors extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-colors';
+		$handle = 'bsg-colors';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -597,9 +616,17 @@ class Colors extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		// Get framework-agnostic CSS variables that map to the active framework.
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
+			/* Framework Variable Mappings */
+			.bsg-colors {
+				' . $framework_vars . '
+			}
+
 			/* Critical layout */
-			.atsg-colors {
+			.bsg-colors {
 				display: flex;
 				flex-direction: row;
 				flex-wrap: wrap;
@@ -607,40 +634,56 @@ class Colors extends \Bricks\Element {
 			}
 
 			/* Parent display override styles */
-			.atsg-colors[data-override-display="true"][data-hide-color-name="true"] .atsg-colors-item__label {
+			.bsg-colors[data-override-display="true"][data-hide-color-name="true"] .bsg-colors-item__label {
 				display: none;
 			}
 
 			/* Parent variations override styles */
-			/* Hide all variation columns (keep only base) */
-			.atsg-colors[data-override-variations="true"][data-hide-variations="true"] .atsg-colors-item__column {
+			/* Hide all variation columns (keep only base) - AT layout */
+			.bsg-colors[data-override-variations="true"][data-hide-variations="true"] .bsg-colors-item__column {
+				display: none;
+			}
+			/* Hide all variations - ACSS layout */
+			.bsg-colors[data-override-variations="true"][data-hide-variations="true"] .bsg-colors-item__variants-wrapper {
 				display: none;
 			}
 
-			/* Hide dark shades column */
-			.atsg-colors[data-override-variations="true"][data-hide-dark-shades="true"] .atsg-colors-item__column[data-variant="dark"] {
+			/* Hide dark shades column - AT layout */
+			.bsg-colors[data-override-variations="true"][data-hide-dark-shades="true"] .bsg-colors-item__column[data-variant="dark"] {
+				display: none;
+			}
+			/* Hide dark shades - ACSS layout (individual swatches) */
+			.bsg-colors[data-override-variations="true"][data-hide-dark-shades="true"] .bsg-colors-item__swatch[data-variant="dark"] {
 				display: none;
 			}
 
-			/* Hide light shades column */
-			.atsg-colors[data-override-variations="true"][data-hide-light-shades="true"] .atsg-colors-item__column[data-variant="light"] {
+			/* Hide light shades column - AT layout */
+			.bsg-colors[data-override-variations="true"][data-hide-light-shades="true"] .bsg-colors-item__column[data-variant="light"] {
+				display: none;
+			}
+			/* Hide light shades - ACSS layout (individual swatches) */
+			.bsg-colors[data-override-variations="true"][data-hide-light-shades="true"] .bsg-colors-item__swatch[data-variant="light"] {
 				display: none;
 			}
 
-			/* Hide transparency shades column */
-			.atsg-colors[data-override-variations="true"][data-hide-transparency-shades="true"] .atsg-colors-item__column[data-variant="transparency"] {
+			/* Hide transparency shades column - AT layout */
+			.bsg-colors[data-override-variations="true"][data-hide-transparency-shades="true"] .bsg-colors-item__column[data-variant="transparency"] {
+				display: none;
+			}
+			/* Hide transparency shades - ACSS layout */
+			.bsg-colors[data-override-variations="true"][data-hide-transparency-shades="true"] .bsg-colors-item__transparencies {
 				display: none;
 			}
 
 			/* Toolbar with toggle */
-			.atsg-colors__toolbar {
+			.bsg-colors__toolbar {
 				width: 100%;
 				display: flex;
 				justify-content: flex-start;
 				margin-bottom: 0.5em;
 			}
 
-			.atsg-colors__toggle {
+			.bsg-colors__toggle {
 				display: flex;
 				align-items: center;
 				gap: 0.375em;
@@ -648,7 +691,7 @@ class Colors extends \Bricks\Element {
 				user-select: none;
 			}
 
-			.atsg-colors__toggle-input {
+			.bsg-colors__toggle-input {
 				position: absolute;
 				opacity: 0;
 				width: 0;
@@ -656,24 +699,24 @@ class Colors extends \Bricks\Element {
 			}
 
 			/* A11Y badges - hidden by default */
-			.atsg-colors .atsg-colors-item__contrast-badges {
+			.bsg-colors .bsg-colors-item__contrast-badges {
 				display: none;
 			}
 
 			/* Show A11Y badges when toggle is checked */
-			.atsg-colors[data-show-a11y-badges="true"] .atsg-colors-item__contrast-badges {
+			.bsg-colors[data-show-a11y-badges="true"] .bsg-colors-item__contrast-badges {
 				display: flex;
 			}
 
 			/* A11Y Glossary - completely hidden by default with smooth reveal */
-			.atsg-colors__glossary {
+			.bsg-colors__glossary {
 				width: 100%;
 				display: grid;
 				grid-template-rows: 0fr;
 				transition: grid-template-rows 0.3s ease-out;
 			}
 
-			.atsg-colors__glossary-inner {
+			.bsg-colors__glossary-inner {
 				min-height: 0;
 				overflow: hidden;
 				display: flex;
@@ -685,110 +728,110 @@ class Colors extends \Bricks\Element {
 			}
 
 			/* Show glossary when A11Y toggle is enabled AND glossary setting is on */
-			.atsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .atsg-colors__glossary {
+			.bsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .bsg-colors__glossary {
 				grid-template-rows: 1fr;
 			}
 
-			.atsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .atsg-colors__glossary-inner {
+			.bsg-colors[data-show-a11y-badges="true"][data-show-glossary="true"] .bsg-colors__glossary-inner {
 				padding: 1em;
-				border-color: var(--at-neutral-t-4, #d1d5db);
+				border-color: var(--bsg-border-color, #d1d5db);
 			}
 
-			.atsg-colors__glossary-section {
-				flex: 1 1 200px;
-				min-width: 180px;
+			.bsg-colors__glossary-section {
+				flex: 1 1 20rem;
+				min-width: 18rem;
 			}
 
-			.atsg-colors__glossary-badges {
+			.bsg-colors__glossary-badges {
 				display: flex;
 				flex-direction: column;
 				gap: 0.5em;
 			}
 
-			.atsg-colors__glossary-badge-item {
+			.bsg-colors__glossary-badge-item {
 				display: flex;
 				align-items: center;
 				gap: 0.5em;
 			}
 
-			@layer atsg {
-			.atsg-colors__toggle-switch {
+			@layer bsg {
+			.bsg-colors__toggle-switch {
 				position: relative;
 				width: 1.5em;
 				height: 0.875em;
-				background: var(--at-neutral-t-4, #d1d5db);
+				background: var(--bsg-border-color, #d1d5db);
 				border-radius: 0.4375em;
 				transition: background 0.2s ease;
 			}
 
-			.atsg-colors__toggle-switch::after {
+			.bsg-colors__toggle-switch::after {
 				content: "";
 				position: absolute;
 				top: 0.125em;
 				left: 0.125em;
 				width: 0.625em;
 				height: 0.625em;
-				background: var(--at-white, #ffffff);
+				background: var(--bsg-white, #ffffff);
 				border-radius: 50%;
 				transition: transform 0.2s ease;
 			}
 
-			.atsg-colors__toggle-input:checked + .atsg-colors__toggle-switch {
-				background: var(--at-primary, #3b82f6);
+			.bsg-colors__toggle-input:checked + .bsg-colors__toggle-switch {
+				background: var(--bsg-primary, #3b82f6);
 			}
 
-			.atsg-colors__toggle-input:checked + .atsg-colors__toggle-switch::after {
+			.bsg-colors__toggle-input:checked + .bsg-colors__toggle-switch::after {
 				transform: translateX(0.625em);
 			}
 
-			.atsg-colors__toggle-label {
+			.bsg-colors__toggle-label {
 				font-size: 0.6875em;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-colors__glossary-inner {
-				background: var(--at-neutral-t-6, #f3f4f6);
-				border-radius: var(--at-radius--s, 0.5em);
+			.bsg-colors__glossary-inner {
+				background: var(--bsg-neutral-light, #f3f4f6);
+				border-radius: var(--bsg-radius-s, 0.5em);
 			}
 
-			.atsg-colors__glossary-title {
+			.bsg-colors__glossary-title {
 				margin: 0 0 0.5em 0;
 				font-size: 0.8125em;
 				font-weight: 600;
-				color: var(--at-neutral-d-4, #1f2937);
+				color: var(--bsg-neutral-darker, #1f2937);
 			}
 
-			.atsg-colors__glossary-text {
+			.bsg-colors__glossary-text {
 				margin: 0;
 				font-size: 0.75em;
 				line-height: 1.5;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-colors__glossary-text--small {
+			.bsg-colors__glossary-text--small {
 				font-size: 0.6875em;
 			}
 
-			.atsg-colors__glossary-list {
+			.bsg-colors__glossary-list {
 				margin: 0;
 				padding-left: 1em;
 				font-size: 0.75em;
 				line-height: 1.6;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-colors__glossary-list li {
+			.bsg-colors__glossary-list li {
 				margin-bottom: 0.25em;
 			}
 
-			.atsg-colors__glossary-note {
+			.bsg-colors__glossary-note {
 				margin: 0.5em 0 0 0;
 				font-size: 0.625em;
 				font-style: italic;
-				color: var(--at-neutral-d-1, #9ca3af);
+				color: var(--bsg-neutral-medium, #9ca3af);
 			}
 
-			.atsg-colors__glossary-badge {
+			.bsg-colors__glossary-badge {
 				display: inline-flex;
 				align-items: center;
 				justify-content: center;
@@ -800,26 +843,27 @@ class Colors extends \Bricks\Element {
 				text-align: center;
 			}
 
-			.atsg-colors__glossary-badge--pass {
-				background: var(--at-success, #10b981);
+			/* A11Y badges use hardcoded white for guaranteed contrast */
+			.bsg-colors__glossary-badge--pass {
+				background: var(--bsg-success, #10b981);
 				color: #ffffff;
 			}
 
-			.atsg-colors__glossary-badge--large {
-				background: var(--at-warning, #f59e0b);
+			.bsg-colors__glossary-badge--large {
+				background: var(--bsg-warning, #f59e0b);
 				color: #ffffff;
 			}
 
-			.atsg-colors__glossary-badge--fail {
-				background: var(--at-error, #ef4444);
+			.bsg-colors__glossary-badge--fail {
+				background: var(--bsg-error, #ef4444);
 				color: #ffffff;
 			}
 
-			.atsg-colors__glossary-badge-desc {
+			.bsg-colors__glossary-badge-desc {
 				font-size: 0.6875em;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
-			} /* end @layer atsg */
+			} /* end @layer bsg */
 		';
 	}
 }

@@ -1,41 +1,120 @@
 /**
- * AT Style Guide Elements - JavaScript
+ * Bricks Style Guide Elements - JavaScript
  *
  * Bricks calls these functions via the $scripts property when elements render in the builder.
  * On the frontend, we auto-initialize on DOMContentLoaded.
+ *
+ * Performance optimized:
+ * - Single resize listener with debounce/throttle
+ * - IntersectionObserver for visibility-based updates
+ * - Viewport width tracking to skip unnecessary updates
+ * - Cached DOM references
+ * - Static values computed once, not on resize
  */
 
 (function() {
 	'use strict';
 
 	/**
+	 * Debounce utility - limits function execution rate.
+	 */
+	function debounce(func, wait) {
+		let timeout;
+		return function executedFunction(...args) {
+			const later = () => {
+				clearTimeout(timeout);
+				func(...args);
+			};
+			clearTimeout(timeout);
+			timeout = setTimeout(later, wait);
+		};
+	}
+
+	/**
+	 * Throttle utility - ensures function executes at most once per interval.
+	 */
+	function throttle(func, limit) {
+		let inThrottle;
+		return function(...args) {
+			if (!inThrottle) {
+				func.apply(this, args);
+				inThrottle = true;
+				setTimeout(() => inThrottle = false, limit);
+			}
+		};
+	}
+
+	window.bsgDebounce = debounce;
+	window.bsgThrottle = throttle;
+
+	/**
+	 * Round a CSS pixel value to 2 decimal places.
+	 */
+	function roundPxValue(value) {
+		if (!value || typeof value !== 'string') return value;
+		const pxMatch = value.match(/^([\d.]+)px$/);
+		if (pxMatch) {
+			const num = parseFloat(pxMatch[1]);
+			return Math.round(num * 100) / 100 + 'px';
+		}
+		return value;
+	}
+
+	/**
+	 * Round all px values within a complex CSS string.
+	 */
+	function roundAllPxValues(value) {
+		if (!value || typeof value !== 'string') return value;
+		return value.replace(/([\d.]+)px/g, (match, num) => {
+			return Math.round(parseFloat(num) * 100) / 100 + 'px';
+		});
+	}
+
+	window.roundPxValue = roundPxValue;
+	window.roundAllPxValues = roundAllPxValues;
+
+	/**
 	 * Get the original CSS value for a property, preserving CSS variable references
-	 * or original units (em, rem, %, etc.) instead of computed px values.
+	 * or original units (em, rem, %, unitless) instead of computed px values.
+	 *
+	 * Note: This is expensive (iterates stylesheets) so only call once per element,
+	 * not on resize. Results are cached per element.
 	 *
 	 * @param {HTMLElement} element - The element to inspect.
 	 * @param {string} property - The CSS property name (e.g., 'line-height').
 	 * @returns {string|null} The original value with units, or null if not found.
 	 */
+	const cssValueCache = new WeakMap();
+
 	function getOriginalCSSValue(element, property) {
-		// First, check inline style
+		// Check cache first
+		let elementCache = cssValueCache.get(element);
+		if (elementCache && elementCache[property] !== undefined) {
+			return elementCache[property];
+		}
+
+		// Check inline style first
 		const inlineValue = element.style.getPropertyValue(property);
 		if (inlineValue && inlineValue !== '') {
+			if (!elementCache) {
+				elementCache = {};
+				cssValueCache.set(element, elementCache);
+			}
+			elementCache[property] = inlineValue;
 			return inlineValue;
 		}
 
-		// Walk through all stylesheets to find matching rules
+		// Walk through stylesheets to find matching rules
+		let matchedValue = null;
 		try {
 			const sheets = document.styleSheets;
-			let matchedValue = null;
-			let matchedSpecificity = -1;
 
 			for (let i = 0; i < sheets.length; i++) {
 				let rules;
 				try {
 					rules = sheets[i].cssRules || sheets[i].rules;
 				} catch (e) {
-					// Cross-origin stylesheets may throw
-					continue;
+					continue; // Cross-origin stylesheets
 				}
 
 				if (!rules) continue;
@@ -48,101 +127,161 @@
 						if (element.matches(rule.selectorText)) {
 							const value = rule.style.getPropertyValue(property);
 							if (value && value !== '') {
-								// Simple specificity approximation (later rules win for same specificity)
 								matchedValue = value;
 							}
 						}
 					} catch (e) {
-						// Some selectors may be invalid
 						continue;
 					}
 				}
 			}
 
-			if (matchedValue) {
-				// If the value is a CSS variable, try to resolve it but keep showing the variable name
-				if (matchedValue.startsWith('var(')) {
-					// Extract variable name
-					const varMatch = matchedValue.match(/var\(([^,)]+)/);
-					if (varMatch) {
-						const varName = varMatch[1].trim();
-						// Get the actual variable value from computed styles
-						const resolvedValue = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-						// Return the resolved value but preserve its original units
-						if (resolvedValue) {
-							return resolvedValue;
-						}
+			// Resolve CSS variables if needed
+			if (matchedValue && matchedValue.startsWith('var(')) {
+				const varMatch = matchedValue.match(/var\(([^,)]+)/);
+				if (varMatch) {
+					const varName = varMatch[1].trim();
+					const resolvedValue = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+					if (resolvedValue) {
+						matchedValue = resolvedValue;
 					}
 				}
-				return matchedValue;
 			}
 		} catch (e) {
-			// Fall through to return null
+			// Fall through
 		}
 
-		return null;
+		// Cache result
+		if (!elementCache) {
+			elementCache = {};
+			cssValueCache.set(element, elementCache);
+		}
+		elementCache[property] = matchedValue;
+
+		return matchedValue;
 	}
 
-	// Make function available globally for element scripts
 	window.getOriginalCSSValue = getOriginalCSSValue;
 
 	/**
-	 * Round a CSS pixel value to 2 decimal places.
-	 *
-	 * @param {string} value - CSS value like "16.123456px" or "normal".
-	 * @returns {string} Rounded value like "16.12px" or original if not a px value.
+	 * Centralized resize handler with viewport tracking.
+	 * Only triggers updates when viewport WIDTH changes (not height).
 	 */
-	function roundPxValue(value) {
-		if (!value || typeof value !== 'string') return value;
+	const ResizeManager = {
+		callbacks: new Map(), // Map of callback -> { fn, element, lastWidth }
+		initialized: false,
+		lastViewportWidth: 0,
+		observer: null,
+		visibleElements: new Set(),
 
-		const pxMatch = value.match(/^([\d.]+)px$/);
-		if (pxMatch) {
-			const num = parseFloat(pxMatch[1]);
-			const rounded = Math.round(num * 100) / 100;
-			return rounded + 'px';
+		/**
+		 * Add a resize callback for an element.
+		 * @param {Function} callback - Update function
+		 * @param {HTMLElement} element - The element to track visibility
+		 */
+		add(callback, element) {
+			this.callbacks.set(callback, { fn: callback, element });
+			this.init();
+			this.observeElement(element);
+		},
+
+		/**
+		 * Initialize resize listener and IntersectionObserver.
+		 */
+		init() {
+			if (this.initialized) return;
+			this.initialized = true;
+			this.lastViewportWidth = window.innerWidth;
+
+			// IntersectionObserver for visibility tracking
+			this.observer = new IntersectionObserver((entries) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+						this.visibleElements.add(entry.target);
+					} else {
+						this.visibleElements.delete(entry.target);
+					}
+				});
+			}, { rootMargin: '50px' }); // 50px buffer
+
+			// Debounced resize handler - only fires after resize stops
+			const debouncedHandler = debounce(() => {
+				const newWidth = window.innerWidth;
+				// Only update if width actually changed
+				if (newWidth !== this.lastViewportWidth) {
+					this.lastViewportWidth = newWidth;
+					this.executeCallbacks();
+				}
+			}, 150);
+
+			window.addEventListener('resize', debouncedHandler, { passive: true });
+		},
+
+		/**
+		 * Observe an element for visibility.
+		 */
+		observeElement(element) {
+			if (element && this.observer) {
+				this.observer.observe(element);
+				// Assume visible initially for first render
+				this.visibleElements.add(element);
+			}
+		},
+
+		/**
+		 * Execute callbacks only for visible elements.
+		 */
+		executeCallbacks() {
+			requestAnimationFrame(() => {
+				this.callbacks.forEach((data) => {
+					// Only update if element is visible
+					if (this.visibleElements.has(data.element)) {
+						try {
+							data.fn();
+						} catch (e) {
+							// Silent fail
+						}
+					}
+				});
+			});
+		},
+
+		/**
+		 * Force update all callbacks (for initial render).
+		 */
+		updateAll() {
+			requestAnimationFrame(() => {
+				this.callbacks.forEach((data) => {
+					try {
+						data.fn();
+					} catch (e) {
+						// Silent fail
+					}
+				});
+			});
 		}
-		return value;
-	}
+	};
+
+	window.BSGResizeManager = ResizeManager;
 
 	/**
-	 * Round all px values within a complex CSS string to 2 decimal places.
-	 * Useful for box-shadow, etc.
-	 *
-	 * @param {string} value - CSS value like "rgb(0,0,0) 0px 4.5678px 6px".
-	 * @returns {string} String with all px values rounded.
-	 */
-	function roundAllPxValues(value) {
-		if (!value || typeof value !== 'string') return value;
-
-		return value.replace(/([\d.]+)px/g, (match, num) => {
-			const rounded = Math.round(parseFloat(num) * 100) / 100;
-			return rounded + 'px';
-		});
-	}
-
-	// Make functions available globally
-	window.roundPxValue = roundPxValue;
-	window.roundAllPxValues = roundAllPxValues;
-
-	/**
-	 * Initialize all elements on the frontend.
+	 * Initialize all elements.
 	 */
 	function initAllElements() {
-		if (typeof atTypographyInit === 'function') atTypographyInit();
-		if (typeof atTypographyItemInit === 'function') atTypographyItemInit();
-		if (typeof atSpacingInit === 'function') atSpacingInit();
-		if (typeof atSpacingItemInit === 'function') atSpacingItemInit();
-		if (typeof atRadiiInit === 'function') atRadiiInit();
-		if (typeof atRadiiItemInit === 'function') atRadiiItemInit();
-		if (typeof atBoxShadowsInit === 'function') atBoxShadowsInit();
-		if (typeof atBoxShadowsItemInit === 'function') atBoxShadowsItemInit();
-		if (typeof atButtonsInit === 'function') atButtonsInit();
-		if (typeof atButtonsItemInit === 'function') atButtonsItemInit();
-		if (typeof atColorsInit === 'function') atColorsInit();
-		if (typeof atColorsItemInit === 'function') atColorsItemInit();
+		if (typeof bsgTypographyInit === 'function') bsgTypographyInit();
+		if (typeof bsgTypographyItemInit === 'function') bsgTypographyItemInit();
+		if (typeof bsgSpacingInit === 'function') bsgSpacingInit();
+		if (typeof bsgSpacingItemInit === 'function') bsgSpacingItemInit();
+		if (typeof bsgRadiiInit === 'function') bsgRadiiInit();
+		if (typeof bsgRadiiItemInit === 'function') bsgRadiiItemInit();
+		if (typeof bsgBoxShadowsInit === 'function') bsgBoxShadowsInit();
+		if (typeof bsgBoxShadowsItemInit === 'function') bsgBoxShadowsItemInit();
+		if (typeof bsgButtonsInit === 'function') bsgButtonsInit();
+		if (typeof bsgButtonsItemInit === 'function') bsgButtonsItemInit();
+		if (typeof bsgColorsInit === 'function') bsgColorsInit();
+		if (typeof bsgColorsItemInit === 'function') bsgColorsItemInit();
 	}
 
-	// Auto-initialize on frontend (not in Bricks builder)
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', initAllElements);
 	} else {
@@ -151,203 +290,222 @@
 })();
 
 /**
- * Typography Element (Nestable Container) - Initialize child items.
+ * Typography Element (Nestable Container).
  */
-function atTypographyInit() {
-	// Apply parent's default sample text to child items that should inherit
-	const containers = document.querySelectorAll('.atsg-typography');
+function bsgTypographyInit() {
+	const containers = document.querySelectorAll('.bsg-typography');
 	containers.forEach(container => {
 		const parentSampleText = container.dataset.sampleText;
 		if (parentSampleText) {
-			// Find all child items that should inherit sample text
-			const inheritItems = container.querySelectorAll('.atsg-typography-item[data-inherit-sample="true"]');
+			const inheritItems = container.querySelectorAll('.bsg-typography-item[data-inherit-sample="true"]');
 			inheritItems.forEach(item => {
-				const sample = item.querySelector('.atsg-typography-item__sample');
+				const sample = item.querySelector('.bsg-typography-item__sample');
 				if (sample) {
 					sample.textContent = parentSampleText;
 				}
 			});
 		}
 	});
-
-	// The parent just needs to ensure children are initialized
-	atTypographyItemInit();
+	bsgTypographyItemInit();
 }
 
 /**
- * Typography Item Element - Calculate and display computed font values.
+ * Typography Item Element.
+ *
+ * OPTIMIZATION: Only font-size updates on resize (it's the only responsive value).
+ * All other values (family, weight, line-height, etc.) are computed once.
  */
-function atTypographyItemInit() {
-	const items = document.querySelectorAll('.atsg-typography-item');
+function bsgTypographyItemInit() {
+	const items = document.querySelectorAll('.bsg-typography-item');
 
 	items.forEach(item => {
-		const updateComputedValues = () => {
-			const sample = item.querySelector('.atsg-typography-item__sample');
-			if (!sample) return;
+		if (item.dataset.bsgInit) return;
+		item.dataset.bsgInit = 'true';
 
+		const sample = item.querySelector('.bsg-typography-item__sample');
+		if (!sample) return;
+
+		// Cache element references
+		const refs = {
+			family: item.querySelector('[data-computed="font-family"]'),
+			size: item.querySelector('[data-computed="font-size"]'),
+			lineHeight: item.querySelector('[data-computed="line-height"]'),
+			weight: item.querySelector('[data-computed="font-weight"]'),
+			spacing: item.querySelector('[data-computed="letter-spacing"]'),
+			color: item.querySelector('[data-computed="color"]'),
+			transform: item.querySelector('[data-computed="text-transform"]'),
+			style: item.querySelector('[data-computed="font-style"]')
+		};
+
+		// STATIC VALUES - computed once, never on resize
+		const computeStaticValues = () => {
 			const computed = window.getComputedStyle(sample);
 
-			const familyEl = item.querySelector('[data-computed="font-family"]');
-			const sizeEl = item.querySelector('[data-computed="font-size"]');
-			const lineHeightEl = item.querySelector('[data-computed="line-height"]');
-			const weightEl = item.querySelector('[data-computed="font-weight"]');
-			const spacingEl = item.querySelector('[data-computed="letter-spacing"]');
-			const colorEl = item.querySelector('[data-computed="color"]');
-			const transformEl = item.querySelector('[data-computed="text-transform"]');
-			const styleEl = item.querySelector('[data-computed="font-style"]');
-
-			if (familyEl) {
-				const family = computed.fontFamily.split(',')[0].replace(/["']/g, '').trim();
-				familyEl.textContent = family;
+			if (refs.family) {
+				refs.family.textContent = computed.fontFamily.split(',')[0].replace(/["']/g, '').trim();
 			}
 
-			if (sizeEl) {
-				sizeEl.textContent = roundPxValue(computed.fontSize);
-			}
-
-			if (lineHeightEl) {
-				// Try to get the original CSS value with its units instead of computed px
+			if (refs.lineHeight) {
+				// Get original CSS value (e.g., 1.5, 1.6em) instead of computed px
 				const originalLineHeight = getOriginalCSSValue(sample, 'line-height');
 				if (originalLineHeight) {
-					lineHeightEl.textContent = originalLineHeight;
+					refs.lineHeight.textContent = originalLineHeight;
 				} else if (computed.lineHeight === 'normal') {
-					lineHeightEl.textContent = 'Browser Default';
+					refs.lineHeight.textContent = 'Browser Default';
 				} else {
-					// No explicit line-height set, show "Browser Default"
-					lineHeightEl.textContent = 'Browser Default';
+					refs.lineHeight.textContent = 'Browser Default';
 				}
 			}
 
-			if (weightEl) {
-				weightEl.textContent = computed.fontWeight;
+			if (refs.weight) {
+				refs.weight.textContent = computed.fontWeight;
 			}
 
-			if (spacingEl) {
+			if (refs.spacing) {
 				const spacing = computed.letterSpacing;
-				spacingEl.textContent = spacing === 'normal' ? '0' : roundPxValue(spacing);
+				refs.spacing.textContent = spacing === 'normal' ? '0' : roundPxValue(spacing);
 			}
 
-			if (colorEl) {
-				// Convert RGB to hex for cleaner display
+			if (refs.color) {
 				const rgbMatch = computed.color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
 				if (rgbMatch) {
 					const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
 					const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
 					const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
-					colorEl.textContent = `#${r}${g}${b}`.toUpperCase();
+					refs.color.textContent = `#${r}${g}${b}`.toUpperCase();
 				} else {
-					colorEl.textContent = computed.color;
+					refs.color.textContent = computed.color;
 				}
 			}
 
-			if (transformEl) {
-				transformEl.textContent = computed.textTransform;
+			if (refs.transform) {
+				refs.transform.textContent = computed.textTransform;
 			}
 
-			if (styleEl) {
-				styleEl.textContent = computed.fontStyle;
+			if (refs.style) {
+				refs.style.textContent = computed.fontStyle;
 			}
 		};
 
-		updateComputedValues();
-		window.addEventListener('resize', updateComputedValues);
+		// DYNAMIC VALUE - only font-size responds to viewport (clamp)
+		const updateFontSize = () => {
+			if (refs.size) {
+				refs.size.textContent = roundPxValue(window.getComputedStyle(sample).fontSize);
+			}
+		};
+
+		// Initial render - all values
+		computeStaticValues();
+		updateFontSize();
+
+		// Only register font-size for resize updates (if element has size display)
+		if (refs.size) {
+			window.BSGResizeManager.add(updateFontSize, item);
+		}
 	});
 }
 
 /**
- * Spacing Element (Nestable Container) - Initialize child items.
+ * Spacing Element (Nestable Container).
  */
-function atSpacingInit() {
-	// The parent just needs to ensure children are initialized
-	atSpacingItemInit();
+function bsgSpacingInit() {
+	bsgSpacingItemInit();
 }
 
 /**
- * Spacing Item Element - Calculate and display computed spacing values.
+ * Spacing Item Element.
+ *
+ * OPTIMIZATION: Uses cached references and visibility-based updates.
  */
-function atSpacingItemInit() {
-	const items = document.querySelectorAll('.atsg-spacing-item');
+function bsgSpacingItemInit() {
+	const items = document.querySelectorAll('.bsg-spacing-item');
 
 	items.forEach(item => {
-		const updateComputedValues = () => {
-			const bar = item.querySelector('.atsg-spacing-item__bar');
-			const computedEl = item.querySelector('.atsg-spacing-item__computed');
+		if (item.dataset.bsgInit) return;
+		item.dataset.bsgInit = 'true';
 
-			if (!bar) return;
+		const bar = item.querySelector('.bsg-spacing-item__bar');
+		const computedEl = item.querySelector('.bsg-spacing-item__computed');
+		if (!bar || !computedEl) return;
 
+		// Cache parent lookup
+		const parent = item.closest('.bsg-spacing');
+		const isVertical = parent && parent.classList.contains('bsg-spacing--vertical');
+
+		const updateValue = () => {
 			const computed = window.getComputedStyle(bar);
-			const parent = item.closest('.atsg-spacing');
-			const isVertical = parent && parent.classList.contains('atsg-spacing--vertical');
-
-			// For vertical, height is set via CSS variable, for horizontal it's width
-			const size = isVertical ? computed.height : computed.width;
-
-			if (computedEl) {
-				computedEl.textContent = roundPxValue(size);
-			}
+			computedEl.textContent = roundPxValue(isVertical ? computed.height : computed.width);
 		};
 
-		updateComputedValues();
-		window.addEventListener('resize', updateComputedValues);
+		// Initial render
+		updateValue();
+
+		// Register for resize (spacing often uses clamp)
+		window.BSGResizeManager.add(updateValue, item);
 	});
 }
 
 /**
- * Radii Element (Nestable Container) - Initialize child items.
+ * Radii Element (Nestable Container).
  */
-function atRadiiInit() {
-	// The parent just needs to ensure children are initialized
-	atRadiiItemInit();
+function bsgRadiiInit() {
+	bsgRadiiItemInit();
 }
 
 /**
- * Radii Item Element - Calculate and display computed border-radius values.
+ * Radii Item Element.
+ *
+ * NO RESIZE LISTENER - border-radius is static.
  */
-function atRadiiItemInit() {
-	const items = document.querySelectorAll('.atsg-radii-item');
+function bsgRadiiItemInit() {
+	const items = document.querySelectorAll('.bsg-radii-item');
 
 	items.forEach(item => {
-		const box = item.querySelector('.atsg-radii-item__box');
-		const computedEl = item.querySelector('.atsg-radii-item__computed');
+		if (item.dataset.bsgInit) return;
+		item.dataset.bsgInit = 'true';
 
+		const box = item.querySelector('.bsg-radii-item__box');
+		const computedEl = item.querySelector('.bsg-radii-item__computed');
 		if (!box || !computedEl) return;
 
-		const computed = window.getComputedStyle(box);
-		computedEl.textContent = roundPxValue(computed.borderRadius);
+		// One-time computation
+		computedEl.textContent = roundPxValue(window.getComputedStyle(box).borderRadius);
 	});
 }
 
 /**
- * Box Shadows Element (Nestable Container) - Initialize child items.
+ * Box Shadows Element (Nestable Container).
  */
-function atBoxShadowsInit() {
-	// The parent just needs to ensure children are initialized
-	atBoxShadowsItemInit();
+function bsgBoxShadowsInit() {
+	bsgBoxShadowsItemInit();
 }
 
 /**
- * Box Shadows Item Element - Calculate and display computed box-shadow values.
+ * Box Shadows Item Element.
+ *
+ * NO RESIZE LISTENER - box-shadow is static.
  */
-function atBoxShadowsItemInit() {
-	const items = document.querySelectorAll('.atsg-shadows-item');
+function bsgBoxShadowsItemInit() {
+	const items = document.querySelectorAll('.bsg-shadows-item');
 
 	items.forEach(item => {
-		const box = item.querySelector('.atsg-shadows-item__box');
-		const computedEl = item.querySelector('.atsg-shadows-item__computed');
+		if (item.dataset.bsgInit) return;
+		item.dataset.bsgInit = 'true';
 
+		const box = item.querySelector('.bsg-shadows-item__box');
+		const computedEl = item.querySelector('.bsg-shadows-item__computed');
 		if (!box || !computedEl) return;
 
-		const computed = window.getComputedStyle(box);
-		computedEl.textContent = roundAllPxValues(computed.boxShadow);
+		// One-time computation
+		computedEl.textContent = roundAllPxValues(window.getComputedStyle(box).boxShadow);
 	});
 }
 
 /**
- * Buttons Element (Nestable Container) - Initialize child items.
+ * Buttons Element (Nestable Container).
  */
-function atButtonsInit() {
-	// Initialize toggle switches
-	const containers = document.querySelectorAll('.atsg-buttons');
+function bsgButtonsInit() {
+	const containers = document.querySelectorAll('.bsg-buttons');
 	containers.forEach(container => {
 		const toggles = container.querySelectorAll('[data-toggle]');
 		toggles.forEach(toggle => {
@@ -356,49 +514,44 @@ function atButtonsInit() {
 
 			toggle.addEventListener('change', () => {
 				const toggleType = toggle.dataset.toggle;
-				const buttons = container.querySelectorAll('.bricks-button');
+				const buttons = container.querySelectorAll('.bsg-btn');
 
-				if (toggleType === 'outline') {
-					buttons.forEach(btn => {
-						if (toggle.checked) {
-							btn.classList.add('outline');
-						} else {
-							btn.classList.remove('outline');
+				buttons.forEach(btn => {
+					const isAcss = btn.classList.contains('btn');
+					const isBricks = btn.classList.contains('bricks-button');
+
+					if (toggleType === 'outline') {
+						btn.classList.toggle('btn--outline', toggle.checked && isAcss);
+						btn.classList.toggle('outline', toggle.checked && isBricks);
+						if (!toggle.checked) {
+							btn.classList.remove('btn--outline', 'outline');
 						}
-					});
-				} else if (toggleType === 'rounded') {
-					buttons.forEach(btn => {
-						if (toggle.checked) {
-							btn.classList.add('circle');
-						} else {
-							btn.classList.remove('circle');
+					} else if (toggleType === 'rounded') {
+						btn.classList.toggle('btn--rounded', toggle.checked && isAcss);
+						btn.classList.toggle('circle', toggle.checked && isBricks);
+						if (!toggle.checked) {
+							btn.classList.remove('btn--rounded', 'circle');
 						}
-					});
-				}
+					}
+				});
 			});
 		});
 	});
-
-	// The parent just needs to ensure children are initialized
-	atButtonsItemInit();
+	bsgButtonsItemInit();
 }
 
 /**
- * Buttons Item Element - No computed values needed, just ensures render.
+ * Buttons Item Element.
  */
-function atButtonsItemInit() {
-	// Buttons don't need computed value display, but this ensures
-	// the element is properly initialized in the builder.
-	const items = document.querySelectorAll('.atsg-buttons-item');
-	// Future: Could add hover state previews or other interactivity here.
+function bsgButtonsItemInit() {
+	// No computed values needed
 }
 
 /**
- * Colors Element (Nestable Container) - Initialize child items.
+ * Colors Element (Nestable Container).
  */
-function atColorsInit() {
-	// Initialize A11Y badges toggle
-	const containers = document.querySelectorAll('.atsg-colors');
+function bsgColorsInit() {
+	const containers = document.querySelectorAll('.bsg-colors');
 	containers.forEach(container => {
 		const toggle = container.querySelector('[data-toggle="a11y-badges"]');
 		if (toggle && !toggle.dataset.initialized) {
@@ -412,112 +565,107 @@ function atColorsInit() {
 			});
 		}
 	});
-
-	// The parent just needs to ensure children are initialized
-	atColorsItemInit();
+	bsgColorsItemInit();
 }
 
 /**
- * Colors Item Element - Initialize context menus and copy functionality.
+ * Colors Item Element.
+ *
+ * NO RESIZE LISTENER - colors are static.
+ * Includes full keyboard accessibility and ARIA support.
  */
-function atColorsItemInit() {
-	const swatches = document.querySelectorAll('.atsg-colors-item__swatch, .atsg-colors-item__base');
+function bsgColorsItemInit() {
+	const swatches = document.querySelectorAll('.bsg-colors-item__swatch, .bsg-colors-item__base');
 
 	swatches.forEach(swatch => {
-		// Skip if already initialized
 		if (swatch.dataset.initialized) return;
 		swatch.dataset.initialized = 'true';
 
 		const cssVar = swatch.dataset.var;
-		const menu = swatch.querySelector('.atsg-colors-item__menu');
+		const menu = swatch.querySelector('.bsg-colors-item__menu');
 		if (!menu || !cssVar) return;
 
-		// Get computed color and populate menu
-		const updateColorValues = () => {
-			const computed = window.getComputedStyle(swatch);
-			const bgColor = computed.backgroundColor;
+		// One-time color computation
+		const bgColor = window.getComputedStyle(swatch).backgroundColor;
+		const colorData = parseColor(bgColor);
+		if (!colorData) return;
 
-			// Parse the color
-			const colorData = parseColor(bgColor);
-			if (!colorData) return;
+		// Store for copy buttons
+		swatch._colorData = colorData;
 
-			// Update the main copy button value
-			const valueEl = menu.querySelector('.atsg-colors-item__menu-value');
-			if (valueEl) {
-				valueEl.textContent = colorData.hex;
+		// ARIA: Make swatch accessible as a button
+		swatch.setAttribute('role', 'button');
+		swatch.setAttribute('tabindex', '0');
+		swatch.setAttribute('aria-haspopup', 'dialog');
+		swatch.setAttribute('aria-expanded', 'false');
+		swatch.setAttribute('aria-label', `Color ${cssVar}, ${colorData.hex}. Press Enter to open color details.`);
+
+		// ARIA: Configure menu as dialog
+		const menuId = `color-menu-${Math.random().toString(36).substr(2, 9)}`;
+		menu.setAttribute('id', menuId);
+		menu.setAttribute('role', 'dialog');
+		menu.setAttribute('aria-label', `Color details for ${cssVar}`);
+		menu.setAttribute('aria-modal', 'false');
+		swatch.setAttribute('aria-controls', menuId);
+
+		// Update menu values
+		const valueEl = menu.querySelector('.bsg-colors-item__menu-value');
+		if (valueEl) {
+			valueEl.textContent = colorData.hex;
+		}
+
+		// Update contrast values
+		if (colorData.contrast && !colorData.hasAlpha) {
+			const whiteValueEl = menu.querySelector('[data-contrast="white"]');
+			const whiteBadgeEl = menu.querySelector('[data-contrast-badge="white"]');
+			const blackValueEl = menu.querySelector('[data-contrast="black"]');
+			const blackBadgeEl = menu.querySelector('[data-contrast-badge="black"]');
+
+			if (whiteValueEl) whiteValueEl.textContent = colorData.contrast.white.ratioText;
+			if (whiteBadgeEl) {
+				whiteBadgeEl.textContent = colorData.contrast.white.wcag.label;
+				whiteBadgeEl.dataset.level = colorData.contrast.white.wcag.level;
 			}
-
-			// Update contrast values
-			if (colorData.contrast) {
-				const contrastSection = menu.querySelector('.atsg-colors-item__menu-contrast');
-				const whiteValueEl = menu.querySelector('[data-contrast="white"]');
-				const whiteBadgeEl = menu.querySelector('[data-contrast-badge="white"]');
-				const blackValueEl = menu.querySelector('[data-contrast="black"]');
-				const blackBadgeEl = menu.querySelector('[data-contrast-badge="black"]');
-
-				// Update swatch contrast badges
-				const swatchBadges = swatch.querySelector('.atsg-colors-item__contrast-badges');
-				const whiteBadge = swatch.querySelector('.atsg-colors-item__contrast-badge--white');
-				const blackBadge = swatch.querySelector('.atsg-colors-item__contrast-badge--black');
-
-				// Hide contrast section and badges for transparent colors (ratio depends on background)
-				if (colorData.hasAlpha) {
-					if (contrastSection) {
-						contrastSection.innerHTML = '<div class="atsg-colors-item__menu-contrast-header">Contrast</div>' +
-							'<div class="atsg-colors-item__menu-contrast-note">N/A for transparent colors</div>';
-					}
-					if (swatchBadges) {
-						swatchBadges.style.display = 'none';
-					}
-				} else {
-					if (whiteValueEl) {
-						whiteValueEl.textContent = colorData.contrast.white.ratioText;
-					}
-					if (whiteBadgeEl) {
-						whiteBadgeEl.textContent = colorData.contrast.white.wcag.label;
-						whiteBadgeEl.dataset.level = colorData.contrast.white.wcag.level;
-					}
-					if (blackValueEl) {
-						blackValueEl.textContent = colorData.contrast.black.ratioText;
-					}
-					if (blackBadgeEl) {
-						blackBadgeEl.textContent = colorData.contrast.black.wcag.label;
-						blackBadgeEl.dataset.level = colorData.contrast.black.wcag.level;
-					}
-
-					// Update swatch badges
-					if (whiteBadge) {
-						whiteBadge.dataset.level = colorData.contrast.white.wcag.level;
-					}
-					if (blackBadge) {
-						blackBadge.dataset.level = colorData.contrast.black.wcag.level;
-					}
-				}
+			if (blackValueEl) blackValueEl.textContent = colorData.contrast.black.ratioText;
+			if (blackBadgeEl) {
+				blackBadgeEl.textContent = colorData.contrast.black.wcag.label;
+				blackBadgeEl.dataset.level = colorData.contrast.black.wcag.level;
 			}
+		} else if (colorData.hasAlpha) {
+			const contrastSection = menu.querySelector('.bsg-colors-item__menu-contrast');
+			if (contrastSection) {
+				contrastSection.innerHTML = '<div class="bsg-colors-item__menu-contrast-header">Contrast</div>' +
+					'<div class="bsg-colors-item__menu-contrast-note">N/A for transparent colors</div>';
+			}
+		}
 
-			// Store color data on swatch for copy buttons
-			swatch._colorData = colorData;
-		};
-
-		// Add contrast badges to swatch (only for non-transparent colors)
+		// Add contrast badges
 		const contrastBadges = document.createElement('div');
-		contrastBadges.className = 'atsg-colors-item__contrast-badges';
-		contrastBadges.innerHTML =
-			'<span class="atsg-colors-item__contrast-badge atsg-colors-item__contrast-badge--white">W</span>' +
-			'<span class="atsg-colors-item__contrast-badge atsg-colors-item__contrast-badge--black">B</span>';
+		contrastBadges.className = 'bsg-colors-item__contrast-badges';
+		contrastBadges.setAttribute('aria-hidden', 'true'); // Decorative, info is in menu
+		if (colorData.hasAlpha) {
+			contrastBadges.style.display = 'none';
+		} else {
+			contrastBadges.innerHTML =
+				`<span class="bsg-colors-item__contrast-badge bsg-colors-item__contrast-badge--white" data-level="${colorData.contrast.white.wcag.level}">W</span>` +
+				`<span class="bsg-colors-item__contrast-badge bsg-colors-item__contrast-badge--black" data-level="${colorData.contrast.black.wcag.level}">B</span>`;
+		}
 		swatch.appendChild(contrastBadges);
 
-		// Initialize color values
-		updateColorValues();
+		// Add click hint (hidden from screen readers)
+		const hint = document.createElement('span');
+		hint.className = 'bsg-colors-item__hint';
+		hint.textContent = 'Click';
+		hint.setAttribute('aria-hidden', 'true');
+		swatch.appendChild(hint);
 
-		// Click to show menu
+		// Menu toggle state
 		let isMenuOpen = false;
 
-		// Add click hint element
-		const hint = document.createElement('span');
-		hint.className = 'atsg-colors-item__hint';
-		hint.textContent = 'Click';
-		swatch.appendChild(hint);
+		// Get all focusable elements in menu for focus trap
+		const getFocusableElements = () => {
+			return menu.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+		};
 
 		const showMenu = () => {
 			isMenuOpen = true;
@@ -526,66 +674,192 @@ function atColorsItemInit() {
 			menu.style.visibility = 'visible';
 			menu.style.pointerEvents = 'auto';
 			hint.style.display = 'none';
+			swatch.setAttribute('aria-expanded', 'true');
+
+			// Focus first focusable element in menu
+			requestAnimationFrame(() => {
+				const focusable = getFocusableElements();
+				if (focusable.length > 0) {
+					focusable[0].focus();
+				}
+			});
+
+			// Announce to screen readers
+			menu.setAttribute('aria-live', 'polite');
 		};
 
-		const closeMenu = () => {
+		const closeMenu = (returnFocus = true) => {
 			isMenuOpen = false;
-			hideMenu(menu);
+			menu.style.opacity = '0';
+			menu.style.visibility = 'hidden';
+			menu.style.pointerEvents = 'none';
 			hint.style.display = '';
+			swatch.setAttribute('aria-expanded', 'false');
+			menu.removeAttribute('aria-live');
+
+			// Return focus to swatch
+			if (returnFocus) {
+				swatch.focus();
+			}
 		};
 
-		// Click swatch to toggle menu
-		swatch.addEventListener('click', (e) => {
-			e.stopPropagation();
+		const toggleMenu = () => {
 			if (isMenuOpen) {
 				closeMenu();
 			} else {
-				// Close any other open menus first
-				document.querySelectorAll('.atsg-colors-item__menu').forEach(m => {
+				// Close other menus
+				document.querySelectorAll('.bsg-colors-item__menu').forEach(m => {
 					if (m !== menu) {
 						m.style.opacity = '0';
 						m.style.visibility = 'hidden';
 						m.style.pointerEvents = 'none';
+						// Update aria-expanded on other swatches
+						const otherSwatch = m.closest('.bsg-colors-item__swatch, .bsg-colors-item__base');
+						if (otherSwatch) {
+							otherSwatch.setAttribute('aria-expanded', 'false');
+						}
 					}
 				});
 				showMenu();
 			}
+		};
+
+		// Click handler
+		swatch.addEventListener('click', (e) => {
+			e.stopPropagation();
+			toggleMenu();
 		});
 
-		// Hide menu when leaving it
-		menu.addEventListener('mouseleave', closeMenu);
-
-		// Hide menu when clicking elsewhere
-		document.addEventListener('click', (e) => {
-			if (isMenuOpen && !menu.contains(e.target) && !swatch.contains(e.target)) {
+		// Keyboard handler for swatch
+		swatch.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				e.stopPropagation();
+				toggleMenu();
+			} else if (e.key === 'Escape' && isMenuOpen) {
+				e.preventDefault();
+				e.stopPropagation();
 				closeMenu();
 			}
 		});
 
-		// Handle CSS variable click to copy
-		const varBtn = menu.querySelector('.atsg-colors-item__menu-var');
+		// Focus trap and keyboard navigation within menu
+		menu.addEventListener('keydown', (e) => {
+			const focusable = getFocusableElements();
+			const firstFocusable = focusable[0];
+			const lastFocusable = focusable[focusable.length - 1];
+			const currentIndex = Array.from(focusable).indexOf(document.activeElement);
+
+			switch (e.key) {
+				case 'Escape':
+					e.preventDefault();
+					e.stopPropagation();
+					closeMenu();
+					break;
+
+				case 'ArrowRight':
+				case 'ArrowDown':
+					e.preventDefault();
+					e.stopPropagation();
+					if (currentIndex < focusable.length - 1) {
+						focusable[currentIndex + 1].focus();
+					} else {
+						// At end, wrap to first or exit
+						firstFocusable.focus();
+					}
+					break;
+
+				case 'ArrowLeft':
+				case 'ArrowUp':
+					e.preventDefault();
+					e.stopPropagation();
+					if (currentIndex > 0) {
+						focusable[currentIndex - 1].focus();
+					} else {
+						// At beginning, wrap to last or exit
+						lastFocusable.focus();
+					}
+					break;
+
+				case 'Tab':
+					// Trap focus within menu
+					if (e.shiftKey) {
+						if (document.activeElement === firstFocusable) {
+							e.preventDefault();
+							lastFocusable.focus();
+						}
+					} else {
+						if (document.activeElement === lastFocusable) {
+							e.preventDefault();
+							firstFocusable.focus();
+						}
+					}
+					break;
+
+				case 'Home':
+					e.preventDefault();
+					firstFocusable.focus();
+					break;
+
+				case 'End':
+					e.preventDefault();
+					lastFocusable.focus();
+					break;
+			}
+		});
+
+		menu.addEventListener('mouseleave', () => closeMenu(false));
+
+		// Global click to close
+		document.addEventListener('click', (e) => {
+			if (isMenuOpen && !menu.contains(e.target) && !swatch.contains(e.target)) {
+				closeMenu(false);
+			}
+		}, { passive: true });
+
+		// Global escape to close any open menu
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && isMenuOpen) {
+				closeMenu();
+			}
+		});
+
+		// Copy handlers with ARIA feedback
+		const varBtn = menu.querySelector('.bsg-colors-item__menu-var');
 		if (varBtn) {
+			varBtn.setAttribute('aria-label', `Copy CSS variable ${cssVar}`);
 			varBtn.addEventListener('click', (e) => {
 				e.preventDefault();
 				e.stopPropagation();
-				const varValue = varBtn.dataset.varValue;
-				if (varValue) {
-					copyToClipboard(varValue, varBtn);
+				if (varBtn.dataset.varValue) {
+					copyToClipboard(varBtn.dataset.varValue, varBtn);
+				}
+			});
+			varBtn.addEventListener('keydown', (e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					e.stopPropagation();
+					if (varBtn.dataset.varValue) {
+						copyToClipboard(varBtn.dataset.varValue, varBtn);
+					}
 				}
 			});
 		}
 
-		// Handle copy button clicks
-		const buttons = menu.querySelectorAll('.atsg-colors-item__menu-btn');
-		buttons.forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				e.preventDefault();
-				e.stopPropagation();
+		menu.querySelectorAll('.bsg-colors-item__menu-btn').forEach(btn => {
+			// Add ARIA labels based on action
+			const action = btn.dataset.action;
+			const actionLabels = {
+				'copy-hex': 'Copy hex value',
+				'copy-rgb': 'Copy RGB value',
+				'copy-hsl': 'Copy HSL value',
+				'copy-oklch': 'Copy OKLCH value'
+			};
+			if (actionLabels[action]) {
+				btn.setAttribute('aria-label', actionLabels[action]);
+			}
 
-				const action = btn.dataset.action;
-				const colorData = swatch._colorData;
-				if (!colorData) return;
-
+			const handleCopy = () => {
 				let valueToCopy = '';
 
 				switch (action) {
@@ -606,47 +880,154 @@ function atColorsItemInit() {
 				if (valueToCopy) {
 					copyToClipboard(valueToCopy, btn);
 				}
+			};
+
+			btn.addEventListener('click', (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				handleCopy();
+			});
+
+			btn.addEventListener('keydown', (e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					e.stopPropagation();
+					handleCopy();
+				}
+			});
+		});
+	});
+
+	// Arrow key navigation between swatches in the same color item
+	setupSwatchNavigation();
+}
+
+/**
+ * Setup arrow key navigation between swatches within a color item.
+ */
+function setupSwatchNavigation() {
+	document.querySelectorAll('.bsg-colors-item').forEach(colorItem => {
+		if (colorItem.dataset.navInitialized) return;
+		colorItem.dataset.navInitialized = 'true';
+
+		const allSwatches = colorItem.querySelectorAll('.bsg-colors-item__swatch, .bsg-colors-item__base');
+		if (allSwatches.length <= 1) return;
+
+		allSwatches.forEach((swatch, index) => {
+			swatch.addEventListener('keydown', (e) => {
+				// Only handle navigation when menu is not open
+				if (swatch.getAttribute('aria-expanded') === 'true') return;
+
+				let targetIndex = -1;
+
+				switch (e.key) {
+					case 'ArrowRight':
+					case 'ArrowDown':
+						e.preventDefault();
+						targetIndex = index < allSwatches.length - 1 ? index + 1 : 0;
+						break;
+
+					case 'ArrowLeft':
+					case 'ArrowUp':
+						e.preventDefault();
+						targetIndex = index > 0 ? index - 1 : allSwatches.length - 1;
+						break;
+
+					case 'Home':
+						e.preventDefault();
+						targetIndex = 0;
+						break;
+
+					case 'End':
+						e.preventDefault();
+						targetIndex = allSwatches.length - 1;
+						break;
+				}
+
+				if (targetIndex >= 0) {
+					allSwatches[targetIndex].focus();
+				}
 			});
 		});
 	});
 }
 
 /**
- * Position menu relative to swatch element.
+ * Position menu relative to swatch, ensuring it stays within viewport.
  */
 function positionMenuAtSwatch(swatch, menu) {
 	const gap = 8;
-	const swatchRect = swatch.getBoundingClientRect();
-	const viewportWidth = window.innerWidth;
-	const viewportHeight = window.innerHeight;
+	const margin = 10; // Minimum distance from viewport edges
+	const rect = swatch.getBoundingClientRect();
+	const vw = window.innerWidth;
+	const vh = window.innerHeight;
 
-	// Make menu visible briefly to get its dimensions
+	// Temporarily show menu to measure it
 	menu.style.visibility = 'hidden';
 	menu.style.display = 'block';
 	const menuRect = menu.getBoundingClientRect();
+	const menuWidth = menuRect.width;
+	const menuHeight = menuRect.height;
 
-	// Default: position to the right of swatch
-	let left = swatchRect.right + gap;
-	let top = swatchRect.top;
+	let left, top;
 
-	// If menu would go off right edge, position to the left
-	if (left + menuRect.width > viewportWidth - 10) {
-		left = swatchRect.left - menuRect.width - gap;
+	// === HORIZONTAL POSITIONING ===
+	// Try right side first
+	if (rect.right + gap + menuWidth <= vw - margin) {
+		left = rect.right + gap;
+	}
+	// Try left side
+	else if (rect.left - gap - menuWidth >= margin) {
+		left = rect.left - gap - menuWidth;
+	}
+	// Fallback: center horizontally or align with swatch
+	else {
+		left = rect.left;
 	}
 
-	// If still off screen (swatch near left edge), position below
-	if (left < 10) {
-		left = swatchRect.left;
-		top = swatchRect.bottom + gap;
+	// Check if menu would go beyond right edge
+	if (left + menuWidth > vw - margin) {
+		left = vw - menuWidth - margin;
 	}
 
-	// Adjust if menu would go off bottom edge
-	if (top + menuRect.height > viewportHeight - 10) {
-		top = viewportHeight - menuRect.height - 10;
+	// Check if menu would go beyond left edge
+	if (left < margin) {
+		left = margin;
 	}
 
-	// Ensure menu doesn't go off top
-	top = Math.max(10, top);
+	// Final safety check: if menu is wider than viewport, position at left
+	if (menuWidth > vw - (margin * 2)) {
+		left = margin;
+	}
+
+	// === VERTICAL POSITIONING ===
+	// Start aligned with swatch top
+	top = rect.top;
+
+	// Check if menu would go below viewport
+	if (top + menuHeight > vh - margin) {
+		// Try aligning menu bottom with swatch bottom
+		top = rect.bottom - menuHeight;
+	}
+
+	// Check if menu would go above viewport
+	if (top < margin) {
+		// Position at top margin
+		top = margin;
+	}
+
+	// Final safety check: if menu is taller than viewport, position at top
+	if (menuHeight > vh - (margin * 2)) {
+		top = margin;
+	}
+
+	// Ensure we don't exceed bottom even after adjustments
+	if (top + menuHeight > vh - margin) {
+		top = vh - menuHeight - margin;
+	}
+
+	// Final clamp to ensure top is never negative
+	top = Math.max(margin, top);
 
 	menu.style.position = 'fixed';
 	menu.style.left = left + 'px';
@@ -656,19 +1037,9 @@ function positionMenuAtSwatch(swatch, menu) {
 }
 
 /**
- * Hide the menu.
- */
-function hideMenu(menu) {
-	menu.style.opacity = '0';
-	menu.style.visibility = 'hidden';
-	menu.style.pointerEvents = 'none';
-}
-
-/**
- * Parse a color string and return various formats.
+ * Parse color string to various formats.
  */
 function parseColor(colorStr) {
-	// Parse rgba/rgb
 	const rgbaMatch = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
 	if (!rgbaMatch) return null;
 
@@ -678,48 +1049,34 @@ function parseColor(colorStr) {
 	const a = rgbaMatch[4] !== undefined ? parseFloat(rgbaMatch[4]) : 1;
 	const hasAlpha = a < 1;
 
-	// Convert to hex
 	const toHex = (n) => n.toString(16).padStart(2, '0');
 	const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 	const hex8 = `#${toHex(r)}${toHex(g)}${toHex(b)}${toHex(Math.round(a * 255))}`;
 
-	// RGB/RGBA strings
 	const rgb = `rgb(${r}, ${g}, ${b})`;
 	const rgba = `rgba(${r}, ${g}, ${b}, ${a})`;
 
-	// Convert to HSL
 	const hsl = rgbToHsl(r, g, b);
 	const hslStr = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
 	const hslaStr = `hsla(${hsl.h}, ${hsl.s}%, ${hsl.l}%, ${a})`;
 
-	// Convert to OKLCH
-	const oklch = rgbToOklch(r, g, b, a);
+	const oklch = rgbToOklch(r, g, b);
 	const oklchStr = `oklch(${oklch.l}% ${oklch.c} ${oklch.h}${hasAlpha ? ` / ${a}` : ''})`;
 
-	// Calculate contrast info
 	const contrast = calculateContrastInfo(r, g, b);
 
 	return {
-		r, g, b, a,
-		hasAlpha,
+		r, g, b, a, hasAlpha,
 		hex: hasAlpha ? hex8 : hex,
-		rgb,
-		rgba,
-		hsl: hslStr,
-		hsla: hslaStr,
+		rgb, rgba,
+		hsl: hslStr, hsla: hslaStr,
 		oklch: oklchStr,
 		contrast
 	};
 }
 
-/**
- * Convert RGB to HSL.
- */
 function rgbToHsl(r, g, b) {
-	r /= 255;
-	g /= 255;
-	b /= 255;
-
+	r /= 255; g /= 255; b /= 255;
 	const max = Math.max(r, g, b);
 	const min = Math.min(r, g, b);
 	let h, s;
@@ -730,7 +1087,6 @@ function rgbToHsl(r, g, b) {
 	} else {
 		const d = max - min;
 		s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-
 		switch (max) {
 			case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
 			case g: h = ((b - r) / d + 2) / 6; break;
@@ -738,18 +1094,10 @@ function rgbToHsl(r, g, b) {
 		}
 	}
 
-	return {
-		h: Math.round(h * 360),
-		s: Math.round(s * 100),
-		l: Math.round(l * 100)
-	};
+	return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
 }
 
-/**
- * Convert RGB to OKLCH (simplified approximation).
- */
-function rgbToOklch(r, g, b, a = 1) {
-	// Convert to linear RGB
+function rgbToOklch(r, g, b) {
 	const toLinear = (c) => {
 		c = c / 255;
 		return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -759,7 +1107,6 @@ function rgbToOklch(r, g, b, a = 1) {
 	const lg = toLinear(g);
 	const lb = toLinear(b);
 
-	// Convert to OKLab
 	const l_ = 0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb;
 	const m_ = 0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb;
 	const s_ = 0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb;
@@ -772,108 +1119,94 @@ function rgbToOklch(r, g, b, a = 1) {
 	const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
 	const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
 
-	// Convert to OKLCH
 	const C = Math.sqrt(A * A + B * B);
 	let H = Math.atan2(B, A) * 180 / Math.PI;
 	if (H < 0) H += 360;
 
-	return {
-		l: (L * 100).toFixed(1),
-		c: C.toFixed(3),
-		h: H.toFixed(1)
-	};
+	return { l: (L * 100).toFixed(1), c: C.toFixed(3), h: H.toFixed(1) };
 }
 
-/**
- * Calculate relative luminance for WCAG contrast.
- * @see https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
- */
 function getLuminance(r, g, b) {
 	const toLinear = (c) => {
 		c = c / 255;
 		return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 	};
-
-	const lr = toLinear(r);
-	const lg = toLinear(g);
-	const lb = toLinear(b);
-
-	return 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+	return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
 }
 
-/**
- * Calculate WCAG contrast ratio between two colors.
- * @see https://www.w3.org/TR/WCAG21/#dfn-contrast-ratio
- */
 function getContrastRatio(l1, l2) {
 	const lighter = Math.max(l1, l2);
 	const darker = Math.min(l1, l2);
 	return (lighter + 0.05) / (darker + 0.05);
 }
 
-/**
- * Get WCAG compliance level based on contrast ratio.
- */
 function getWcagLevel(ratio) {
-	if (ratio >= 7) {
-		return { level: 'AAA', label: 'AAA', pass: true };
-	} else if (ratio >= 4.5) {
-		return { level: 'AA', label: 'AA', pass: true };
-	} else if (ratio >= 3) {
-		return { level: 'AA-large', label: 'AA Large', pass: true };
-	} else {
-		return { level: 'fail', label: 'Fail', pass: false };
-	}
+	if (ratio >= 7) return { level: 'AAA', label: 'AAA', pass: true };
+	if (ratio >= 4.5) return { level: 'AA', label: 'AA', pass: true };
+	if (ratio >= 3) return { level: 'AA-large', label: 'AA Large', pass: true };
+	return { level: 'fail', label: 'Fail', pass: false };
 }
 
-/**
- * Calculate contrast info for a color against white and black.
- */
 function calculateContrastInfo(r, g, b) {
 	const luminance = getLuminance(r, g, b);
-	const whiteLuminance = 1; // White = rgb(255, 255, 255)
-	const blackLuminance = 0; // Black = rgb(0, 0, 0)
-
-	const whiteContrast = getContrastRatio(luminance, whiteLuminance);
-	const blackContrast = getContrastRatio(luminance, blackLuminance);
+	const whiteContrast = getContrastRatio(luminance, 1);
+	const blackContrast = getContrastRatio(luminance, 0);
 
 	return {
 		luminance,
-		white: {
-			ratio: whiteContrast,
-			ratioText: whiteContrast.toFixed(1) + ':1',
-			wcag: getWcagLevel(whiteContrast)
-		},
-		black: {
-			ratio: blackContrast,
-			ratioText: blackContrast.toFixed(1) + ':1',
-			wcag: getWcagLevel(blackContrast)
-		},
+		white: { ratio: whiteContrast, ratioText: whiteContrast.toFixed(1) + ':1', wcag: getWcagLevel(whiteContrast) },
+		black: { ratio: blackContrast, ratioText: blackContrast.toFixed(1) + ':1', wcag: getWcagLevel(blackContrast) },
 		bestChoice: whiteContrast > blackContrast ? 'white' : 'black'
 	};
 }
 
 /**
- * Copy text to clipboard and show feedback.
+ * Copy text to clipboard with visual and ARIA feedback.
  */
 function copyToClipboard(text, btn) {
 	navigator.clipboard.writeText(text).then(() => {
-		// Show copied feedback
 		btn.classList.add('copied');
 		const originalText = btn.innerHTML;
 
-		// For the main button, update text
 		if (btn.dataset.action === 'copy-hex') {
-			btn.innerHTML = '<span class="atsg-colors-item__menu-btn-icon">✓</span> Copied!';
+			btn.innerHTML = '<span class="bsg-colors-item__menu-btn-icon">✓</span> Copied!';
 		} else {
 			btn.textContent = '✓';
 		}
+
+		// Announce to screen readers
+		announceToScreenReader(`Copied ${text} to clipboard`);
 
 		setTimeout(() => {
 			btn.classList.remove('copied');
 			btn.innerHTML = originalText;
 		}, 1500);
-	}).catch(err => {
+	}).catch((err) => {
 		console.error('Failed to copy:', err);
+		announceToScreenReader('Failed to copy to clipboard');
+	});
+}
+
+/**
+ * Announce message to screen readers via ARIA live region.
+ */
+function announceToScreenReader(message) {
+	// Get or create the live region
+	let liveRegion = document.getElementById('bsg-aria-live');
+	if (!liveRegion) {
+		liveRegion = document.createElement('div');
+		liveRegion.id = 'bsg-aria-live';
+		liveRegion.setAttribute('role', 'status');
+		liveRegion.setAttribute('aria-live', 'polite');
+		liveRegion.setAttribute('aria-atomic', 'true');
+		// Visually hidden but accessible to screen readers
+		liveRegion.style.cssText = 'position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;';
+		document.body.appendChild(liveRegion);
+	}
+
+	// Clear and set message (clearing first ensures announcement even if same message)
+	liveRegion.textContent = '';
+	requestAnimationFrame(() => {
+		liveRegion.textContent = message;
 	});
 }

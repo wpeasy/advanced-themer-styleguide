@@ -3,13 +3,16 @@
  * Colors Item Element for Bricks Builder.
  *
  * Individual color swatch grid with base, dark, light, and transparency variations.
+ * Works with both Advanced Themer and Automatic CSS frameworks.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
 
-use AB\ATStyleGuide\ATColors;
+use AB\BricksSG\ATColors;
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,18 +22,31 @@ defined( 'ABSPATH' ) || exit;
 class ColorsItem extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-colors-item';
+	public $name = 'bsg-colors-item';
 
 	/**
 	 * Element icon.
@@ -44,7 +60,7 @@ class ColorsItem extends \Bricks\Element {
 	 *
 	 * @var array
 	 */
-	public $scripts = [ 'atColorsItemInit' ];
+	public $scripts = [ 'bsgColorsItemInit' ];
 
 	/**
 	 * Get element label.
@@ -52,7 +68,7 @@ class ColorsItem extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'Color Item', 'advanced-themer-style-guide' );
+		return esc_html__( 'Color Item', 'bricks-style-guide' );
 	}
 
 	/**
@@ -71,22 +87,22 @@ class ColorsItem extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['color'] = [
-			'title' => esc_html__( 'Color Selection', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Color Selection', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['variations'] = [
-			'title' => esc_html__( 'Variations', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Variations', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['display'] = [
-			'title' => esc_html__( 'Display', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['swatchStyle'] = [
-			'title' => esc_html__( 'Swatch Style', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Swatch Style', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 	}
@@ -97,58 +113,73 @@ class ColorsItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function set_controls(): void {
-		// Color Selection group.
+		// Get framework-specific example variables.
+		$examples       = FrameworkDetector::get_example_variables();
+		$is_acss        = FrameworkDetector::is_acss_active();
+		$framework_name = FrameworkDetector::get_active_framework_name() ?: 'framework';
+
 		$this->controls['atColor'] = [
 			'group'       => 'color',
-			'label'       => esc_html__( 'Select Color', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Select Color', 'bricks-style-guide' ),
 			'type'        => 'select',
-			'options'     => ATColors::get_root_colors_for_select(),
-			'placeholder' => esc_html__( 'Select an AT color', 'advanced-themer-style-guide' ),
+			'options'     => $this->get_colors_for_select(),
+			'placeholder' => sprintf(
+				/* translators: %s: framework name */
+				esc_html__( 'Select a %s color', 'bricks-style-guide' ),
+				$framework_name
+			),
 		];
 
 		$this->controls['colorInfo'] = [
 			'group'    => 'color',
 			'type'     => 'info',
-			'content'  => esc_html__( 'Colors are loaded from Advanced Themer Color Manager.', 'advanced-themer-style-guide' ),
+			'content'  => sprintf(
+				/* translators: %s: framework name */
+				esc_html__( 'Colors are loaded from %s.', 'bricks-style-guide' ),
+				$framework_name
+			),
 			'required' => [ 'atColor', '=', '' ],
 		];
 
-		// Variations group - which columns to show.
+		// Variations group - which columns/shades to show.
 		$this->controls['hideDarkVariants'] = [
 			'group'    => 'variations',
-			'label'    => esc_html__( 'Hide Dark Variants Column', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Dark Variants', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideLightVariants'] = [
 			'group'    => 'variations',
-			'label'    => esc_html__( 'Hide Light Variants Column', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Light Variants', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
+
+		// Variation count only applies to AT (which has fixed 6 variations).
+		if ( ! $is_acss ) {
+			$this->controls['variationCount'] = [
+				'group'       => 'variations',
+				'label'       => esc_html__( 'Variation Count', 'bricks-style-guide' ),
+				'type'        => 'number',
+				'min'         => 1,
+				'max'         => 6,
+				'default'     => 6,
+				'description' => esc_html__( 'Number of variations per column (1-6)', 'bricks-style-guide' ),
+			];
+		}
 
 		$this->controls['hideTransparencyVariants'] = [
 			'group'    => 'variations',
-			'label'    => esc_html__( 'Hide Transparency Variants Column', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Transparency Variants', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
-		];
-
-		$this->controls['variationCount'] = [
-			'group'       => 'variations',
-			'label'       => esc_html__( 'Variation Count', 'advanced-themer-style-guide' ),
-			'type'        => 'number',
-			'min'         => 1,
-			'max'         => 6,
-			'default'     => 6,
-			'description' => esc_html__( 'Number of variations per column (1-6)', 'advanced-themer-style-guide' ),
 		];
 
 		// Display controls.
 		$this->controls['hideColorName'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Color Name', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Color Name', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
@@ -156,22 +187,22 @@ class ColorsItem extends \Bricks\Element {
 		// Swatch style controls.
 		$this->controls['swatchSize'] = [
 			'group'       => 'swatchStyle',
-			'label'       => esc_html__( 'Variant Swatch Size', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Variant Swatch Size', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'placeholder' => 'var(--at-space--xl)',
+			'placeholder' => $examples['space_xl'],
 			'css'         => [
 				[
 					'property' => 'width',
-					'selector' => '.atsg-colors-item__swatch',
+					'selector' => '.bsg-colors-item__swatch',
 				],
 				[
 					'property' => 'height',
-					'selector' => '.atsg-colors-item__swatch',
+					'selector' => '.bsg-colors-item__swatch',
 				],
 				[
 					'property'  => 'min-width',
-					'selector'  => '.atsg-colors-item__swatch',
+					'selector'  => '.bsg-colors-item__swatch',
 					'important' => true,
 				],
 			],
@@ -179,19 +210,19 @@ class ColorsItem extends \Bricks\Element {
 
 		$this->controls['baseSize'] = [
 			'group'       => 'swatchStyle',
-			'label'       => esc_html__( 'Base Swatch Width', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Base Swatch Width', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'placeholder' => 'var(--at-space--xl)',
+			'placeholder' => $examples['space_xl'],
 			'css'         => [
 				[
 					'property'  => 'width',
-					'selector'  => '.atsg-colors-item__base-column',
+					'selector'  => '.bsg-colors-item__base-column',
 					'important' => true,
 				],
 				[
 					'property'  => 'width',
-					'selector'  => '.atsg-colors-item__base',
+					'selector'  => '.bsg-colors-item__base',
 					'important' => true,
 				],
 			],
@@ -199,51 +230,87 @@ class ColorsItem extends \Bricks\Element {
 
 		$this->controls['swatchBorderRadius'] = [
 			'group'       => 'swatchStyle',
-			'label'       => esc_html__( 'Border Radius', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Border Radius', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'placeholder' => 'var(--at-radius--m)',
+			'placeholder' => $examples['radius_m'],
 			'css'         => [
 				[
 					'property' => 'border-radius',
-					'selector' => '.atsg-colors-item__swatch',
+					'selector' => '.bsg-colors-item__swatch',
 				],
 				[
 					'property' => 'border-radius',
-					'selector' => '.atsg-colors-item__base',
+					'selector' => '.bsg-colors-item__base',
 				],
 			],
 		];
 
 		$this->controls['gridGap'] = [
 			'group'       => 'swatchStyle',
-			'label'       => esc_html__( 'Grid Gap', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Grid Gap', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => '0.25em',
 			'css'         => [
 				[
 					'property' => 'gap',
-					'selector' => '.atsg-colors-item__grid',
+					'selector' => '.bsg-colors-item__grid',
 				],
 				[
 					'property' => 'gap',
-					'selector' => '.atsg-colors-item__column',
+					'selector' => '.bsg-colors-item__column',
 				],
 			],
 		];
 
 		$this->controls['labelTypography'] = [
 			'group' => 'swatchStyle',
-			'label' => esc_html__( 'Label Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Label Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-colors-item__label',
+					'selector' => '.bsg-colors-item__label',
 				],
 			],
 		];
+	}
+
+	/**
+	 * Get colors formatted for select control.
+	 *
+	 * @return array Associative array of color_id => label.
+	 */
+	private function get_colors_for_select(): array {
+		$colors  = ATColors::get_framework_colors();
+		$options = [
+			'' => esc_html__( '— Select Color —', 'bricks-style-guide' ),
+		];
+
+		foreach ( $colors as $color_id => $color ) {
+			$label = $color['label'] ?? ucfirst( $color_id );
+
+			// Add palette name if available.
+			if ( ! empty( $color['palette_name'] ) && 'ACSS' !== $color['palette_name'] ) {
+				$label = $color['palette_name'] . ' → ' . $label;
+			}
+
+			$options[ $color_id ] = $label;
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Get a specific color by ID from the active framework.
+	 *
+	 * @param string $color_id The color ID.
+	 * @return array|null Color data or null if not found.
+	 */
+	private function get_color( string $color_id ): ?array {
+		$colors = ATColors::get_framework_colors();
+		return $colors[ $color_id ] ?? null;
 	}
 
 	/**
@@ -258,25 +325,30 @@ class ColorsItem extends \Bricks\Element {
 
 		if ( empty( $color_id ) ) {
 			if ( bricks_is_builder() ) {
-				echo '<div class="atsg-colors-item__placeholder">';
-				echo esc_html__( 'Please select a color from Advanced Themer', 'advanced-themer-style-guide' );
+				$framework_name = FrameworkDetector::get_active_framework_name() ?: 'the framework';
+				echo '<div class="bsg-colors-item__placeholder">';
+				printf(
+					/* translators: %s: framework name */
+					esc_html__( 'Please select a color from %s', 'bricks-style-guide' ),
+					esc_html( $framework_name )
+				);
 				echo '</div>';
 			}
 			return;
 		}
 
-		$root_color = ATColors::get_root_color( $color_id );
+		$root_color = $this->get_color( $color_id );
 
 		if ( ! $root_color ) {
 			if ( bricks_is_builder() ) {
-				echo '<div class="atsg-colors-item__placeholder">';
-				echo esc_html__( 'Selected color not found.', 'advanced-themer-style-guide' );
+				echo '<div class="bsg-colors-item__placeholder">';
+				echo esc_html__( 'Selected color not found.', 'bricks-style-guide' );
 				echo '</div>';
 			}
 			return;
 		}
 
-		// Check if this color has shade variations (contextual colors don't).
+		// Check if this color has shade variations.
 		$has_shades = ! empty( $root_color['shadeChildren'] );
 
 		// Settings - only show variants if the color has shadeChildren.
@@ -284,22 +356,20 @@ class ColorsItem extends \Bricks\Element {
 		$show_light        = $has_shades && ! isset( $settings['hideLightVariants'] );
 		$show_transparency = $has_shades && ! isset( $settings['hideTransparencyVariants'] );
 		$show_color_name   = ! isset( $settings['hideColorName'] );
-		$variation_count   = intval( $settings['variationCount'] ?? 6 );
-		$variation_count   = max( 1, min( 6, $variation_count ) );
+
+		// Get color shades from the active framework.
+		$color_shades = ATColors::get_framework_color_shades( $color_id );
 
 		// Get color name/prefix for building CSS variables.
-		$color_name   = $root_color['name'];
-		$color_prefix = $root_color['palette_prefix'] ?? '';
 		$css_var_base = $root_color['raw']; // e.g., var(--primary)
 
 		// Build the CSS variable prefix (without var() wrapper).
-		// Extract variable name from raw value like "var(--primary)".
 		preg_match( '/var\(([^)]+)\)/', $css_var_base, $matches );
-		$var_name = $matches[1] ?? '--' . $color_name;
+		$var_name = $matches[1] ?? '--' . $color_id;
 
-		$root_classes = [ 'atsg-colors-item' ];
+		$root_classes = [ 'bsg-colors-item' ];
 		if ( ! $has_shades ) {
-			$root_classes[] = 'atsg-colors-item--no-variants';
+			$root_classes[] = 'bsg-colors-item--no-variants';
 		}
 
 		$this->set_attribute( '_root', 'class', $root_classes );
@@ -311,123 +381,200 @@ class ColorsItem extends \Bricks\Element {
 
 		// Color name label above the grid.
 		if ( $show_color_name ) {
-			$output .= '<div class="atsg-colors-item__label">' . esc_html( $root_color['label'] ) . '</div>';
+			$output .= '<div class="bsg-colors-item__label">' . esc_html( $root_color['label'] ) . '</div>';
 		}
 
+		// Get framework-specific shade names.
+		$light_shades        = ATColors::get_active_light_shades();
+		$dark_shades         = ATColors::get_active_dark_shades();
+		$transparency_shades = ATColors::get_active_transparency_shades();
+
+		// Check if using ACSS layout (single wrapped column for uneven shade counts).
+		$is_acss = FrameworkDetector::is_acss_active();
+
 		// Grid container.
-		$output .= '<div class="atsg-colors-item__grid">';
+		$grid_class = 'bsg-colors-item__grid';
+		if ( $is_acss ) {
+			$grid_class .= ' bsg-colors-item__grid--acss';
+		}
+		$output .= '<div class="' . esc_attr( $grid_class ) . '">';
 
 		// Column 1: Base color (full height).
-		$output .= '<div class="atsg-colors-item__base-column">';
+		$output .= '<div class="bsg-colors-item__base-column">';
 		$output .= $this->render_swatch( $var_name, 'base', $root_color['label'], true );
 		$output .= '</div>';
 
-		// Column 2: Dark variants.
-		if ( $show_dark ) {
-			$output .= '<div class="atsg-colors-item__column atsg-colors-item__column--dark" data-variant="dark">';
-			for ( $i = 1; $i <= $variation_count; $i++ ) {
-				$suffix   = "d-{$i}";
-				$var      = "{$var_name}-{$suffix}";
-				$label    = $root_color['label'] . ' ' . strtoupper( $suffix );
-				$output  .= $this->render_swatch( $var, $suffix, $label, false );
+		if ( $is_acss ) {
+			// ACSS Layout: Variants wrapper with two sections - solids and transparencies.
+			$output .= '<div class="bsg-colors-item__variants-wrapper">';
+
+			// Solid shades section (light + dark in a 2-column grid).
+			$output .= '<div class="bsg-colors-item__solids">';
+
+			// Light shades first (lightest to darkest).
+			if ( $show_light && ! empty( $light_shades ) ) {
+				foreach ( array_reverse( $light_shades ) as $suffix ) {
+					$var     = "{$var_name}-{$suffix}";
+					$label   = $root_color['label'] . ' ' . $this->format_shade_label( $suffix );
+					$output .= $this->render_swatch( $var, $suffix, $label, false, 'solid', 'light' );
+				}
 			}
-			$output .= '</div>';
+
+			// Dark shades (continuing from light to dark).
+			if ( $show_dark && ! empty( $dark_shades ) ) {
+				foreach ( $dark_shades as $suffix ) {
+					$var     = "{$var_name}-{$suffix}";
+					$label   = $root_color['label'] . ' ' . $this->format_shade_label( $suffix );
+					$output .= $this->render_swatch( $var, $suffix, $label, false, 'solid', 'dark' );
+				}
+			}
+
+			$output .= '</div>'; // .bsg-colors-item__solids
+
+			// Transparency variants section (smaller, 3-column grid).
+			if ( $show_transparency && ! empty( $transparency_shades ) ) {
+				$output .= '<div class="bsg-colors-item__transparencies">';
+				foreach ( $transparency_shades as $suffix ) {
+					$var     = "{$var_name}-{$suffix}";
+					$label   = $root_color['label'] . ' ' . $this->format_shade_label( $suffix );
+					$output .= $this->render_swatch( $var, $suffix, $label, false, 'trans', 'transparency' );
+				}
+				$output .= '</div>'; // .bsg-colors-item__transparencies
+			}
+
+			$output .= '</div>'; // .bsg-colors-item__variants-wrapper
+		} else {
+			// AT Layout: Separate columns for dark, light, and transparency.
+
+			// Column 2: Dark variants.
+			if ( $show_dark && ! empty( $dark_shades ) ) {
+				$output .= '<div class="bsg-colors-item__column bsg-colors-item__column--dark" data-variant="dark">';
+				foreach ( $dark_shades as $suffix ) {
+					$var     = "{$var_name}-{$suffix}";
+					$label   = $root_color['label'] . ' ' . $this->format_shade_label( $suffix );
+					$output .= $this->render_swatch( $var, $suffix, $label, false );
+				}
+				$output .= '</div>';
+			}
+
+			// Column 3: Light variants.
+			if ( $show_light && ! empty( $light_shades ) ) {
+				$output .= '<div class="bsg-colors-item__column bsg-colors-item__column--light" data-variant="light">';
+				foreach ( $light_shades as $suffix ) {
+					$var     = "{$var_name}-{$suffix}";
+					$label   = $root_color['label'] . ' ' . $this->format_shade_label( $suffix );
+					$output .= $this->render_swatch( $var, $suffix, $label, false );
+				}
+				$output .= '</div>';
+			}
+
+			// Column 4: Transparency variants.
+			if ( $show_transparency && ! empty( $transparency_shades ) ) {
+				$output .= '<div class="bsg-colors-item__column bsg-colors-item__column--transparency" data-variant="transparency">';
+				foreach ( $transparency_shades as $suffix ) {
+					$var     = "{$var_name}-{$suffix}";
+					$label   = $root_color['label'] . ' ' . $this->format_shade_label( $suffix );
+					$output .= $this->render_swatch( $var, $suffix, $label, false );
+				}
+				$output .= '</div>';
+			}
 		}
 
-		// Column 3: Light variants.
-		if ( $show_light ) {
-			$output .= '<div class="atsg-colors-item__column atsg-colors-item__column--light" data-variant="light">';
-			for ( $i = 1; $i <= $variation_count; $i++ ) {
-				$suffix   = "l-{$i}";
-				$var      = "{$var_name}-{$suffix}";
-				$label    = $root_color['label'] . ' ' . strtoupper( $suffix );
-				$output  .= $this->render_swatch( $var, $suffix, $label, false );
-			}
-			$output .= '</div>';
-		}
+		$output .= '</div>'; // .bsg-colors-item__grid
 
-		// Column 4: Transparency variants.
-		if ( $show_transparency ) {
-			$output .= '<div class="atsg-colors-item__column atsg-colors-item__column--transparency" data-variant="transparency">';
-			for ( $i = 1; $i <= $variation_count; $i++ ) {
-				$suffix   = "t-{$i}";
-				$var      = "{$var_name}-{$suffix}";
-				$label    = $root_color['label'] . ' ' . strtoupper( $suffix );
-				$output  .= $this->render_swatch( $var, $suffix, $label, false );
-			}
-			$output .= '</div>';
-		}
-
-		$output .= '</div>'; // .atsg-colors-item__grid
-
-		$output .= '</div>'; // .atsg-colors-item
+		$output .= '</div>'; // .bsg-colors-item
 
 		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
+	 * Format shade suffix for display.
+	 *
+	 * @param string $suffix The shade suffix (e.g., 'd-1', 'ultra-light').
+	 * @return string Formatted label.
+	 */
+	private function format_shade_label( string $suffix ): string {
+		// For ACSS-style named shades, convert to title case.
+		if ( strpos( $suffix, '-' ) !== false && ! preg_match( '/^[dlt]-\d+$/', $suffix ) ) {
+			return ucwords( str_replace( '-', ' ', $suffix ) );
+		}
+		// For AT-style numbered shades, uppercase.
+		return strtoupper( $suffix );
+	}
+
+	/**
 	 * Render a single swatch with data attributes for the context menu.
 	 *
-	 * @param string $css_var   The CSS variable name (without var()).
-	 * @param string $suffix    The variation suffix (base, d-1, l-1, t-1, etc.).
-	 * @param string $label     The display label.
-	 * @param bool   $is_base   Whether this is the base color.
+	 * @param string $css_var         The CSS variable name (without var()).
+	 * @param string $suffix          The variation suffix (base, d-1, l-1, t-1, etc.).
+	 * @param string $label           The display label.
+	 * @param bool   $is_base         Whether this is the base color.
+	 * @param string $variant_type    Optional variant type for ACSS grid layout ('solid' or 'trans').
+	 * @param string $variant_category Optional variant category for parent override CSS ('light', 'dark', 'transparency').
 	 * @return string HTML output.
 	 */
-	private function render_swatch( string $css_var, string $suffix, string $label, bool $is_base ): string {
-		$class = $is_base ? 'atsg-colors-item__base' : 'atsg-colors-item__swatch';
+	private function render_swatch( string $css_var, string $suffix, string $label, bool $is_base, string $variant_type = '', string $variant_category = '' ): string {
+		$class = $is_base ? 'bsg-colors-item__base' : 'bsg-colors-item__swatch';
+
+		// Add variant type class for ACSS grid layout.
+		if ( $variant_type ) {
+			$class .= ' bsg-colors-item__swatch--' . $variant_type;
+		}
 
 		$output  = '<div class="' . esc_attr( $class ) . '"';
 		$output .= ' style="background-color: var(' . esc_attr( $css_var ) . ');"';
 		$output .= ' data-var="' . esc_attr( $css_var ) . '"';
 		$output .= ' data-suffix="' . esc_attr( $suffix ) . '"';
 		$output .= ' data-label="' . esc_attr( $label ) . '"';
+		if ( $variant_category ) {
+			$output .= ' data-variant="' . esc_attr( $variant_category ) . '"';
+		}
 		$output .= ' tabindex="0"';
 		$output .= ' role="button"';
 		$output .= ' aria-label="' . esc_attr( $label ) . '"';
 		$output .= '>';
 
 		// Context menu (hidden by default, shown on hover/click).
-		$output .= '<div class="atsg-colors-item__menu">';
-		$output .= '<div class="atsg-colors-item__menu-header">' . esc_html( $label ) . '</div>';
-		$output .= '<button type="button" class="atsg-colors-item__menu-var" data-action="copy-var" data-var-value="' . esc_attr( 'var(' . $css_var . ')' ) . '">';
+		$output .= '<div class="bsg-colors-item__menu">';
+		$output .= '<div class="bsg-colors-item__menu-header">' . esc_html( $label ) . '</div>';
+		$output .= '<button type="button" class="bsg-colors-item__menu-var" data-action="copy-var" data-var-value="' . esc_attr( 'var(' . $css_var . ')' ) . '">';
 		$output .= '<code>' . esc_html( 'var(' . $css_var . ')' ) . '</code>';
 		$output .= '</button>';
-		$output .= '<div class="atsg-colors-item__menu-actions">';
-		$output .= '<button type="button" class="atsg-colors-item__menu-btn" data-action="copy-hex">';
-		$output .= '<span class="atsg-colors-item__menu-btn-icon">📋</span> ';
-		$output .= esc_html__( 'Copy', 'advanced-themer-style-guide' );
-		$output .= ' <span class="atsg-colors-item__menu-value"></span>';
+		$output .= '<div class="bsg-colors-item__menu-actions">';
+		$output .= '<button type="button" class="bsg-colors-item__menu-btn" data-action="copy-hex">';
+		$output .= '<span class="bsg-colors-item__menu-btn-icon">📋</span> ';
+		$output .= esc_html__( 'Copy', 'bricks-style-guide' );
+		$output .= ' <span class="bsg-colors-item__menu-value"></span>';
 		$output .= '</button>';
-		$output .= '<div class="atsg-colors-item__menu-more">';
-		$output .= '<button type="button" class="atsg-colors-item__menu-btn atsg-colors-item__menu-btn--secondary" data-action="copy-rgb">';
-		$output .= esc_html__( 'RGB', 'advanced-themer-style-guide' );
+		$output .= '<div class="bsg-colors-item__menu-more">';
+		$output .= '<button type="button" class="bsg-colors-item__menu-btn bsg-colors-item__menu-btn--secondary" data-action="copy-rgb">';
+		$output .= esc_html__( 'RGB', 'bricks-style-guide' );
 		$output .= '</button>';
-		$output .= '<button type="button" class="atsg-colors-item__menu-btn atsg-colors-item__menu-btn--secondary" data-action="copy-hsl">';
-		$output .= esc_html__( 'HSL', 'advanced-themer-style-guide' );
+		$output .= '<button type="button" class="bsg-colors-item__menu-btn bsg-colors-item__menu-btn--secondary" data-action="copy-hsl">';
+		$output .= esc_html__( 'HSL', 'bricks-style-guide' );
 		$output .= '</button>';
-		$output .= '<button type="button" class="atsg-colors-item__menu-btn atsg-colors-item__menu-btn--secondary" data-action="copy-oklch">';
-		$output .= esc_html__( 'OKLCH', 'advanced-themer-style-guide' );
+		$output .= '<button type="button" class="bsg-colors-item__menu-btn bsg-colors-item__menu-btn--secondary" data-action="copy-oklch">';
+		$output .= esc_html__( 'OKLCH', 'bricks-style-guide' );
 		$output .= '</button>';
-		$output .= '</div>'; // .atsg-colors-item__menu-more
-		$output .= '</div>'; // .atsg-colors-item__menu-actions
+		$output .= '</div>'; // .bsg-colors-item__menu-more
+		$output .= '</div>'; // .bsg-colors-item__menu-actions
 
 		// Contrast checker section.
-		$output .= '<div class="atsg-colors-item__menu-contrast">';
-		$output .= '<div class="atsg-colors-item__menu-contrast-header">' . esc_html__( 'Contrast', 'advanced-themer-style-guide' ) . '</div>';
-		$output .= '<div class="atsg-colors-item__menu-contrast-row">';
-		$output .= '<span class="atsg-colors-item__menu-contrast-label">' . esc_html__( 'White text', 'advanced-themer-style-guide' ) . '</span>';
-		$output .= '<span class="atsg-colors-item__menu-contrast-value" data-contrast="white"></span>';
-		$output .= '<span class="atsg-colors-item__menu-contrast-badge" data-contrast-badge="white"></span>';
+		$output .= '<div class="bsg-colors-item__menu-contrast">';
+		$output .= '<div class="bsg-colors-item__menu-contrast-header">' . esc_html__( 'Contrast', 'bricks-style-guide' ) . '</div>';
+		$output .= '<div class="bsg-colors-item__menu-contrast-row">';
+		$output .= '<span class="bsg-colors-item__menu-contrast-label">' . esc_html__( 'White text', 'bricks-style-guide' ) . '</span>';
+		$output .= '<span class="bsg-colors-item__menu-contrast-value" data-contrast="white"></span>';
+		$output .= '<span class="bsg-colors-item__menu-contrast-badge" data-contrast-badge="white"></span>';
 		$output .= '</div>';
-		$output .= '<div class="atsg-colors-item__menu-contrast-row">';
-		$output .= '<span class="atsg-colors-item__menu-contrast-label">' . esc_html__( 'Black text', 'advanced-themer-style-guide' ) . '</span>';
-		$output .= '<span class="atsg-colors-item__menu-contrast-value" data-contrast="black"></span>';
-		$output .= '<span class="atsg-colors-item__menu-contrast-badge" data-contrast-badge="black"></span>';
+		$output .= '<div class="bsg-colors-item__menu-contrast-row">';
+		$output .= '<span class="bsg-colors-item__menu-contrast-label">' . esc_html__( 'Black text', 'bricks-style-guide' ) . '</span>';
+		$output .= '<span class="bsg-colors-item__menu-contrast-value" data-contrast="black"></span>';
+		$output .= '<span class="bsg-colors-item__menu-contrast-badge" data-contrast-badge="black"></span>';
 		$output .= '</div>';
-		$output .= '</div>'; // .atsg-colors-item__menu-contrast
+		$output .= '</div>'; // .bsg-colors-item__menu-contrast
 
-		$output .= '</div>'; // .atsg-colors-item__menu
+		$output .= '</div>'; // .bsg-colors-item__menu
 
 		$output .= '</div>';
 
@@ -440,11 +587,11 @@ class ColorsItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-colors-item';
+		$handle = 'bsg-colors-item';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -457,34 +604,257 @@ class ColorsItem extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		// Get framework-agnostic CSS variables that map to the active framework.
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
-			/* Critical layout */
-			.atsg-colors-item {
-				display: flex;
-				flex-direction: column;
-				gap: var(--at-space--xs, 0.75rem);
+			/* Framework Variable Mappings */
+			.bsg-colors-item,
+			.bsg-colors-item__menu {
+				' . $framework_vars . '
 			}
 
-			.atsg-colors-item__grid {
+			/* Critical layout */
+			.bsg-colors-item {
+				display: flex;
+				flex-direction: column;
+				gap: var(--bsg-space-xs, 0.75rem);
+			}
+
+			.bsg-colors-item__grid {
 				display: flex;
 				flex-wrap: nowrap;
-				gap: var(--at-space--2xs, 4px);
+				gap: var(--bsg-space-2xs, 0.25em);
 			}
 
-			.atsg-colors-item__base-column {
+			.bsg-colors-item__base-column {
 				display: flex;
 				flex-shrink: 0;
 			}
 
-			.atsg-colors-item__column {
+			.bsg-colors-item__column {
 				display: flex;
 				flex-direction: column;
 				flex-shrink: 0;
-				gap: var(--at-space--2xs, 4px);
+				gap: var(--bsg-space-2xs, 0.25em);
+			}
+
+			/* =================================
+			   ACSS DEFAULT LAYOUT
+			   - Base swatch on left
+			   - Solids in 2-column grid
+			   - Transparencies in 3-column grid, smaller swatches
+			   Note: These are default styles, overridden by stacked/compact layouts below
+			   ================================= */
+			.bsg-colors-item__grid--acss {
+				display: flex;
+				flex-direction: row;
+				gap: var(--bsg-space-2xs, 0.25em);
+				align-items: flex-start;
+			}
+
+			.bsg-colors-item__grid--acss .bsg-colors-item__base-column {
+				flex-shrink: 0;
+				align-self: stretch;
+			}
+
+			/* Base swatch needs explicit height in ACSS layout */
+			.bsg-colors-item__grid--acss .bsg-colors-item__base {
+				width: var(--bsg-space-xl, 5rem);
+				height: 100%;
+				min-height: var(--bsg-space-3xl, 12.5rem);
+			}
+
+			/* Variants wrapper - contains solids and transparencies side by side */
+			.bsg-colors-item__grid--acss .bsg-colors-item__variants-wrapper {
+				display: flex;
+				flex-direction: row;
+				gap: var(--bsg-space-xs, 0.5em);
+				align-items: flex-start;
+			}
+
+			/* Solids section - 2-column grid */
+			.bsg-colors-item__grid--acss .bsg-colors-item__solids {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: var(--bsg-space-2xs, 0.25em);
+			}
+
+			/* Transparencies section - 3-column grid with smaller swatches */
+			.bsg-colors-item__grid--acss .bsg-colors-item__transparencies {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: var(--bsg-space-3xs, 0.125em);
+			}
+
+			/* Transparency swatches - slightly smaller than solids */
+			.bsg-colors-item__grid--acss .bsg-colors-item__transparencies .bsg-colors-item__swatch {
+				width: var(--bsg-space-l, 2.5rem);
+				height: var(--bsg-space-l, 2.5rem);
+				min-width: var(--bsg-space-l, 2.5rem);
+			}
+
+			/* Transparency pattern background for ACSS transparent swatches */
+			.bsg-colors-item__grid--acss .bsg-colors-item__transparencies .bsg-colors-item__swatch {
+				background-image:
+					linear-gradient(45deg, var(--bsg-border-color, #d1d5db) 25%, transparent 25%),
+					linear-gradient(-45deg, var(--bsg-border-color, #d1d5db) 25%, transparent 25%),
+					linear-gradient(45deg, transparent 75%, var(--bsg-border-color, #d1d5db) 75%),
+					linear-gradient(-45deg, transparent 75%, var(--bsg-border-color, #d1d5db) 75%);
+				background-size: 8px 8px;
+				background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+			}
+
+			.bsg-colors-item__grid--acss .bsg-colors-item__transparencies .bsg-colors-item__swatch::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				border-radius: inherit;
+				background-color: inherit;
+			}
+
+			/* =================================
+			   ACSS STACKED LAYOUT (outside @layer for higher specificity)
+			   Base on top (2 cells wide), variants in 2-column grid below
+			   ================================= */
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid.bsg-colors-item__grid--acss {
+				display: grid !important;
+				grid-template-columns: repeat(2, 1fr) !important;
+				gap: var(--bsg-space-2xs, 0.25em) !important;
+				align-items: start !important;
+			}
+
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid--acss .bsg-colors-item__base-column {
+				grid-column: span 2 !important;
+				width: 100% !important;
+			}
+
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid--acss .bsg-colors-item__base {
+				width: 100% !important;
+				height: var(--bsg-space-xl, 3rem) !important;
+				min-height: var(--bsg-space-xl, 3rem) !important;
+			}
+
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid--acss .bsg-colors-item__variants-wrapper {
+				grid-column: span 2 !important;
+				display: grid !important;
+				grid-template-columns: repeat(2, 1fr) !important;
+				gap: var(--bsg-space-2xs, 0.25em) !important;
+				width: 100% !important;
+			}
+
+			/* Solids span both columns and use internal 2-column grid */
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid--acss .bsg-colors-item__solids {
+				grid-column: span 2 !important;
+				grid-template-columns: repeat(2, 1fr) !important;
+			}
+
+			/* Transparencies also span both columns and match solid sizing */
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid--acss .bsg-colors-item__transparencies {
+				grid-column: span 2 !important;
+				grid-template-columns: repeat(2, 1fr) !important;
+			}
+
+			/* Make transparency swatches same size as solids in stacked layout */
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid--acss .bsg-colors-item__transparencies .bsg-colors-item__swatch {
+				width: var(--bsg-space-xl, 3rem) !important;
+				height: var(--bsg-space-xl, 3rem) !important;
+				min-width: var(--bsg-space-xl, 3rem) !important;
+			}
+
+			/* =================================
+			   ACSS COMPACT LAYOUT (outside @layer for higher specificity)
+			   Smaller swatches
+			   ================================= */
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__grid.bsg-colors-item__grid--acss {
+				gap: var(--bsg-space-3xs, 0.125em) !important;
+			}
+
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__grid--acss .bsg-colors-item__base {
+				width: var(--bsg-space-l, 2rem) !important;
+				min-height: auto !important;
+			}
+
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__grid--acss .bsg-colors-item__variants-wrapper {
+				gap: var(--bsg-space-3xs, 0.125em) !important;
+			}
+
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__grid--acss .bsg-colors-item__solids {
+				gap: var(--bsg-space-3xs, 0.125em) !important;
+			}
+
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__grid--acss .bsg-colors-item__solids .bsg-colors-item__swatch {
+				width: var(--bsg-space-m, 1.5rem) !important;
+				height: var(--bsg-space-m, 1.5rem) !important;
+			}
+
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__grid--acss .bsg-colors-item__transparencies {
+				gap: var(--bsg-space-3xs, 0.125em) !important;
+			}
+
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__grid--acss .bsg-colors-item__transparencies .bsg-colors-item__swatch {
+				width: var(--bsg-space-s, 1rem) !important;
+				height: var(--bsg-space-s, 1rem) !important;
+				min-width: var(--bsg-space-s, 1rem) !important;
+			}
+
+			/* =================================
+			   ACSS COMPACT-VERTICAL LAYOUT (outside @layer for higher specificity)
+			   Compact sizes + 2-column grid like stacked
+			   ================================= */
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid.bsg-colors-item__grid--acss {
+				display: grid !important;
+				grid-template-columns: repeat(2, 1fr) !important;
+				gap: var(--bsg-space-3xs, 0.125em) !important;
+				align-items: start !important;
+			}
+
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid--acss .bsg-colors-item__base-column {
+				grid-column: span 2 !important;
+				width: 100% !important;
+			}
+
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid--acss .bsg-colors-item__base {
+				width: 100% !important;
+				height: var(--bsg-space-l, 2rem) !important;
+				min-height: var(--bsg-space-l, 2rem) !important;
+			}
+
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid--acss .bsg-colors-item__variants-wrapper {
+				grid-column: span 2 !important;
+				display: grid !important;
+				grid-template-columns: repeat(2, 1fr) !important;
+				gap: var(--bsg-space-3xs, 0.125em) !important;
+				width: 100% !important;
+			}
+
+			/* Solids span both columns and use internal 2-column grid */
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid--acss .bsg-colors-item__solids {
+				grid-column: span 2 !important;
+				grid-template-columns: repeat(2, 1fr) !important;
+				gap: var(--bsg-space-3xs, 0.125em) !important;
+			}
+
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid--acss .bsg-colors-item__solids .bsg-colors-item__swatch {
+				width: var(--bsg-space-m, 1.5rem) !important;
+				height: var(--bsg-space-m, 1.5rem) !important;
+			}
+
+			/* Transparencies also span both columns and match solid sizing */
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid--acss .bsg-colors-item__transparencies {
+				grid-column: span 2 !important;
+				grid-template-columns: repeat(2, 1fr) !important;
+				gap: var(--bsg-space-3xs, 0.125em) !important;
+			}
+
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid--acss .bsg-colors-item__transparencies .bsg-colors-item__swatch {
+				width: var(--bsg-space-m, 1.5rem) !important;
+				height: var(--bsg-space-m, 1.5rem) !important;
+				min-width: var(--bsg-space-m, 1.5rem) !important;
 			}
 
 			/* Context Menu - positioned by JavaScript */
-			.atsg-colors-item__menu {
+			.bsg-colors-item__menu {
 				position: fixed;
 				opacity: 0;
 				visibility: hidden;
@@ -493,151 +863,165 @@ class ColorsItem extends \Bricks\Element {
 			}
 
 			/* Swatch contrast badges */
-			.atsg-colors-item__contrast-badges {
+			.bsg-colors-item__contrast-badges {
 				position: absolute;
-				bottom: 3px;
-				right: 3px;
+				bottom: 0.1875em;
+				right: 0.1875em;
 				display: flex;
-				gap: 2px;
+				gap: 0.125em;
 				pointer-events: none;
 			}
 
+			/* ACSS: Larger contrast badges for better readability */
+			.bsg-colors-item__grid--acss .bsg-colors-item__contrast-badges {
+				bottom: 0.25em;
+				right: 0.25em;
+				gap: 0.1875em;
+			}
+
+			.bsg-colors-item__grid--acss .bsg-colors-item__contrast-badge {
+				font-size: 1em;
+				width: 1.25em;
+				height: 1.25em;
+				border-radius: 0.1875em;
+			}
+
 			/* Layout variants - critical display rules */
-			.atsg-colors[data-layout="stacked"] .atsg-colors-item__grid {
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid {
 				flex-direction: column;
-				gap: var(--at-space--xs, 0.75rem);
+				gap: var(--bsg-space-xs, 0.75rem);
 			}
 
-			.atsg-colors[data-layout="stacked"] .atsg-colors-item__base-column {
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__base-column {
 				width: 100%;
 			}
 
-			.atsg-colors[data-layout="stacked"] .atsg-colors-item__column {
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__column {
 				flex-direction: row;
 				flex-wrap: wrap;
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__grid {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid {
 				flex-direction: column;
-				gap: 2px;
+				gap: var(--bsg-space-3xs, 0.125em);
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__base-column {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__base-column {
 				width: 100%;
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__column {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__column {
 				flex-direction: row;
 				flex-wrap: wrap;
-				gap: 2px;
+				gap: var(--bsg-space-3xs, 0.125em);
 			}
 
 			/* Mobile responsive - critical layout changes */
 			@media screen and (max-width: 600px) {
-				.atsg-colors[data-layout="default"] .atsg-colors-item__grid {
+				.bsg-colors[data-layout="default"] .bsg-colors-item__grid {
 					flex-direction: column !important;
-					gap: var(--at-space--xs, 0.75rem);
+					gap: var(--bsg-space-xs, 0.75rem);
 				}
 
-				.atsg-colors[data-layout="default"] .atsg-colors-item__base-column {
+				.bsg-colors[data-layout="default"] .bsg-colors-item__base-column {
 					width: 100%;
 				}
 
-				.atsg-colors[data-layout="default"] .atsg-colors-item__column {
+				.bsg-colors[data-layout="default"] .bsg-colors-item__column {
 					flex-direction: row;
 					flex-wrap: wrap;
 				}
 
-				.atsg-colors[data-layout="compact"] .atsg-colors-item__grid {
+				.bsg-colors[data-layout="compact"] .bsg-colors-item__grid {
 					flex-wrap: wrap !important;
 				}
 			}
 
-			@layer atsg {
-			.atsg-colors-item__placeholder {
-				padding: var(--at-space--l, 2rem);
-				background: var(--at-neutral-t-6, #f3f4f6);
-				border: var(--at-border-width, 2px) dashed var(--at-border-color, #d1d5db);
-				border-radius: var(--at-radius--s, 8px);
+			@layer bsg {
+			.bsg-colors-item__placeholder {
+				padding: var(--bsg-space-l, 2rem);
+				background: var(--bsg-neutral-light, #f3f4f6);
+				border: var(--bsg-border-width, 0.125em) dashed var(--bsg-border-color, #d1d5db);
+				border-radius: var(--bsg-radius-s, 0.5em);
 				text-align: center;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-colors-item__label {
-				font-size: var(--at-text--m, 1.125rem);
+			.bsg-colors-item__label {
+				font-size: var(--bsg-text-m, 1.125rem);
 				font-weight: 600;
-				color: var(--at-neutral-d-4, #1f2937);
+				color: var(--bsg-neutral-darker, #1f2937);
 			}
 
-			.atsg-colors-item__base {
-				width: var(--at-space--xl, 80px);
+			.bsg-colors-item__base {
+				width: var(--bsg-space-xl, 5rem);
 				min-height: 100%;
-				border-radius: var(--at-radius--m, 8px);
-				box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+				border-radius: var(--bsg-radius-m, 0.5em);
+				border: 1px solid var(--bsg-border-color, #d1d5db);
 				position: relative;
 				cursor: pointer;
-				transition: box-shadow 0.2s ease;
+				transition: outline 0.2s ease;
 			}
 
-			.atsg-colors-item__base:hover,
-			.atsg-colors-item__base:focus {
-				box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(59, 130, 246, 0.5);
-				outline: none;
+			.bsg-colors-item__base:hover,
+			.bsg-colors-item__base:focus {
+				outline: 3px solid var(--bsg-focus-ring-color, var(--bsg-primary, #3b82f6));
+				outline-offset: 2px;
 			}
 
-			.atsg-colors-item__swatch {
-				width: var(--at-space--xl, 48px);
-				height: var(--at-space--xl, 48px);
-				border-radius: var(--at-radius--m, 8px);
-				box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+			.bsg-colors-item__swatch {
+				width: var(--bsg-space-xl, 3rem);
+				height: var(--bsg-space-xl, 3rem);
+				border-radius: var(--bsg-radius-m, 0.5em);
+				border: 1px solid var(--bsg-border-color, #d1d5db);
 				position: relative;
 				cursor: pointer;
-				transition: box-shadow 0.2s ease;
+				transition: outline 0.2s ease;
 			}
 
-			.atsg-colors-item__swatch:hover,
-			.atsg-colors-item__swatch:focus {
-				box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(59, 130, 246, 0.5);
-				outline: none;
+			.bsg-colors-item__swatch:hover,
+			.bsg-colors-item__swatch:focus {
+				outline: 3px solid var(--bsg-focus-ring-color, var(--bsg-primary, #3b82f6));
+				outline-offset: 2px;
 				z-index: 10;
 			}
 
 			/* Click hint - shown on hover */
-			.atsg-colors-item__hint {
+			.bsg-colors-item__hint {
 				position: absolute;
 				top: 50%;
 				left: 50%;
 				transform: translate(-50%, -50%);
-				background: rgba(0, 0, 0, 0.7);
-				color: var(--at-white, #ffffff);
-				font-size: 10px;
+				background: var(--bsg-neutral-darker, #1f2937);
+				color: var(--bsg-white, #ffffff);
+				font-size: 0.625em;
 				font-weight: 600;
 				text-transform: uppercase;
 				letter-spacing: 0.05em;
-				padding: 3px 6px;
-				border-radius: 3px;
+				padding: 0.1875em 0.375em;
+				border-radius: var(--bsg-radius-xs, 0.1875em);
 				opacity: 0;
 				transition: opacity 0.15s ease;
 				pointer-events: none;
 			}
 
-			.atsg-colors-item__swatch:hover .atsg-colors-item__hint,
-			.atsg-colors-item__base:hover .atsg-colors-item__hint {
+			.bsg-colors-item__swatch:hover .bsg-colors-item__hint,
+			.bsg-colors-item__base:hover .bsg-colors-item__hint {
 				opacity: 1;
 			}
 
 			/* Transparency pattern background for transparent swatches */
-			.atsg-colors-item__column:last-child .atsg-colors-item__swatch {
+			.bsg-colors-item__column:last-child .bsg-colors-item__swatch {
 				background-image:
-					linear-gradient(45deg, var(--at-neutral-t-4, #d1d5db) 25%, transparent 25%),
-					linear-gradient(-45deg, var(--at-neutral-t-4, #d1d5db) 25%, transparent 25%),
-					linear-gradient(45deg, transparent 75%, var(--at-neutral-t-4, #d1d5db) 75%),
-					linear-gradient(-45deg, transparent 75%, var(--at-neutral-t-4, #d1d5db) 75%);
+					linear-gradient(45deg, var(--bsg-border-color, #d1d5db) 25%, transparent 25%),
+					linear-gradient(-45deg, var(--bsg-border-color, #d1d5db) 25%, transparent 25%),
+					linear-gradient(45deg, transparent 75%, var(--bsg-border-color, #d1d5db) 75%),
+					linear-gradient(-45deg, transparent 75%, var(--bsg-border-color, #d1d5db) 75%);
 				background-size: 8px 8px;
 				background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
 			}
 
-			.atsg-colors-item__column:last-child .atsg-colors-item__swatch::after {
+			.bsg-colors-item__column:last-child .bsg-colors-item__swatch::after {
 				content: "";
 				position: absolute;
 				inset: 0;
@@ -646,13 +1030,13 @@ class ColorsItem extends \Bricks\Element {
 			}
 
 			/* Context Menu - positioned by JavaScript */
-			.atsg-colors-item__menu {
+			.bsg-colors-item__menu {
 				position: fixed;
-				background: var(--at-white, #ffffff);
-				border-radius: var(--at-radius--s, 8px);
-				box-shadow: var(--at-shadow--l, 0 10px 25px rgba(0, 0, 0, 0.15));
-				padding: var(--at-space--xs, 0.75rem);
-				min-width: 180px;
+				background: var(--bsg-white, #ffffff);
+				border-radius: var(--bsg-radius-s, 0.5em);
+				box-shadow: var(--bsg-shadow-l, 0 10px 25px var(--bsg-shadow-subtle, #e5e7eb));
+				padding: var(--bsg-space-xs, 0.75rem);
+				min-width: 18rem;
 				opacity: 0;
 				visibility: hidden;
 				transition: opacity 0.15s ease;
@@ -660,17 +1044,17 @@ class ColorsItem extends \Bricks\Element {
 				pointer-events: none;
 			}
 
-			.atsg-colors-item__menu-header {
+			.bsg-colors-item__menu-header {
 				font-weight: 600;
-				font-size: var(--at-text--s, 0.875rem);
-				color: var(--at-neutral-d-4, #1f2937);
-				margin-bottom: var(--at-space--3xs, 0.25rem);
+				font-size: var(--bsg-text-s, 0.875rem);
+				color: var(--bsg-neutral-darker, #1f2937);
+				margin-bottom: var(--bsg-space-3xs, 0.25rem);
 			}
 
-			.atsg-colors-item__menu-var {
+			.bsg-colors-item__menu-var {
 				display: block;
 				width: 100%;
-				margin-bottom: var(--at-space--xs, 0.75rem);
+				margin-bottom: var(--bsg-space-xs, 0.75rem);
 				padding: 0;
 				border: none;
 				background: transparent;
@@ -678,260 +1062,262 @@ class ColorsItem extends \Bricks\Element {
 				text-align: left;
 			}
 
-			.atsg-colors-item__menu-var:hover code {
-				background: var(--at-neutral-t-4, #d1d5db);
+			.bsg-colors-item__menu-var:hover code {
+				background: var(--bsg-border-color, #d1d5db);
 			}
 
-			.atsg-colors-item__menu-var.copied code {
-				background: var(--at-success, #10b981);
-				color: var(--at-white, #ffffff);
+			.bsg-colors-item__menu-var.copied code {
+				background: var(--bsg-success, #10b981);
+				color: var(--bsg-white, #ffffff);
 			}
 
-			.atsg-colors-item__menu-var code {
-				font-size: var(--at-text--2xs, 0.75rem);
-				color: var(--at-neutral-d-2, #6b7280);
-				background: var(--at-neutral-t-6, #f3f4f6);
-				padding: var(--at-space--3xs, 0.25rem) var(--at-space--2xs, 0.375rem);
-				border-radius: var(--at-radius--xs, 4px);
+			.bsg-colors-item__menu-var code {
+				font-size: var(--bsg-text-2xs, 0.75rem);
+				color: var(--bsg-neutral-medium, #6b7280);
+				background: var(--bsg-neutral-light, #f3f4f6);
+				padding: var(--bsg-space-3xs, 0.25rem) var(--bsg-space-2xs, 0.375rem);
+				border-radius: var(--bsg-radius-xs, 0.25em);
 				display: block;
 				word-break: break-all;
 				transition: background 0.15s ease, color 0.15s ease;
 			}
 
-			.atsg-colors-item__menu-actions {
+			.bsg-colors-item__menu-actions {
 				display: flex;
 				flex-direction: column;
-				gap: var(--at-space--2xs, 0.5rem);
+				gap: var(--bsg-space-2xs, 0.5rem);
 			}
 
-			.atsg-colors-item__menu-btn {
+			.bsg-colors-item__menu-btn {
 				display: flex;
 				align-items: center;
-				gap: var(--at-space--2xs, 0.5rem);
+				gap: var(--bsg-space-2xs, 0.5rem);
 				width: 100%;
-				padding: var(--at-space--2xs, 0.5rem) var(--at-space--xs, 0.75rem);
-				background: var(--at-primary, #3b82f6);
-				color: var(--at-white, #ffffff);
+				padding: var(--bsg-space-2xs, 0.5rem) var(--bsg-space-xs, 0.75rem);
+				background: var(--bsg-primary, #3b82f6);
+				color: var(--bsg-white, #ffffff);
 				border: none;
-				border-radius: var(--at-radius--xs, 4px);
-				font-size: var(--at-text--2xs, 0.75rem);
+				border-radius: var(--bsg-radius-xs, 0.25em);
+				font-size: var(--bsg-text-2xs, 0.75rem);
 				font-weight: 500;
 				cursor: pointer;
 				transition: background 0.2s ease;
 				text-align: left;
 			}
 
-			.atsg-colors-item__menu-btn:hover {
-				background: var(--at-primary-d-1, #2563eb);
+			.bsg-colors-item__menu-btn:hover {
+				background: var(--bsg-primary-hover, #2563eb);
 			}
 
-			.atsg-colors-item__menu-btn--secondary {
-				background: var(--at-neutral-t-5, #e5e7eb);
-				color: var(--at-neutral-d-3, #374151);
+			.bsg-colors-item__menu-btn--secondary {
+				background: var(--bsg-neutral-light, #e5e7eb);
+				color: var(--bsg-neutral-dark, #374151);
 			}
 
-			.atsg-colors-item__menu-btn--secondary:hover {
-				background: var(--at-neutral-t-4, #d1d5db);
+			.bsg-colors-item__menu-btn--secondary:hover {
+				background: var(--bsg-border-color, #d1d5db);
 			}
 
-			.atsg-colors-item__menu-btn-icon {
+			.bsg-colors-item__menu-btn-icon {
 				font-size: 1em;
 			}
 
-			.atsg-colors-item__menu-value {
+			.bsg-colors-item__menu-value {
 				font-family: monospace;
 				font-weight: 400;
 			}
 
-			.atsg-colors-item__menu-more {
+			.bsg-colors-item__menu-more {
 				display: flex;
-				gap: var(--at-space--2xs, 0.5rem);
+				gap: var(--bsg-space-2xs, 0.5rem);
 			}
 
-			.atsg-colors-item__menu-more .atsg-colors-item__menu-btn {
+			.bsg-colors-item__menu-more .bsg-colors-item__menu-btn {
 				flex: 1;
 				justify-content: center;
-				padding: var(--at-space--2xs, 0.375rem);
+				padding: var(--bsg-space-2xs, 0.375rem);
 			}
 
 			/* Copied feedback */
-			.atsg-colors-item__menu-btn.copied {
-				background: var(--at-success, #10b981) !important;
-				color: var(--at-white, #ffffff) !important;
+			.bsg-colors-item__menu-btn.copied {
+				background: var(--bsg-success, #10b981) !important;
+				color: var(--bsg-white, #ffffff) !important;
 			}
 
 			/* Contrast checker section */
-			.atsg-colors-item__menu-contrast {
-				margin-top: var(--at-space--xs, 0.75rem);
-				padding-top: var(--at-space--xs, 0.75rem);
-				border-top: 1px solid var(--at-neutral-t-5, #e5e7eb);
+			.bsg-colors-item__menu-contrast {
+				margin-top: var(--bsg-space-xs, 0.75rem);
+				padding-top: var(--bsg-space-xs, 0.75rem);
+				border-top: 1px solid var(--bsg-neutral-light, #e5e7eb);
 			}
 
-			.atsg-colors-item__menu-contrast-header {
-				font-size: var(--at-text--2xs, 0.75rem);
+			.bsg-colors-item__menu-contrast-header {
+				font-size: var(--bsg-text-2xs, 0.75rem);
 				font-weight: 600;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 				text-transform: uppercase;
 				letter-spacing: 0.05em;
-				margin-bottom: var(--at-space--2xs, 0.5rem);
+				margin-bottom: var(--bsg-space-2xs, 0.5rem);
 			}
 
-			.atsg-colors-item__menu-contrast-row {
+			.bsg-colors-item__menu-contrast-row {
 				display: flex;
 				align-items: center;
-				gap: var(--at-space--2xs, 0.5rem);
-				font-size: var(--at-text--2xs, 0.75rem);
-				margin-bottom: var(--at-space--3xs, 0.25rem);
+				gap: var(--bsg-space-2xs, 0.5rem);
+				font-size: var(--bsg-text-2xs, 0.75rem);
+				margin-bottom: var(--bsg-space-3xs, 0.25rem);
 			}
 
-			.atsg-colors-item__menu-contrast-row:last-child {
+			.bsg-colors-item__menu-contrast-row:last-child {
 				margin-bottom: 0;
 			}
 
-			.atsg-colors-item__menu-contrast-label {
+			.bsg-colors-item__menu-contrast-label {
 				flex: 1;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-colors-item__menu-contrast-value {
+			.bsg-colors-item__menu-contrast-value {
 				font-family: monospace;
 				font-weight: 500;
-				color: var(--at-neutral-d-4, #1f2937);
+				color: var(--bsg-neutral-darker, #1f2937);
 				min-width: 3.5em;
 				text-align: right;
 			}
 
-			.atsg-colors-item__menu-contrast-badge {
+			.bsg-colors-item__menu-contrast-badge {
 				display: inline-flex;
 				align-items: center;
 				justify-content: center;
-				padding: 2px 6px;
-				border-radius: 3px;
-				font-size: 10px;
+				padding: 0.125em 0.375em;
+				border-radius: 0.1875em;
+				font-size: 0.625em;
 				font-weight: 600;
 				text-transform: uppercase;
 				min-width: 4em;
 				text-align: center;
 			}
 
-			.atsg-colors-item__menu-contrast-badge[data-level="AAA"] {
-				background: var(--at-success, #10b981);
-				color: var(--at-white, #ffffff);
+			.bsg-colors-item__menu-contrast-badge[data-level="AAA"] {
+				background: var(--bsg-success, #10b981);
+				color: var(--bsg-white, #ffffff);
 			}
 
-			.atsg-colors-item__menu-contrast-badge[data-level="AA"] {
-				background: var(--at-success, #10b981);
-				color: var(--at-white, #ffffff);
+			.bsg-colors-item__menu-contrast-badge[data-level="AA"] {
+				background: var(--bsg-success, #10b981);
+				color: var(--bsg-white, #ffffff);
 			}
 
-			.atsg-colors-item__menu-contrast-badge[data-level="AA-large"] {
-				background: var(--at-warning, #f59e0b);
-				color: var(--at-white, #ffffff);
+			.bsg-colors-item__menu-contrast-badge[data-level="AA-large"] {
+				background: var(--bsg-warning, #f59e0b);
+				color: var(--bsg-white, #ffffff);
 			}
 
-			.atsg-colors-item__menu-contrast-badge[data-level="fail"] {
-				background: var(--at-error, #ef4444);
-				color: var(--at-white, #ffffff);
+			.bsg-colors-item__menu-contrast-badge[data-level="fail"] {
+				background: var(--bsg-error, #ef4444);
+				color: var(--bsg-white, #ffffff);
 			}
 
-			.atsg-colors-item__menu-contrast-note {
-				font-size: var(--at-text--2xs, 0.75rem);
+			.bsg-colors-item__menu-contrast-note {
+				font-size: var(--bsg-text-2xs, 0.75rem);
 				font-style: italic;
-				color: var(--at-neutral-d-1, #9ca3af);
+				color: var(--bsg-neutral-medium, #9ca3af);
 			}
 
 			/* Swatch contrast badges */
-			.atsg-colors-item__contrast-badges {
+			.bsg-colors-item__contrast-badges {
 				position: absolute;
-				bottom: 3px;
-				right: 3px;
+				bottom: 0.1875em;
+				right: 0.1875em;
 				display: flex;
-				gap: 2px;
+				gap: 0.125em;
 				pointer-events: none;
 			}
 
-			.atsg-colors-item__contrast-badge {
-				font-size: 8px;
+			.bsg-colors-item__contrast-badge {
+				font-size: 0.75em;
 				font-weight: 700;
 				line-height: 1;
-				width: 12px;
-				height: 12px;
+				width: 1.25em;
+				height: 1.25em;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				border-radius: 2px;
+				border-radius: 0.1875em;
 			}
 
-			.atsg-colors-item__contrast-badge--white {
+			.bsg-colors-item__contrast-badge--white {
 				color: #ffffff; /* Fixed: literal white for A11Y contrast testing */
 			}
 
-			.atsg-colors-item__contrast-badge--black {
+			.bsg-colors-item__contrast-badge--black {
 				color: #000000; /* Fixed: literal black for A11Y contrast testing */
 			}
 
 			/* Pass - green background */
-			.atsg-colors-item__contrast-badge[data-level="AAA"],
-			.atsg-colors-item__contrast-badge[data-level="AA"] {
-				background: var(--at-success, #10b981);
+			.bsg-colors-item__contrast-badge[data-level="AAA"],
+			.bsg-colors-item__contrast-badge[data-level="AA"] {
+				background: var(--bsg-success, #10b981);
 			}
 
 			/* Large text only - orange background */
-			.atsg-colors-item__contrast-badge[data-level="AA-large"] {
-				background: var(--at-warning, #f59e0b);
+			.bsg-colors-item__contrast-badge[data-level="AA-large"] {
+				background: var(--bsg-warning, #f59e0b);
 			}
 
 			/* Fail - red background */
-			.atsg-colors-item__contrast-badge[data-level="fail"] {
-				background: var(--at-error, #ef4444);
+			.bsg-colors-item__contrast-badge[data-level="fail"] {
+				background: var(--bsg-error, #ef4444);
 			}
 
 			/* Colors without variants (contextual colors) */
-			.atsg-colors-item--no-variants .atsg-colors-item__base {
-				width: 80px;
-				height: 80px;
-				min-height: 80px;
+			.bsg-colors-item--no-variants .bsg-colors-item__base {
+				width: var(--bsg-space-xl, 5rem);
+				height: var(--bsg-space-xl, 5rem);
+				min-height: var(--bsg-space-xl, 5rem);
 			}
 
 			/* =================================
 			   STACKED LAYOUT
 			   Base on top, variants in horizontal rows below
 			   ================================= */
-			.atsg-colors[data-layout="stacked"] .atsg-colors-item__grid {
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__grid {
 				flex-direction: column;
-				gap: var(--at-space--xs, 0.75rem);
+				gap: var(--bsg-space-xs, 0.75rem);
 			}
 
-			.atsg-colors[data-layout="stacked"] .atsg-colors-item__base-column {
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__base-column {
 				width: 100%;
 			}
 
-			.atsg-colors[data-layout="stacked"] .atsg-colors-item__base {
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__base {
 				width: 100%;
-				height: var(--at-space--3xl, 120px);
-				min-height: var(--at-space--3xl, 120px);
+				height: var(--bsg-space-3xl, 7.5rem);
+				min-height: var(--bsg-space-3xl, 7.5rem);
 			}
 
-			.atsg-colors[data-layout="stacked"] .atsg-colors-item__column {
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__column {
 				flex-direction: row;
 				flex-wrap: wrap;
 			}
 
-			.atsg-colors[data-layout="stacked"] .atsg-colors-item__swatch {
+			.bsg-colors[data-layout="stacked"] .bsg-colors-item__swatch {
 				flex: 1 1 auto;
-				min-width: var(--at-space--xl, 48px);
+				min-width: var(--bsg-space-xl, 3rem);
 			}
+
+			/* Note: ACSS stacked layout rules are defined outside @layer for higher specificity */
 
 			/* =================================
 			   COMPACT LAYOUT
 			   Smaller swatches, labels on hover only
 			   ================================= */
-			.atsg-colors[data-layout="compact"] .atsg-colors-item {
-				gap: var(--at-space--3xs, 0.25rem);
+			.bsg-colors[data-layout="compact"] .bsg-colors-item {
+				gap: var(--bsg-space-3xs, 0.25rem);
 			}
 
-			.atsg-colors[data-layout="compact"] .atsg-colors-item__label {
-				font-size: var(--at-text--xs, 0.75rem);
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__label {
+				font-size: var(--bsg-text-xs, 0.75rem);
 				opacity: 0;
 				max-height: 0;
 				overflow: hidden;
@@ -939,56 +1325,58 @@ class ColorsItem extends \Bricks\Element {
 				transition: opacity 0.2s ease, max-height 0.2s ease, margin 0.2s ease;
 			}
 
-			.atsg-colors[data-layout="compact"] .atsg-colors-item:hover .atsg-colors-item__label {
+			.bsg-colors[data-layout="compact"] .bsg-colors-item:hover .bsg-colors-item__label {
 				opacity: 1;
 				max-height: 2em;
-				margin-bottom: var(--at-space--3xs, 0.25rem);
+				margin-bottom: var(--bsg-space-3xs, 0.25rem);
 			}
 
-			.atsg-colors[data-layout="compact"] .atsg-colors-item__grid {
-				gap: 2px;
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__grid {
+				gap: var(--bsg-space-3xs, 0.125em);
 			}
 
-			.atsg-colors[data-layout="compact"] .atsg-colors-item__column {
-				gap: 2px;
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__column {
+				gap: var(--bsg-space-3xs, 0.125em);
 			}
 
-			.atsg-colors[data-layout="compact"] .atsg-colors-item__base {
-				width: var(--at-space--l, 32px);
-				border-radius: var(--at-radius--xs, 4px);
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__base {
+				width: var(--bsg-space-l, 2rem);
+				border-radius: var(--bsg-radius-xs, 0.25em);
 			}
 
-			.atsg-colors[data-layout="compact"] .atsg-colors-item__swatch {
-				width: var(--at-space--m, 24px);
-				height: var(--at-space--m, 24px);
-				border-radius: var(--at-radius--xs, 4px);
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__swatch {
+				width: var(--bsg-space-m, 1.5rem);
+				height: var(--bsg-space-m, 1.5rem);
+				border-radius: var(--bsg-radius-xs, 0.25em);
 			}
 
 			/* Hide hint in compact mode - too small */
-			.atsg-colors[data-layout="compact"] .atsg-colors-item__hint {
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__hint {
 				display: none;
 			}
 
 			/* Smaller menu in compact mode */
-			.atsg-colors[data-layout="compact"] .atsg-colors-item__menu {
-				min-width: 160px;
-				padding: var(--at-space--2xs, 0.5rem);
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__menu {
+				min-width: 16rem;
+				padding: var(--bsg-space-2xs, 0.5rem);
 			}
 
-			.atsg-colors[data-layout="compact"] .atsg-colors-item__menu-header {
-				font-size: var(--at-text--xs, 0.75rem);
+			.bsg-colors[data-layout="compact"] .bsg-colors-item__menu-header {
+				font-size: var(--bsg-text-xs, 0.75rem);
 			}
+
+			/* Note: ACSS compact layout rules are defined outside @layer for higher specificity */
 
 			/* =================================
 			   COMPACT VERTICAL LAYOUT
 			   Combines compact sizing with stacked/vertical arrangement
 			   ================================= */
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item {
-				gap: var(--at-space--3xs, 0.25rem);
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item {
+				gap: var(--bsg-space-3xs, 0.25rem);
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__label {
-				font-size: var(--at-text--xs, 0.75rem);
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__label {
+				font-size: var(--bsg-text-xs, 0.75rem);
 				opacity: 0;
 				max-height: 0;
 				overflow: hidden;
@@ -996,56 +1384,58 @@ class ColorsItem extends \Bricks\Element {
 				transition: opacity 0.2s ease, max-height 0.2s ease, margin 0.2s ease;
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item:hover .atsg-colors-item__label {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item:hover .bsg-colors-item__label {
 				opacity: 1;
 				max-height: 2em;
-				margin-bottom: var(--at-space--3xs, 0.25rem);
+				margin-bottom: var(--bsg-space-3xs, 0.25rem);
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__grid {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__grid {
 				flex-direction: column;
-				gap: 2px;
+				gap: var(--bsg-space-3xs, 0.125em);
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__base-column {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__base-column {
 				width: 100%;
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__base {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__base {
 				width: 100%;
-				height: var(--at-space--xl, 48px);
-				min-height: var(--at-space--xl, 48px);
-				border-radius: var(--at-radius--xs, 4px);
+				height: var(--bsg-space-xl, 3rem);
+				min-height: var(--bsg-space-xl, 3rem);
+				border-radius: var(--bsg-radius-xs, 0.25em);
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__column {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__column {
 				flex-direction: row;
 				flex-wrap: wrap;
-				gap: 2px;
+				gap: var(--bsg-space-3xs, 0.125em);
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__swatch {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__swatch {
 				flex: 1 1 auto;
-				min-width: var(--at-space--m, 24px);
-				width: var(--at-space--m, 24px);
-				height: var(--at-space--m, 24px);
-				border-radius: var(--at-radius--xs, 4px);
+				min-width: var(--bsg-space-m, 1.5rem);
+				width: var(--bsg-space-m, 1.5rem);
+				height: var(--bsg-space-m, 1.5rem);
+				border-radius: var(--bsg-radius-xs, 0.25em);
 			}
 
 			/* Hide hint in compact-vertical mode - too small */
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__hint {
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__hint {
 				display: none;
 			}
 
 			/* Smaller menu in compact-vertical mode */
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__menu {
-				min-width: 160px;
-				padding: var(--at-space--2xs, 0.5rem);
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__menu {
+				min-width: 16rem;
+				padding: var(--bsg-space-2xs, 0.5rem);
 			}
 
-			.atsg-colors[data-layout="compact-vertical"] .atsg-colors-item__menu-header {
-				font-size: var(--at-text--xs, 0.75rem);
+			.bsg-colors[data-layout="compact-vertical"] .bsg-colors-item__menu-header {
+				font-size: var(--bsg-text-xs, 0.75rem);
 			}
+
+			/* Note: ACSS compact-vertical layout rules are defined outside @layer for higher specificity */
 
 			/* =================================
 			   MOBILE RESPONSIVE
@@ -1053,42 +1443,42 @@ class ColorsItem extends \Bricks\Element {
 			   ================================= */
 			@media screen and (max-width: 600px) {
 				/* Default layout - switch to stacked on mobile */
-				.atsg-colors[data-layout="default"] .atsg-colors-item__grid {
+				.bsg-colors[data-layout="default"] .bsg-colors-item__grid {
 					flex-direction: column !important;
-					gap: var(--at-space--xs, 0.75rem);
+					gap: var(--bsg-space-xs, 0.75rem);
 				}
 
-				.atsg-colors[data-layout="default"] .atsg-colors-item__base-column {
+				.bsg-colors[data-layout="default"] .bsg-colors-item__base-column {
 					width: 100%;
 				}
 
-				.atsg-colors[data-layout="default"] .atsg-colors-item__base {
+				.bsg-colors[data-layout="default"] .bsg-colors-item__base {
 					width: 100% !important;
-					height: var(--at-space--2xl, 80px);
-					min-height: var(--at-space--2xl, 80px);
+					height: var(--bsg-space-2xl, 5rem);
+					min-height: var(--bsg-space-2xl, 5rem);
 				}
 
-				.atsg-colors[data-layout="default"] .atsg-colors-item__column {
+				.bsg-colors[data-layout="default"] .bsg-colors-item__column {
 					flex-direction: row;
 					flex-wrap: wrap;
 				}
 
-				.atsg-colors[data-layout="default"] .atsg-colors-item__swatch {
+				.bsg-colors[data-layout="default"] .bsg-colors-item__swatch {
 					flex: 1 1 auto;
-					min-width: var(--at-space--l, 40px);
+					min-width: var(--bsg-space-l, 2.5rem);
 				}
 
 				/* Compact layout - make swatches smaller on mobile */
-				.atsg-colors[data-layout="compact"] .atsg-colors-item__grid {
+				.bsg-colors[data-layout="compact"] .bsg-colors-item__grid {
 					flex-wrap: wrap !important;
 				}
 
-				.atsg-colors[data-layout="compact"] .atsg-colors-item__swatch {
-					width: var(--at-space--s, 20px);
-					height: var(--at-space--s, 20px);
+				.bsg-colors[data-layout="compact"] .bsg-colors-item__swatch {
+					width: var(--bsg-space-s, 1.25rem);
+					height: var(--bsg-space-s, 1.25rem);
 				}
 			}
-			} /* end @layer atsg */
+			} /* end @layer bsg */
 		';
 	}
 }

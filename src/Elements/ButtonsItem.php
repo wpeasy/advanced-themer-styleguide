@@ -4,10 +4,13 @@
  *
  * Individual button sample for use within Buttons (Nestable) element.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
+
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,18 +20,31 @@ defined( 'ABSPATH' ) || exit;
 class ButtonsItem extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-buttons-item';
+	public $name = 'bsg-buttons-item';
 
 	/**
 	 * Element icon.
@@ -42,7 +58,7 @@ class ButtonsItem extends \Bricks\Element {
 	 *
 	 * @var array
 	 */
-	public $scripts = [ 'atButtonsItemInit' ];
+	public $scripts = [ 'bsgButtonsItemInit' ];
 
 	/**
 	 * Get element label.
@@ -50,7 +66,7 @@ class ButtonsItem extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'Button Item', 'advanced-themer-style-guide' );
+		return esc_html__( 'Button Item', 'bricks-style-guide' );
 	}
 
 	/**
@@ -69,22 +85,22 @@ class ButtonsItem extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['content'] = [
-			'title' => esc_html__( 'Content', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Content', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['buttonStyle'] = [
-			'title' => esc_html__( 'Button Style', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Button Style', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['display'] = [
-			'title' => esc_html__( 'Display', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['typography'] = [
-			'title' => esc_html__( 'Typography', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Typography', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 	}
@@ -98,48 +114,43 @@ class ButtonsItem extends \Bricks\Element {
 		// Content controls.
 		$this->controls['label'] = [
 			'group'       => 'content',
-			'label'       => esc_html__( 'Label', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Label', 'bricks-style-guide' ),
 			'type'        => 'text',
 			'default'     => 'Button',
-			'placeholder' => esc_html__( 'Button text...', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'Button text...', 'bricks-style-guide' ),
 		];
 
 		$this->controls['description'] = [
 			'group'       => 'content',
-			'label'       => esc_html__( 'Description', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Description', 'bricks-style-guide' ),
 			'type'        => 'text',
 			'default'     => '',
-			'placeholder' => esc_html__( 'e.g. Primary / Medium', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'e.g. Primary / Medium', 'bricks-style-guide' ),
 		];
 
 		// Button style controls.
 		$this->controls['variant'] = [
 			'group'    => 'buttonStyle',
-			'label'    => esc_html__( 'Variant', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Variant', 'bricks-style-guide' ),
 			'type'     => 'select',
 			'options'  => [
-				'solid'   => esc_html__( 'Solid (Fill)', 'advanced-themer-style-guide' ),
-				'outline' => esc_html__( 'Outline', 'advanced-themer-style-guide' ),
+				'solid'   => esc_html__( 'Solid (Fill)', 'bricks-style-guide' ),
+				'outline' => esc_html__( 'Outline', 'bricks-style-guide' ),
 			],
 			'default'  => 'solid',
 			'inline'   => true,
 			'rerender' => true,
 		];
 
+		// Color options differ by framework.
+		$is_acss       = FrameworkDetector::is_acss_active();
+		$color_options = $is_acss ? $this->get_acss_color_options() : $this->get_bricks_color_options();
+
 		$this->controls['color'] = [
 			'group'    => 'buttonStyle',
-			'label'    => esc_html__( 'Color', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Color', 'bricks-style-guide' ),
 			'type'     => 'select',
-			'options'  => [
-				'primary'   => esc_html__( 'Primary', 'advanced-themer-style-guide' ),
-				'secondary' => esc_html__( 'Secondary', 'advanced-themer-style-guide' ),
-				'dark'      => esc_html__( 'Dark', 'advanced-themer-style-guide' ),
-				'light'     => esc_html__( 'Light', 'advanced-themer-style-guide' ),
-				'info'      => esc_html__( 'Info', 'advanced-themer-style-guide' ),
-				'success'   => esc_html__( 'Success', 'advanced-themer-style-guide' ),
-				'warning'   => esc_html__( 'Warning', 'advanced-themer-style-guide' ),
-				'danger'    => esc_html__( 'Danger', 'advanced-themer-style-guide' ),
-			],
+			'options'  => $color_options,
 			'default'  => 'primary',
 			'inline'   => true,
 			'rerender' => true,
@@ -147,13 +158,13 @@ class ButtonsItem extends \Bricks\Element {
 
 		$this->controls['size'] = [
 			'group'    => 'buttonStyle',
-			'label'    => esc_html__( 'Size', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Size', 'bricks-style-guide' ),
 			'type'     => 'select',
 			'options'  => [
-				'sm' => esc_html__( 'Small', 'advanced-themer-style-guide' ),
-				'md' => esc_html__( 'Medium', 'advanced-themer-style-guide' ),
-				'lg' => esc_html__( 'Large', 'advanced-themer-style-guide' ),
-				'xl' => esc_html__( 'Extra Large', 'advanced-themer-style-guide' ),
+				'sm' => esc_html__( 'Small', 'bricks-style-guide' ),
+				'md' => esc_html__( 'Medium', 'bricks-style-guide' ),
+				'lg' => esc_html__( 'Large', 'bricks-style-guide' ),
+				'xl' => esc_html__( 'Extra Large', 'bricks-style-guide' ),
 			],
 			'default'  => 'md',
 			'inline'   => true,
@@ -162,13 +173,13 @@ class ButtonsItem extends \Bricks\Element {
 
 		$this->controls['shape'] = [
 			'group'    => 'buttonStyle',
-			'label'    => esc_html__( 'Shape', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Shape', 'bricks-style-guide' ),
 			'type'     => 'select',
 			'options'  => [
-				'default' => esc_html__( 'Default', 'advanced-themer-style-guide' ),
-				'square'  => esc_html__( 'Square', 'advanced-themer-style-guide' ),
-				'round'   => esc_html__( 'Round', 'advanced-themer-style-guide' ),
-				'circle'  => esc_html__( 'Circle', 'advanced-themer-style-guide' ),
+				'default' => esc_html__( 'Default', 'bricks-style-guide' ),
+				'square'  => esc_html__( 'Square', 'bricks-style-guide' ),
+				'round'   => esc_html__( 'Round', 'bricks-style-guide' ),
+				'circle'  => esc_html__( 'Circle', 'bricks-style-guide' ),
 			],
 			'default'  => 'default',
 			'inline'   => true,
@@ -178,14 +189,14 @@ class ButtonsItem extends \Bricks\Element {
 		// Display controls - all "Hide X" for consistency.
 		$this->controls['hideDescription'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide Description', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Description', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
 
 		$this->controls['hideClasses'] = [
 			'group'    => 'display',
-			'label'    => esc_html__( 'Hide CSS Classes', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide CSS Classes', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 		];
@@ -193,24 +204,24 @@ class ButtonsItem extends \Bricks\Element {
 		// Typography controls.
 		$this->controls['descriptionTypography'] = [
 			'group' => 'typography',
-			'label' => esc_html__( 'Description Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Description Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-buttons-item__description',
+					'selector' => '.bsg-buttons-item__description',
 				],
 			],
 		];
 
 		$this->controls['classesTypography'] = [
 			'group' => 'typography',
-			'label' => esc_html__( 'Classes Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Classes Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-buttons-item__classes',
+					'selector' => '.bsg-buttons-item__classes',
 				],
 			],
 		];
@@ -235,26 +246,13 @@ class ButtonsItem extends \Bricks\Element {
 		$show_description = ! isset( $settings['hideDescription'] );
 		$show_classes     = ! isset( $settings['hideClasses'] );
 
-		// Build button classes following Bricks pattern.
-		$button_classes = [ 'bricks-button' ];
+		// Build button classes based on active framework.
+		$is_acss        = FrameworkDetector::is_acss_active();
+		$button_classes = $this->get_button_classes( $variant, $color, $size, $shape, $is_acss );
 
-		// Add variant (outline or solid - solid is default, no class needed).
-		if ( 'outline' === $variant ) {
-			$button_classes[] = 'outline';
-		}
-
-		// Add color.
-		$button_classes[] = 'bricks-color-' . $color;
-
-		// Add size.
-		$button_classes[] = $size;
-
-		// Add shape.
-		if ( 'default' !== $shape ) {
-			$button_classes[] = $shape;
-		}
-
-		$button_class_string = implode( ' ', $button_classes );
+		// Always add our internal class for styling.
+		$render_classes   = array_merge( [ 'bsg-btn' ], $button_classes );
+		$render_class_str = implode( ' ', $render_classes );
 
 		// Auto-generate description if not provided.
 		if ( empty( $description ) ) {
@@ -264,7 +262,7 @@ class ButtonsItem extends \Bricks\Element {
 			$description   = "{$color_label} / {$variant_label} / {$size_label}";
 		}
 
-		$this->set_attribute( '_root', 'class', [ 'atsg-buttons-item' ] );
+		$this->set_attribute( '_root', 'class', [ 'bsg-buttons-item' ] );
 		$this->set_attribute( '_root', 'data-variant', esc_attr( $variant ) );
 		$this->set_attribute( '_root', 'data-color', esc_attr( $color ) );
 		$this->set_attribute( '_root', 'data-size', esc_attr( $size ) );
@@ -272,23 +270,24 @@ class ButtonsItem extends \Bricks\Element {
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
 		// Button sample.
-		$output .= '<div class="atsg-buttons-item__sample">';
-		$output .= '<button type="button" class="' . esc_attr( $button_class_string ) . '">' . esc_html( $label ) . '</button>';
+		$output .= '<div class="bsg-buttons-item__sample">';
+		$output .= '<button type="button" class="' . esc_attr( $render_class_str ) . '">' . esc_html( $label ) . '</button>';
 		$output .= '</div>';
 
 		// Info section.
-		$output .= '<div class="atsg-buttons-item__info">';
+		$output .= '<div class="bsg-buttons-item__info">';
 		if ( $show_description && ! empty( $description ) ) {
-			$output .= '<span class="atsg-buttons-item__description">' . esc_html( $description ) . '</span>';
+			$output .= '<span class="bsg-buttons-item__description">' . esc_html( $description ) . '</span>';
 		}
 		if ( $show_classes ) {
+			// Show only the framework-specific classes (not our internal bsg-btn class).
 			$class_spans = array_map(
 				function ( $class ) {
 					return '<span class="class-name">' . esc_html( $class ) . '</span>';
 				},
 				$button_classes
 			);
-			$output .= '<code class="atsg-buttons-item__classes">' . implode( ' ', $class_spans ) . '</code>';
+			$output .= '<code class="bsg-buttons-item__classes">' . implode( ' ', $class_spans ) . '</code>';
 		}
 		$output .= '</div>';
 
@@ -298,16 +297,149 @@ class ButtonsItem extends \Bricks\Element {
 	}
 
 	/**
+	 * Get Bricks/AT button color options.
+	 *
+	 * @return array
+	 */
+	private function get_bricks_color_options(): array {
+		return [
+			'primary'   => esc_html__( 'Primary', 'bricks-style-guide' ),
+			'secondary' => esc_html__( 'Secondary', 'bricks-style-guide' ),
+			'dark'      => esc_html__( 'Dark', 'bricks-style-guide' ),
+			'light'     => esc_html__( 'Light', 'bricks-style-guide' ),
+			'info'      => esc_html__( 'Info', 'bricks-style-guide' ),
+			'success'   => esc_html__( 'Success', 'bricks-style-guide' ),
+			'warning'   => esc_html__( 'Warning', 'bricks-style-guide' ),
+			'danger'    => esc_html__( 'Danger', 'bricks-style-guide' ),
+		];
+	}
+
+	/**
+	 * Get ACSS button color options.
+	 *
+	 * ACSS generates button styles for primary and secondary colors,
+	 * each with -dark and -light variants.
+	 *
+	 * @return array
+	 */
+	private function get_acss_color_options(): array {
+		return [
+			'primary'         => esc_html__( 'Primary', 'bricks-style-guide' ),
+			'primary-dark'    => esc_html__( 'Primary Dark', 'bricks-style-guide' ),
+			'primary-light'   => esc_html__( 'Primary Light', 'bricks-style-guide' ),
+			'secondary'       => esc_html__( 'Secondary', 'bricks-style-guide' ),
+			'secondary-dark'  => esc_html__( 'Secondary Dark', 'bricks-style-guide' ),
+			'secondary-light' => esc_html__( 'Secondary Light', 'bricks-style-guide' ),
+		];
+	}
+
+	/**
+	 * Get button classes based on the active framework.
+	 *
+	 * @param string $variant The button variant (solid/outline).
+	 * @param string $color   The button color.
+	 * @param string $size    The button size.
+	 * @param string $shape   The button shape.
+	 * @param bool   $is_acss Whether ACSS is active.
+	 * @return array Array of CSS classes.
+	 */
+	private function get_button_classes( string $variant, string $color, string $size, string $shape, bool $is_acss ): array {
+		if ( $is_acss ) {
+			return $this->get_acss_button_classes( $variant, $color, $size, $shape );
+		}
+
+		return $this->get_bricks_button_classes( $variant, $color, $size, $shape );
+	}
+
+	/**
+	 * Get ACSS button classes.
+	 *
+	 * ACSS uses: .btn, .btn--primary, .btn--secondary with -dark and -light variants.
+	 * Sizes: btn--s, btn--m, btn--l, btn--xl.
+	 *
+	 * @param string $variant The button variant.
+	 * @param string $color   The button color.
+	 * @param string $size    The button size.
+	 * @param string $shape   The button shape (not used for ACSS - no rounded class).
+	 * @return array Array of CSS classes.
+	 */
+	private function get_acss_button_classes( string $variant, string $color, string $size, string $shape ): array {
+		$classes = [ 'btn' ];
+
+		// Color class - ACSS has primary and secondary with -dark/-light variants.
+		$valid_colors = [
+			'primary', 'primary-dark', 'primary-light',
+			'secondary', 'secondary-dark', 'secondary-light',
+		];
+		$acss_color   = in_array( $color, $valid_colors, true ) ? $color : 'primary';
+		$classes[]    = 'btn--' . $acss_color;
+
+		// Variant - outline.
+		if ( 'outline' === $variant ) {
+			$classes[] = 'btn--outline';
+		}
+
+		// Size - ACSS uses btn--s, btn--m, btn--l, btn--xl (not sm/md/lg).
+		$size_map = [
+			'sm' => 'btn--s',
+			'md' => 'btn--m',
+			'lg' => 'btn--l',
+			'xl' => 'btn--xl',
+		];
+
+		if ( ! empty( $size_map[ $size ] ) ) {
+			$classes[] = $size_map[ $size ];
+		}
+
+		// Note: ACSS does not have a rounded/pill button class.
+
+		return $classes;
+	}
+
+	/**
+	 * Get Bricks/AT button classes.
+	 *
+	 * Bricks uses: .bricks-button, .bricks-color-primary, etc.
+	 *
+	 * @param string $variant The button variant.
+	 * @param string $color   The button color.
+	 * @param string $size    The button size.
+	 * @param string $shape   The button shape.
+	 * @return array Array of CSS classes.
+	 */
+	private function get_bricks_button_classes( string $variant, string $color, string $size, string $shape ): array {
+		$classes = [ 'bricks-button' ];
+
+		// Variant (outline or solid - solid is default, no class needed).
+		if ( 'outline' === $variant ) {
+			$classes[] = 'outline';
+		}
+
+		// Color.
+		$classes[] = 'bricks-color-' . $color;
+
+		// Size.
+		$classes[] = $size;
+
+		// Shape.
+		if ( 'default' !== $shape ) {
+			$classes[] = $shape;
+		}
+
+		return $classes;
+	}
+
+	/**
 	 * Enqueue element styles.
 	 *
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-buttons-item';
+		$handle = 'bsg-buttons-item';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -320,50 +452,55 @@ class ButtonsItem extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
-			/* Critical layout */
-			.atsg-buttons-item {
+			/* Layout only - button styling handled by Bricks/AT/ACSS */
+			.bsg-buttons-item {
+				' . $framework_vars . '
 				display: flex;
 				flex-direction: column;
 				align-items: center;
-				gap: 0.75em;
+				gap: var(--bsg-space-s, 0.75em);
 			}
 
-			.atsg-buttons-item__sample {
+			.bsg-buttons-item__sample {
 				display: flex;
 				align-items: center;
 				justify-content: center;
 			}
 
-			.atsg-buttons-item__info {
+			.bsg-buttons-item__info {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
-				gap: 0.25em;
+				gap: var(--bsg-space-3xs, 0.25em);
 				text-align: center;
 			}
 
-			@layer atsg {
-			.atsg-buttons-item__description {
+			@layer bsg {
+			.bsg-buttons-item__description {
 				font-weight: 600;
 				font-size: 0.875em;
-				color: var(--at-neutral-d-3, #374151);
+				line-height: 1;
+				color: var(--bsg-neutral-darker, #374151);
 			}
 
-			.atsg-buttons-item__classes {
+			.bsg-buttons-item__classes {
 				font-size: 0.75em;
-				color: var(--at-neutral-d-2, #6b7280);
-				background: var(--at-neutral-t-6, #f3f4f6);
+				line-height: 1;
+				color: var(--bsg-neutral-medium, #6b7280);
+				background: var(--bsg-neutral-light, #f3f4f6);
 				padding: 0.125em 0.375em;
-				border-radius: 0.25em;
+				border-radius: var(--bsg-radius-xs, 0.25em);
 				word-spacing: 0.25em;
 			}
 
-			.atsg-buttons-item__classes .class-name {
+			.bsg-buttons-item__classes .class-name {
 				white-space: nowrap;
 				display: inline;
 			}
-			} /* end @layer atsg */
+			} /* end @layer bsg */
 		';
 	}
 }

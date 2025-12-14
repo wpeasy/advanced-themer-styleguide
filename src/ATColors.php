@@ -3,11 +3,15 @@
  * Advanced Themer Colors Helper.
  *
  * Provides access to AT Color Manager color palettes and variations.
+ * This class now works with both Advanced Themer and Automatic CSS
+ * via the Framework provider architecture.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide;
+namespace AB\BricksSG;
+
+use AB\BricksSG\Framework\FrameworkDetector;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,19 +21,49 @@ defined( 'ABSPATH' ) || exit;
 class ATColors {
 
 	/**
-	 * Shade variation suffixes for lighter shades.
+	 * Shade variation suffixes for lighter shades (AT format).
 	 */
 	public const LIGHT_SHADES = [ 'l-1', 'l-2', 'l-3', 'l-4', 'l-5', 'l-6' ];
 
 	/**
-	 * Shade variation suffixes for darker shades.
+	 * Shade variation suffixes for darker shades (AT format).
 	 */
 	public const DARK_SHADES = [ 'd-1', 'd-2', 'd-3', 'd-4', 'd-5', 'd-6' ];
 
 	/**
-	 * Shade variation suffixes for transparency shades.
+	 * Shade variation suffixes for transparency shades (AT format).
 	 */
 	public const TRANSPARENCY_SHADES = [ 't-1', 't-2', 't-3', 't-4', 't-5', 't-6' ];
+
+	/**
+	 * Get the active light shades from the current framework.
+	 *
+	 * @return array Light shade suffixes for the active framework.
+	 */
+	public static function get_active_light_shades(): array {
+		$provider = FrameworkDetector::get_active_framework();
+		return $provider ? $provider::get_light_shades() : self::LIGHT_SHADES;
+	}
+
+	/**
+	 * Get the active dark shades from the current framework.
+	 *
+	 * @return array Dark shade suffixes for the active framework.
+	 */
+	public static function get_active_dark_shades(): array {
+		$provider = FrameworkDetector::get_active_framework();
+		return $provider ? $provider::get_dark_shades() : self::DARK_SHADES;
+	}
+
+	/**
+	 * Get the active transparency shades from the current framework.
+	 *
+	 * @return array Transparency shade suffixes for the active framework.
+	 */
+	public static function get_active_transparency_shades(): array {
+		$provider = FrameworkDetector::get_active_framework();
+		return $provider ? $provider::get_transparency_shades() : self::TRANSPARENCY_SHADES;
+	}
 
 	/**
 	 * Colors to exclude from the color selection (base colors only, not swatches).
@@ -42,8 +76,33 @@ class ATColors {
 	public const AT_PALETTE_PREFIXES = [ 'at ', 'at-', 'advanced themer' ];
 
 	/**
+	 * Get all colors from the active framework.
+	 *
+	 * This is the preferred method for getting colors as it works
+	 * with both Advanced Themer and Automatic CSS.
+	 *
+	 * @return array Array of colors from the active framework.
+	 */
+	public static function get_framework_colors(): array {
+		$provider = FrameworkDetector::get_active_framework();
+		return $provider ? $provider::get_colors() : [];
+	}
+
+	/**
+	 * Get color shades from the active framework.
+	 *
+	 * @param string $color_id The root color ID.
+	 * @return array Array of shade variations.
+	 */
+	public static function get_framework_color_shades( string $color_id ): array {
+		$provider = FrameworkDetector::get_active_framework();
+		return $provider ? $provider::get_color_shades( $color_id ) : [];
+	}
+
+	/**
 	 * Get all color palettes from Advanced Themer.
 	 *
+	 * @deprecated Use get_framework_colors() for multi-framework support.
 	 * @return array Array of palettes.
 	 */
 	public static function get_palettes(): array {
@@ -149,7 +208,7 @@ class ATColors {
 	public static function get_root_colors_for_select(): array {
 		$root_colors = self::get_root_colors();
 		$options     = [
-			'' => esc_html__( '— Select Color —', 'advanced-themer-style-guide' ),
+			'' => esc_html__( '— Select Color —', 'bricks-style-guide' ),
 		];
 
 		foreach ( $root_colors as $color_id => $color ) {

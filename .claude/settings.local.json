@@ -17,7 +17,14 @@
       "Bash(powershell:*)",
       "Bash(composer dump-autoload:*)",
       "Bash(npm install:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(for f in src/Elements/*.php)",
+      "Bash(do php -l:*)",
+      "Bash(done)",
+      "Bash(for f in src/Elements/*.php src/Framework/*.php)",
+      "Bash(grep:*)"
     ]
   }
 }

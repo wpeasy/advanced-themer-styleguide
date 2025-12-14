@@ -3,12 +3,18 @@ import App from './App.svelte';
 
 // Mount Svelte app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  const targets = document.querySelectorAll('[data-at-style-guide-instructions]');
+  const targets = document.querySelectorAll('[data-bricks-style-guide-instructions]');
 
   targets.forEach((target) => {
+    // Get framework info from localized data
+    const adminData = window.bricksStyleGuideAdminData || {};
+
     mount(App, {
       target,
-      props: {}
+      props: {
+        activeFramework: adminData.activeFramework || 'at',
+        frameworkName: adminData.frameworkName || 'Advanced Themer'
+      }
     });
   });
 });
@@ -16,10 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // Expose for WordPress
 declare global {
   interface Window {
-    atStyleGuideAdminData: {
+    bricksStyleGuideAdminData: {
       ajaxUrl: string;
       nonce: string;
       pluginUrl: string;
+      activeFramework: 'at' | 'acss';
+      frameworkName: string;
     };
   }
 }

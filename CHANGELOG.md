@@ -1,6 +1,56 @@
 # Changelog
 
-All notable changes to Advanced Themer Style Guide will be documented in this file.
+All notable changes to Bricks Style Guide will be documented in this file.
+
+## [0.0.13-beta] - 2025-12-14
+
+### Added
+- **Colors Element**: Full keyboard accessibility - Enter/Space to open menu, Escape to close, Arrow keys for navigation
+- **Colors Element**: ARIA attributes for screen readers (role, tabindex, aria-haspopup, aria-expanded, aria-controls, aria-label)
+- **Colors Element**: Focus trap within color menu with Tab key cycling
+- **Colors Element**: ARIA live region for screen reader announcements when copying colors
+
+### Changed
+- **Admin Instructions**: All tabs now show framework-specific CSS variable examples (AT vs ACSS)
+- **Buttons Element**: Corrected ACSS button colors to only include working classes (primary, secondary with -dark/-light variants)
+- **Buttons Element**: Corrected ACSS button sizes to use ACSS naming (btn--s, btn--m, btn--l, btn--xl)
+- **Buttons Element**: Rounded toggle now hidden for ACSS (no btn--rounded class exists in ACSS)
+- **All Elements**: Removed hardcoded colors - all colors now use framework CSS variables (except A11Y badges)
+- **Buttons Element**: Plugin only provides layout CSS; button styling handled entirely by frameworks
+
+### Fixed
+- **Colors Element**: Click indicator background now uses framework variables for proper dark mode support
+- **Admin Page**: Fixed blank page issue (selector mismatch for Svelte mount target)
+
+## [0.0.12-beta] - 2025-12-14
+
+### Changed
+- **Plugin Renamed**: "Advanced Themer Style Guide" renamed to "Bricks Style Guide"
+- **PHP Namespace**: Changed from `AB\ATStyleGuide` to `AB\BricksSG`
+- **Constants Prefix**: Changed from `AT_STYLE_GUIDE_` to `BRICKS_SG_`
+- **Text Domain**: Changed from `advanced-themer-style-guide` to `bricks-style-guide`
+- **Element Names**: Changed from `at-*` prefix to `bsg-*` prefix (e.g., `at-typography` → `bsg-typography`)
+- **CSS Class Prefix**: Changed from `atsg-` to `bsg-` (e.g., `.atsg-typography` → `.bsg-typography`)
+- **JavaScript Functions**: Changed from `at*Init` to `bsg*Init` (e.g., `atTypographyInit` → `bsgTypographyInit`)
+- **Admin Menu Slug**: Changed from `at-style-guide` to `bricks-style-guide`
+- **Main Plugin File**: Renamed from `advanced-themer-styleguide.php` to `bricks-style-guide.php`
+
+## [0.0.11-beta] - 2025-12-12
+
+### Added
+- **Automatic CSS (ACSS) Support**: Plugin now works with Automatic CSS as an alternative to Advanced Themer
+- **Framework Provider Architecture**: New `src/Framework/` namespace with Strategy Pattern for multi-framework support
+  - `FrameworkProviderInterface.php` - Contract for framework providers
+  - `FrameworkDetector.php` - Auto-detects active framework (AT priority when both present)
+  - `ATFrameworkProvider.php` - Advanced Themer implementation
+  - `ACSSFrameworkProvider.php` - Automatic CSS implementation
+- **Framework-agnostic Methods**: `ATColors::get_framework_colors()` and `ATColors::get_framework_color_shades()`
+- **Dynamic Shade Names**: ACSS uses named shades (ultra-light, light, semi-light, hover, semi-dark, dark, ultra-dark)
+
+### Changed
+- Plugin now requires either Advanced Themer OR Automatic CSS (not just AT)
+- `ATFrameworkDefaults` now acts as facade for the Framework system
+- Updated admin notice to mention both supported frameworks
 
 ## [0.0.10-beta] - 2025-12-12
 

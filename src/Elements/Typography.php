@@ -4,12 +4,14 @@
  *
  * Container element for typography samples with computed font sizes and families.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
 
-use AB\ATStyleGuide\ATFrameworkDefaults;
+use AB\BricksSG\ATFrameworkDefaults;
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,18 +21,31 @@ defined( 'ABSPATH' ) || exit;
 class Typography extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-typography';
+	public $name = 'bsg-typography';
 
 	/**
 	 * Element icon.
@@ -44,7 +59,7 @@ class Typography extends \Bricks\Element {
 	 *
 	 * @var array
 	 */
-	public $scripts = [ 'atTypographyInit' ];
+	public $scripts = [ 'bsgTypographyInit' ];
 
 	/**
 	 * Nestable element.
@@ -59,7 +74,7 @@ class Typography extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'Typography', 'advanced-themer-style-guide' ) . ' (' . esc_html__( 'Nestable', 'advanced-themer-style-guide' ) . ')';
+		return esc_html__( 'Typography', 'bricks-style-guide' ) . ' (' . esc_html__( 'Nestable', 'bricks-style-guide' ) . ')';
 	}
 
 	/**
@@ -78,17 +93,17 @@ class Typography extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['layout'] = [
-			'title' => esc_html__( 'Layout', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Layout', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['displayOverride'] = [
-			'title' => esc_html__( 'Display Override', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display Override', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 
 		$this->control_groups['style'] = [
-			'title' => esc_html__( 'Item Styling', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Item Styling', 'bricks-style-guide' ),
 			'tab'   => 'content',
 		];
 	}
@@ -99,30 +114,33 @@ class Typography extends \Bricks\Element {
 	 * @return void
 	 */
 	public function set_controls(): void {
+		// Get framework-specific example variables.
+		$examples = FrameworkDetector::get_example_variables();
+
 		// Base font size control.
 		$this->controls['baseFontSize'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Base Font Size', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Base Font Size', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
-			'default'     => 'var(--at-text--s)',
+			'default'     => $examples['text_s'],
 			'css'         => [
 				[
 					'property' => 'font-size',
 					'selector' => '',
 				],
 			],
-			'description' => esc_html__( 'Base font size for UI components. Sample text uses its own styled size.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Base font size for UI components. Sample text uses its own styled size.', 'bricks-style-guide' ),
 		];
 
 		// Layout controls.
 		$this->controls['layout'] = [
 			'group'   => 'layout',
-			'label'   => esc_html__( 'Layout', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Layout', 'bricks-style-guide' ),
 			'type'    => 'select',
 			'options' => [
-				'stacked' => esc_html__( 'Stacked', 'advanced-themer-style-guide' ),
-				'table'   => esc_html__( 'Table', 'advanced-themer-style-guide' ),
+				'stacked' => esc_html__( 'Stacked', 'bricks-style-guide' ),
+				'table'   => esc_html__( 'Table', 'bricks-style-guide' ),
 			],
 			'default' => 'stacked',
 			'inline'  => true,
@@ -130,7 +148,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['gap'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Gap', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Gap', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => '2em',
@@ -144,24 +162,24 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['sampleText'] = [
 			'group'       => 'layout',
-			'label'       => esc_html__( 'Sample Text', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Sample Text', 'bricks-style-guide' ),
 			'type'        => 'text',
 			'default'     => 'The quick brown fox jumps over the lazy dog',
-			'description' => esc_html__( 'Sets the default sample text for all Typography Items. Individual items can override this.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Sets the default sample text for all Typography Items. Individual items can override this.', 'bricks-style-guide' ),
 		];
 
 		// Display Override controls - apply to all child items.
 		$this->controls['overrideChildDisplay'] = [
 			'group'       => 'displayOverride',
-			'label'       => esc_html__( 'Override Child Display Settings', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Override Child Display Settings', 'bricks-style-guide' ),
 			'type'        => 'checkbox',
 			'rerender'    => true,
-			'description' => esc_html__( 'Enable to control display settings for all child items from here.', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Enable to control display settings for all child items from here.', 'bricks-style-guide' ),
 		];
 
 		$this->controls['hideLabel'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Label', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Label', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -169,7 +187,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideFontFamily'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Font Family', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Font Family', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -177,7 +195,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideFontSize'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Font Size', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Font Size', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -185,7 +203,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideLineHeight'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Line Height', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Line Height', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -193,7 +211,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideFontWeight'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Font Weight', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Font Weight', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -201,7 +219,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideLetterSpacing'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Letter Spacing', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Letter Spacing', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -209,7 +227,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideColor'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Color', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Color', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -217,7 +235,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideTextTransform'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Text Transform', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Text Transform', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -225,7 +243,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideFontStyle'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Font Style', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Font Style', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -233,7 +251,7 @@ class Typography extends \Bricks\Element {
 
 		$this->controls['hideValueLabels'] = [
 			'group'    => 'displayOverride',
-			'label'    => esc_html__( 'Hide Value Labels', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Hide Value Labels', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'rerender' => true,
 			'required' => [ 'overrideChildDisplay', '!=', '' ],
@@ -242,14 +260,14 @@ class Typography extends \Bricks\Element {
 		// Style preset.
 		$this->controls['stylePreset'] = [
 			'group'   => 'style',
-			'label'   => esc_html__( 'Style Preset', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Style Preset', 'bricks-style-guide' ),
 			'type'    => 'select',
 			'options' => [
-				'default'   => esc_html__( 'Default', 'advanced-themer-style-guide' ),
-				'minimal'   => esc_html__( 'Minimal', 'advanced-themer-style-guide' ),
-				'bold'      => esc_html__( 'Bold', 'advanced-themer-style-guide' ),
-				'colourful' => esc_html__( 'Colourful', 'advanced-themer-style-guide' ),
-				'compact'   => esc_html__( 'Compact', 'advanced-themer-style-guide' ),
+				'default'   => esc_html__( 'Default', 'bricks-style-guide' ),
+				'minimal'   => esc_html__( 'Minimal', 'bricks-style-guide' ),
+				'bold'      => esc_html__( 'Bold', 'bricks-style-guide' ),
+				'colourful' => esc_html__( 'Colourful', 'bricks-style-guide' ),
+				'compact'   => esc_html__( 'Compact', 'bricks-style-guide' ),
 			],
 			'default' => 'default',
 			'inline'  => true,
@@ -258,12 +276,12 @@ class Typography extends \Bricks\Element {
 		// Item border.
 		$this->controls['itemBorder'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Item Border', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Item Border', 'bricks-style-guide' ),
 			'type'  => 'border',
 			'css'   => [
 				[
 					'property' => 'border-bottom',
-					'selector' => '.atsg-typography-item',
+					'selector' => '.bsg-typography-item',
 				],
 			],
 		];
@@ -271,12 +289,12 @@ class Typography extends \Bricks\Element {
 		// Item padding.
 		$this->controls['itemPadding'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Item Padding', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Item Padding', 'bricks-style-guide' ),
 			'type'  => 'spacing',
 			'css'   => [
 				[
 					'property' => 'padding',
-					'selector' => '.atsg-typography-item',
+					'selector' => '.bsg-typography-item',
 				],
 			],
 		];
@@ -284,12 +302,12 @@ class Typography extends \Bricks\Element {
 		// Label typography.
 		$this->controls['labelTypography'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Label Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Label Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-typography-item__label',
+					'selector' => '.bsg-typography-item__label',
 				],
 			],
 		];
@@ -297,12 +315,12 @@ class Typography extends \Bricks\Element {
 		// Meta typography.
 		$this->controls['metaTypography'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Meta Typography', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Meta Typography', 'bricks-style-guide' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
 					'property' => 'font',
-					'selector' => '.atsg-typography-item__meta',
+					'selector' => '.bsg-typography-item__meta',
 				],
 			],
 		];
@@ -310,12 +328,12 @@ class Typography extends \Bricks\Element {
 		// Meta background.
 		$this->controls['metaBackground'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Meta Background', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Meta Background', 'bricks-style-guide' ),
 			'type'  => 'color',
 			'css'   => [
 				[
 					'property' => 'background-color',
-					'selector' => '.atsg-typography-item__meta > span',
+					'selector' => '.bsg-typography-item__meta > span',
 				],
 			],
 		];
@@ -323,12 +341,12 @@ class Typography extends \Bricks\Element {
 		// Item background.
 		$this->controls['itemBackground'] = [
 			'group' => 'style',
-			'label' => esc_html__( 'Item Background', 'advanced-themer-style-guide' ),
+			'label' => esc_html__( 'Item Background', 'bricks-style-guide' ),
 			'type'  => 'color',
 			'css'   => [
 				[
 					'property' => 'background-color',
-					'selector' => '.atsg-typography-item',
+					'selector' => '.bsg-typography-item',
 				],
 			],
 		];
@@ -343,8 +361,8 @@ class Typography extends \Bricks\Element {
 	 */
 	public function get_nestable_item(): array {
 		return [
-			'name'     => 'at-typography-item',
-			'label'    => esc_html__( 'Typography Item', 'advanced-themer-style-guide' ),
+			'name'     => 'bsg-typography-item',
+			'label'    => esc_html__( 'Typography Item', 'bricks-style-guide' ),
 			'settings' => [
 				'label'       => '{item_label}',
 				'tag'         => '{item_tag}',
@@ -395,8 +413,8 @@ class Typography extends \Bricks\Element {
 	 * @return void
 	 */
 	public function render(): void {
-		// Check for ATF variables.
-		if ( ! ATFrameworkDefaults::has_at_variables() ) {
+		// Check for framework variables (AT or ACSS).
+		if ( ! ATFrameworkDefaults::has_framework_variables() ) {
 			echo ATFrameworkDefaults::render_warning(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			return;
 		}
@@ -406,9 +424,9 @@ class Typography extends \Bricks\Element {
 		$layout       = $settings['layout'] ?? 'stacked';
 		$style_preset = $settings['stylePreset'] ?? 'default';
 
-		$root_classes = [ 'atsg-typography', 'atsg-typography--' . $layout ];
+		$root_classes = [ 'bsg-typography', 'bsg-typography--' . $layout ];
 		if ( 'default' !== $style_preset ) {
-			$root_classes[] = 'atsg-typography--' . $style_preset;
+			$root_classes[] = 'bsg-typography--' . $style_preset;
 		}
 
 		$this->set_attribute( '_root', 'class', $root_classes );
@@ -459,11 +477,11 @@ class Typography extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-typography';
+		$handle = 'bsg-typography';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -476,51 +494,44 @@ class Typography extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
 			/* Critical layout */
-			.atsg-typography {
+			.bsg-typography {
+				' . $framework_vars . '
 				display: flex;
 				flex-direction: column;
 				gap: 2em;
 			}
 
-			@layer atsg {
-			.atsg-typography__placeholder {
-				padding: 2em;
-				background: var(--at-neutral-t-6, #f3f4f6);
-				border: 2px dashed var(--at-border-color, #d1d5db);
-				border-radius: 0.5em;
-				text-align: center;
-				color: var(--at-neutral-d-2, #6b7280);
-			}
-
-			/* Table layout */
-			.atsg-typography--table {
-				display: table;
+			/* Table layout - critical display rules (outside @layer for higher specificity) */
+			.bsg-typography--table {
+				display: table !important;
 				width: 100%;
 				border-collapse: collapse;
 			}
 
-			.atsg-typography--table .atsg-typography-item {
-				display: table-row;
+			.bsg-typography--table .bsg-typography-item {
+				display: table-row !important;
 				padding: 0;
 				border-block-end: none;
 			}
 
-			.atsg-typography--table .atsg-typography-item__label,
-			.atsg-typography--table .atsg-typography-item__sample-wrapper,
-			.atsg-typography--table .atsg-typography-item__meta {
-				display: table-cell;
+			.bsg-typography--table .bsg-typography-item__label,
+			.bsg-typography--table .bsg-typography-item__sample-wrapper,
+			.bsg-typography--table .bsg-typography-item__meta {
+				display: table-cell !important;
 				padding: 1em;
 				vertical-align: middle;
-				border-block-end: 1px solid var(--at-border-color, #e5e7eb);
+				border-block-end: 1px solid var(--bsg-border-color, #e5e7eb);
 			}
 
-			.atsg-typography--table .atsg-typography-item__label {
+			.bsg-typography--table .bsg-typography-item__label {
 				width: 6.25em;
 			}
 
-			.atsg-typography--table .atsg-typography-item__meta {
+			.bsg-typography--table .bsg-typography-item__meta {
 				width: 12.5em;
 				flex-direction: column;
 				align-items: flex-start;
@@ -528,143 +539,155 @@ class Typography extends \Bricks\Element {
 				text-align: left;
 			}
 
-			.atsg-typography--table .atsg-typography-item__meta > span {
+			.bsg-typography--table .bsg-typography-item__meta > span {
 				display: block;
 				width: auto;
 			}
 
 			/* Table layout - mobile: revert to stacked */
 			@media screen and (max-width: 768px) {
-				.atsg-typography--table {
+				.bsg-typography--table {
 					display: flex !important;
 					flex-direction: column;
 					gap: 2em;
 				}
 
-				.atsg-typography--table .atsg-typography-item {
+				.bsg-typography--table .bsg-typography-item {
 					display: flex !important;
 					flex-direction: column;
 					gap: 0.5em;
 					padding: 0;
 					padding-block-end: 1.5em;
-					border-block-end: 1px solid var(--at-border-color, #e5e7eb);
+					border-block-end: 1px solid var(--bsg-border-color, #e5e7eb);
 				}
 
-				.atsg-typography--table .atsg-typography-item__label,
-				.atsg-typography--table .atsg-typography-item__sample-wrapper,
-				.atsg-typography--table .atsg-typography-item__meta {
+				.bsg-typography--table .bsg-typography-item__label,
+				.bsg-typography--table .bsg-typography-item__sample-wrapper,
+				.bsg-typography--table .bsg-typography-item__meta {
 					display: block !important;
 					padding: 0;
 					width: auto !important;
 					border-block-end: none;
 				}
 
-				.atsg-typography--table .atsg-typography-item__meta {
+				.bsg-typography--table .bsg-typography-item__meta {
 					display: flex !important;
 					flex-wrap: wrap;
 				}
 			}
 
+			@layer bsg {
+			.bsg-typography__placeholder {
+				padding: 2em;
+				background: var(--bsg-neutral-light, #f3f4f6);
+				border: 2px dashed var(--bsg-border-color, #d1d5db);
+				border-radius: 0.5em;
+				text-align: center;
+				color: var(--bsg-neutral-medium, #6b7280);
+			}
+
 			/* Style: Minimal */
-			.atsg-typography--minimal .atsg-typography-item {
+			.bsg-typography--minimal .bsg-typography-item {
 				border-block-end: none;
 				padding-block-end: 0.75em;
 			}
 
-			.atsg-typography--minimal .atsg-typography-item__label {
+			.bsg-typography--minimal .bsg-typography-item__label {
 				display: none;
 			}
 
-			.atsg-typography--minimal .atsg-typography-item__meta {
+			.bsg-typography--minimal .bsg-typography-item__meta {
 				opacity: 0.7;
 			}
 
 			/* Style: Bold */
-			.atsg-typography--bold .atsg-typography-item__label {
+			.bsg-typography--bold .bsg-typography-item__label {
 				font-size: 0.875em;
 				font-weight: 700;
 				text-transform: none;
-				color: var(--at-neutral-d-4, #1f2937);
+				color: var(--bsg-neutral-darker, #1f2937);
 			}
 
-			.atsg-typography--bold .atsg-typography-item {
+			.bsg-typography--bold .bsg-typography-item {
 				border-block-end-width: 2px;
 			}
 
 			/* Style: Colourful */
-			.atsg-typography--colourful .atsg-typography-item__label {
-				color: var(--at-primary, #3b82f6);
+			.bsg-typography--colourful .bsg-typography-item__label {
+				color: var(--bsg-primary, #3b82f6);
 			}
 
-			.atsg-typography--colourful .atsg-typography-item {
-				border-block-end-color: var(--at-primary-l-3, #93c5fd);
+			.bsg-typography--colourful .bsg-typography-item {
+				border-block-end-color: var(--bsg-primary-light, #93c5fd);
 			}
 
-			.atsg-typography--colourful .atsg-typography-item__meta > span {
-				background: var(--at-primary-l-5, #dbeafe);
-				color: var(--at-primary-d-2, #1d4ed8);
+			.bsg-typography--colourful .bsg-typography-item__meta > span {
+				background: var(--bsg-primary-light, #dbeafe);
+				color: var(--bsg-primary-dark, #1d4ed8);
 			}
 
 			/* Style: Compact */
-			.atsg-typography--compact {
+			.bsg-typography--compact {
 				gap: 0.5em;
 			}
 
-			.atsg-typography--compact .atsg-typography-item {
+			.bsg-typography--compact .bsg-typography-item {
 				gap: 0.25em;
 				padding-block-end: 0.5em;
 			}
 
-			.atsg-typography--compact .atsg-typography-item__label {
+			.bsg-typography--compact .bsg-typography-item__label {
 				font-size: 0.75em;
 			}
 
-			.atsg-typography--compact .atsg-typography-item__meta {
+			.bsg-typography--compact .bsg-typography-item__meta {
 				gap: 0.5em;
 				font-size: 0.75em;
 			}
 
+			} /* end @layer bsg */
+
 			/* Parent override styles - hide elements based on parent data attributes */
-			.atsg-typography[data-override="true"][data-hide-label="true"] .atsg-typography-item__label {
-				display: none;
+			/* Outside @layer with !important to override table-cell display */
+			.bsg-typography[data-override="true"][data-hide-label="true"] .bsg-typography-item__label {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-font-family="true"] .atsg-typography-item__font-family {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-font-family="true"] .bsg-typography-item__font-family {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-font-size="true"] .atsg-typography-item__font-size {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-font-size="true"] .bsg-typography-item__font-size {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-line-height="true"] .atsg-typography-item__line-height {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-line-height="true"] .bsg-typography-item__line-height {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-font-weight="true"] .atsg-typography-item__font-weight {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-font-weight="true"] .bsg-typography-item__font-weight {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-letter-spacing="true"] .atsg-typography-item__letter-spacing {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-letter-spacing="true"] .bsg-typography-item__letter-spacing {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-color="true"] .atsg-typography-item__color {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-color="true"] .bsg-typography-item__color {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-text-transform="true"] .atsg-typography-item__text-transform {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-text-transform="true"] .bsg-typography-item__text-transform {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-font-style="true"] .atsg-typography-item__font-style {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-font-style="true"] .bsg-typography-item__font-style {
+				display: none !important;
 			}
 
-			.atsg-typography[data-override="true"][data-hide-value-labels="true"] .atsg-typography-item__meta-label {
-				display: none;
+			.bsg-typography[data-override="true"][data-hide-value-labels="true"] .bsg-typography-item__meta-label {
+				display: none !important;
 			}
-			} /* end @layer atsg */
 		';
 	}
 }

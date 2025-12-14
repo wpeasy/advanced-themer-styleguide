@@ -2,15 +2,17 @@
 /**
  * Color Swatch Element for Bricks Builder.
  *
- * Displays a color from Advanced Themer with its variations.
+ * Displays a color from Advanced Themer or Automatic CSS with its variations.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Elements;
+namespace AB\BricksSG\Elements;
 
-use AB\ATStyleGuide\ATColors;
-use AB\ATStyleGuide\ATFrameworkDefaults;
+use AB\BricksSG\ATColors;
+use AB\BricksSG\ATFrameworkDefaults;
+use AB\BricksSG\Framework\FrameworkDetector;
+use AB\BricksSG\Framework\FrameworkVariables;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,18 +22,31 @@ defined( 'ABSPATH' ) || exit;
 class ColorSwatch extends \Bricks\Element {
 
 	/**
-	 * Element category.
+	 * Element category - set dynamically based on active framework.
 	 *
 	 * @var string
 	 */
-	public $category = 'at style guide';
+	public $category = 'bricks style guide';
+
+	/**
+	 * Constructor - set category based on active framework.
+	 *
+	 * @param \Bricks\Element|null $element The element.
+	 */
+	public function __construct( $element = null ) {
+		$framework_name = FrameworkDetector::get_active_framework_name();
+		if ( $framework_name ) {
+			$this->category = $framework_name . ' Style Guide';
+		}
+		parent::__construct( $element );
+	}
 
 	/**
 	 * Element name.
 	 *
 	 * @var string
 	 */
-	public $name = 'at-color-swatch';
+	public $name = 'bsg-color-swatch';
 
 	/**
 	 * Element icon.
@@ -53,7 +68,7 @@ class ColorSwatch extends \Bricks\Element {
 	 * @return string
 	 */
 	public function get_label(): string {
-		return esc_html__( 'AT Color Swatch', 'advanced-themer-style-guide' );
+		return esc_html__( 'AT Color Swatch', 'bricks-style-guide' );
 	}
 
 	/**
@@ -72,19 +87,19 @@ class ColorSwatch extends \Bricks\Element {
 	 */
 	public function set_control_groups(): void {
 		$this->control_groups['color'] = [
-			'title' => esc_html__( 'Color Selection', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Color Selection', 'bricks-style-guide' ),
 		];
 
 		$this->control_groups['variations'] = [
-			'title' => esc_html__( 'Variations', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Variations', 'bricks-style-guide' ),
 		];
 
 		$this->control_groups['display'] = [
-			'title' => esc_html__( 'Display', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Display', 'bricks-style-guide' ),
 		];
 
 		$this->control_groups['labels'] = [
-			'title' => esc_html__( 'Labels', 'advanced-themer-style-guide' ),
+			'title' => esc_html__( 'Labels', 'bricks-style-guide' ),
 		];
 	}
 
@@ -97,30 +112,30 @@ class ColorSwatch extends \Bricks\Element {
 		// Color Selection group.
 		$this->controls['atColor'] = [
 			'group'       => 'color',
-			'label'       => esc_html__( 'Select Color', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Select Color', 'bricks-style-guide' ),
 			'type'        => 'select',
 			'options'     => ATColors::get_root_colors_for_select(),
-			'placeholder' => esc_html__( 'Select an AT color', 'advanced-themer-style-guide' ),
+			'placeholder' => esc_html__( 'Select an AT color', 'bricks-style-guide' ),
 		];
 
 		$this->controls['colorInfo'] = [
 			'group'    => 'color',
 			'type'     => 'info',
-			'content'  => esc_html__( 'Colors are loaded from Advanced Themer Color Manager. Only root colors (not variations) are shown.', 'advanced-themer-style-guide' ),
+			'content'  => esc_html__( 'Colors are loaded from Advanced Themer Color Manager. Only root colors (not variations) are shown.', 'bricks-style-guide' ),
 			'required' => [ 'atColor', '=', '' ],
 		];
 
 		// Variations group.
 		$this->controls['showVariations'] = [
 			'group'   => 'variations',
-			'label'   => esc_html__( 'Show Variations', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Show Variations', 'bricks-style-guide' ),
 			'type'    => 'checkbox',
 			'default' => true,
 		];
 
 		$this->controls['showLightShades'] = [
 			'group'    => 'variations',
-			'label'    => esc_html__( 'Show Light Shades (l-1 to l-6)', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Show Light Shades (l-1 to l-6)', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'default'  => true,
 			'required' => [ 'showVariations', '!=', '' ],
@@ -128,7 +143,7 @@ class ColorSwatch extends \Bricks\Element {
 
 		$this->controls['showDarkShades'] = [
 			'group'    => 'variations',
-			'label'    => esc_html__( 'Show Dark Shades (d-1 to d-6)', 'advanced-themer-style-guide' ),
+			'label'    => esc_html__( 'Show Dark Shades (d-1 to d-6)', 'bricks-style-guide' ),
 			'type'     => 'checkbox',
 			'default'  => true,
 			'required' => [ 'showVariations', '!=', '' ],
@@ -137,11 +152,11 @@ class ColorSwatch extends \Bricks\Element {
 		// Display group.
 		$this->controls['layout'] = [
 			'group'   => 'display',
-			'label'   => esc_html__( 'Layout', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Layout', 'bricks-style-guide' ),
 			'type'    => 'select',
 			'options' => [
-				'horizontal' => esc_html__( 'Horizontal', 'advanced-themer-style-guide' ),
-				'vertical'   => esc_html__( 'Vertical', 'advanced-themer-style-guide' ),
+				'horizontal' => esc_html__( 'Horizontal', 'bricks-style-guide' ),
+				'vertical'   => esc_html__( 'Vertical', 'bricks-style-guide' ),
 			],
 			'default' => 'horizontal',
 			'inline'  => true,
@@ -149,57 +164,57 @@ class ColorSwatch extends \Bricks\Element {
 
 		$this->controls['swatchSize'] = [
 			'group'       => 'display',
-			'label'       => esc_html__( 'Swatch Size', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Swatch Size', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => 'var(--at-space--xl)',
 			'css'         => [
 				[
 					'property' => 'width',
-					'selector' => '.atsg-swatch__item',
+					'selector' => '.bsg-swatch__item',
 				],
 				[
 					'property' => 'height',
-					'selector' => '.atsg-swatch__item',
+					'selector' => '.bsg-swatch__item',
 				],
 			],
 		];
 
 		$this->controls['baseSizeMultiplier'] = [
 			'group'       => 'display',
-			'label'       => esc_html__( 'Base Color Size Multiplier', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Base Color Size Multiplier', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'default'     => 1.5,
 			'step'        => 0.1,
 			'min'         => 1,
 			'max'         => 3,
-			'description' => esc_html__( 'Make the base color larger than variations', 'advanced-themer-style-guide' ),
+			'description' => esc_html__( 'Make the base color larger than variations', 'bricks-style-guide' ),
 		];
 
 		$this->controls['swatchBorderRadius'] = [
 			'group'       => 'display',
-			'label'       => esc_html__( 'Border Radius', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Border Radius', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => 'var(--at-radius--s)',
 			'css'         => [
 				[
 					'property' => 'border-radius',
-					'selector' => '.atsg-swatch__item',
+					'selector' => '.bsg-swatch__item',
 				],
 			],
 		];
 
 		$this->controls['gap'] = [
 			'group'       => 'display',
-			'label'       => esc_html__( 'Gap', 'advanced-themer-style-guide' ),
+			'label'       => esc_html__( 'Gap', 'bricks-style-guide' ),
 			'type'        => 'number',
 			'units'       => true,
 			'placeholder' => 'var(--at-space--xs)',
 			'css'         => [
 				[
 					'property' => 'gap',
-					'selector' => '.atsg-swatch__row',
+					'selector' => '.bsg-swatch__row',
 				],
 			],
 		];
@@ -207,28 +222,28 @@ class ColorSwatch extends \Bricks\Element {
 		// Labels group.
 		$this->controls['showColorName'] = [
 			'group'   => 'labels',
-			'label'   => esc_html__( 'Show Color Name', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Show Color Name', 'bricks-style-guide' ),
 			'type'    => 'checkbox',
 			'default' => true,
 		];
 
 		$this->controls['showCssVariable'] = [
 			'group'   => 'labels',
-			'label'   => esc_html__( 'Show CSS Variable', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Show CSS Variable', 'bricks-style-guide' ),
 			'type'    => 'checkbox',
 			'default' => true,
 		];
 
 		$this->controls['showHexValue'] = [
 			'group'   => 'labels',
-			'label'   => esc_html__( 'Show Hex/Color Value', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Show Hex/Color Value', 'bricks-style-guide' ),
 			'type'    => 'checkbox',
 			'default' => false,
 		];
 
 		$this->controls['showShadeLabel'] = [
 			'group'   => 'labels',
-			'label'   => esc_html__( 'Show Shade Labels', 'advanced-themer-style-guide' ),
+			'label'   => esc_html__( 'Show Shade Labels', 'bricks-style-guide' ),
 			'type'    => 'checkbox',
 			'default' => true,
 		];
@@ -240,8 +255,8 @@ class ColorSwatch extends \Bricks\Element {
 	 * @return void
 	 */
 	public function render(): void {
-		// Check for ATF variables.
-		if ( ! ATFrameworkDefaults::has_at_variables() ) {
+		// Check for framework variables (AT or ACSS).
+		if ( ! ATFrameworkDefaults::has_framework_variables() ) {
 			echo ATFrameworkDefaults::render_warning(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			return;
 		}
@@ -252,8 +267,8 @@ class ColorSwatch extends \Bricks\Element {
 
 		if ( empty( $color_id ) ) {
 			if ( bricks_is_builder() ) {
-				echo '<div class="atsg-swatch__placeholder">';
-				echo esc_html__( 'Please select a color from Advanced Themer', 'advanced-themer-style-guide' );
+				echo '<div class="bsg-swatch__placeholder">';
+				echo esc_html__( 'Please select a color from Advanced Themer', 'bricks-style-guide' );
 				echo '</div>';
 			}
 			return;
@@ -263,8 +278,8 @@ class ColorSwatch extends \Bricks\Element {
 
 		if ( ! $root_color ) {
 			if ( bricks_is_builder() ) {
-				echo '<div class="atsg-swatch__placeholder">';
-				echo esc_html__( 'Selected color not found. It may have been deleted from Advanced Themer.', 'advanced-themer-style-guide' );
+				echo '<div class="bsg-swatch__placeholder">';
+				echo esc_html__( 'Selected color not found. It may have been deleted from Advanced Themer.', 'bricks-style-guide' );
 				echo '</div>';
 			}
 			return;
@@ -309,33 +324,33 @@ class ColorSwatch extends \Bricks\Element {
 		}
 
 		// Build output.
-		$root_classes = [ 'atsg-swatch', 'atsg-swatch--' . $layout ];
+		$root_classes = [ 'bsg-swatch', 'bsg-swatch--' . $layout ];
 		$this->set_attribute( '_root', 'class', $root_classes );
 
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
 		// Color header.
 		if ( $show_color_name || $show_css_variable ) {
-			$output .= '<div class="atsg-swatch__header">';
+			$output .= '<div class="bsg-swatch__header">';
 
 			if ( $show_color_name ) {
-				$output .= '<h4 class="atsg-swatch__title">' . esc_html( $root_color['label'] ) . '</h4>';
+				$output .= '<h4 class="bsg-swatch__title">' . esc_html( $root_color['label'] ) . '</h4>';
 			}
 
 			if ( $show_css_variable ) {
-				$output .= '<code class="atsg-swatch__variable">' . esc_html( $root_color['raw'] ) . '</code>';
+				$output .= '<code class="bsg-swatch__variable">' . esc_html( $root_color['raw'] ) . '</code>';
 			}
 
 			$output .= '</div>';
 		}
 
 		// Color swatches row.
-		$output .= '<div class="atsg-swatch__row">';
+		$output .= '<div class="bsg-swatch__row">';
 
 		foreach ( $variations as $suffix => $variation ) {
 			$is_base     = 'base' === $suffix;
-			$item_class  = 'atsg-swatch__item';
-			$item_class .= $is_base ? ' atsg-swatch__item--base' : '';
+			$item_class  = 'bsg-swatch__item';
+			$item_class .= $is_base ? ' bsg-swatch__item--base' : '';
 
 			// Use CSS variable for background.
 			$css_var    = $variation['raw'];
@@ -350,25 +365,25 @@ class ColorSwatch extends \Bricks\Element {
 			$output .= ' title="' . esc_attr( $css_var ) . '">';
 
 			if ( $show_shade_label && ! $is_base ) {
-				$output .= '<span class="atsg-swatch__shade-label">' . esc_html( $suffix ) . '</span>';
+				$output .= '<span class="bsg-swatch__shade-label">' . esc_html( $suffix ) . '</span>';
 			}
 
 			$output .= '</div>';
 		}
 
-		$output .= '</div>'; // .atsg-swatch__row
+		$output .= '</div>'; // .bsg-swatch__row
 
 		// Hex value if enabled.
 		if ( $show_hex_value ) {
 			$hex_value = ATColors::get_color_value( $root_color, 'light' );
 			if ( $hex_value ) {
-				$output .= '<div class="atsg-swatch__hex">';
-				$output .= '<span class="atsg-swatch__hex-label">' . esc_html__( 'Light:', 'advanced-themer-style-guide' ) . '</span> ';
+				$output .= '<div class="bsg-swatch__hex">';
+				$output .= '<span class="bsg-swatch__hex-label">' . esc_html__( 'Light:', 'bricks-style-guide' ) . '</span> ';
 				$output .= '<code>' . esc_html( $hex_value ) . '</code>';
 
 				$dark_value = ATColors::get_color_value( $root_color, 'dark' );
 				if ( $dark_value && $dark_value !== $hex_value ) {
-					$output .= ' <span class="atsg-swatch__hex-label">' . esc_html__( 'Dark:', 'advanced-themer-style-guide' ) . '</span> ';
+					$output .= ' <span class="bsg-swatch__hex-label">' . esc_html__( 'Dark:', 'bricks-style-guide' ) . '</span> ';
 					$output .= '<code>' . esc_html( $dark_value ) . '</code>';
 				}
 
@@ -376,7 +391,7 @@ class ColorSwatch extends \Bricks\Element {
 			}
 		}
 
-		$output .= '</div>'; // .atsg-swatch
+		$output .= '</div>'; // .bsg-swatch
 
 		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
@@ -387,11 +402,11 @@ class ColorSwatch extends \Bricks\Element {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$handle = 'at-color-swatch';
+		$handle = 'bsg-color-swatch';
 
 		// Only register and add inline styles once.
 		if ( ! wp_style_is( $handle, 'registered' ) ) {
-			wp_register_style( $handle, false, [], AT_STYLE_GUIDE_VERSION );
+			wp_register_style( $handle, false, [], BRICKS_SG_VERSION );
 			wp_add_inline_style( $handle, $this->get_element_css() );
 		}
 
@@ -404,105 +419,114 @@ class ColorSwatch extends \Bricks\Element {
 	 * @return string
 	 */
 	private function get_element_css(): string {
+		// Get framework-agnostic CSS variables that map to the active framework.
+		$framework_vars = FrameworkVariables::get_css_variables();
+
 		return '
+			/* Framework Variable Mappings */
+			.bsg-swatch {
+				' . $framework_vars . '
+			}
+
 			/* Critical layout */
-			.atsg-swatch {
+			.bsg-swatch {
 				display: flex;
 				flex-direction: column;
-				gap: var(--at-space--s, 1rem);
+				gap: var(--bsg-space-s, 1rem);
 			}
 
-			.atsg-swatch__header {
+			.bsg-swatch__header {
 				display: flex;
 				flex-direction: column;
-				gap: var(--at-space--3xs, 0.25rem);
+				gap: var(--bsg-space-3xs, 0.25rem);
 			}
 
-			.atsg-swatch__row {
+			.bsg-swatch__row {
 				display: flex;
 				flex-wrap: wrap;
 				align-items: center;
-				gap: var(--at-space--2xs, 8px);
+				gap: var(--bsg-space-2xs, 0.5rem);
 			}
 
-			.atsg-swatch--vertical .atsg-swatch__row {
+			.bsg-swatch--vertical .bsg-swatch__row {
 				flex-direction: column;
 			}
 
-			.atsg-swatch__item {
+			.bsg-swatch__item {
 				position: relative;
 				display: flex;
 				align-items: flex-end;
 				justify-content: center;
 			}
 
-			@layer atsg {
-			.atsg-swatch__placeholder {
-				padding: var(--at-space--l, 2rem);
-				background: var(--at-neutral-t-6, #f3f4f6);
-				border: var(--at-border-width, 2px) dashed var(--at-border-color, #d1d5db);
-				border-radius: var(--at-radius--s, 8px);
+			@layer bsg {
+			.bsg-swatch__placeholder {
+				padding: var(--bsg-space-l, 2rem);
+				background: var(--bsg-neutral-light, #f3f4f6);
+				border: var(--bsg-border-width, 0.125em) dashed var(--bsg-border-color, #d1d5db);
+				border-radius: var(--bsg-radius-s, 0.5rem);
 				text-align: center;
-				color: var(--at-neutral-d-2, #6b7280);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-swatch__title {
+			.bsg-swatch__title {
 				margin: 0;
-				font-size: var(--at-text--m, 1.125rem);
+				font-size: var(--bsg-text-m, 1.125rem);
 				font-weight: 600;
 			}
 
-			.atsg-swatch__variable {
-				font-size: var(--at-text--2xs, 0.75rem);
-				color: var(--at-neutral-d-2, #6b7280);
-				background: var(--at-neutral-t-6, #f3f4f6);
-				padding: var(--at-space--3xs, 0.25rem) var(--at-space--xs, 0.5rem);
-				border-radius: var(--at-radius--xs, 4px);
+			.bsg-swatch__variable {
+				font-size: var(--bsg-text-2xs, 0.75rem);
+				color: var(--bsg-neutral-medium, #6b7280);
+				background: var(--bsg-neutral-light, #f3f4f6);
+				padding: var(--bsg-space-3xs, 0.25rem) var(--bsg-space-xs, 0.5rem);
+				border-radius: var(--bsg-radius-xs, 0.25rem);
 				width: fit-content;
 			}
 
-			.atsg-swatch__item {
-				width: 60px;
-				height: 60px;
-				border-radius: var(--at-radius--s, 8px);
-				box-shadow: var(--at-shadow--s, 0 1px 3px rgba(0, 0, 0, 0.1)), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
-				transition: transform 0.2s ease;
+			.bsg-swatch__item {
+				width: var(--bsg-space-xl, 6rem);
+				height: var(--bsg-space-xl, 6rem);
+				border-radius: var(--bsg-radius-s, 0.5rem);
+				border: 1px solid var(--bsg-border-color, #d1d5db);
+				box-shadow: var(--bsg-shadow-m, 0 1px 3px var(--bsg-shadow-subtle, #e5e7eb));
+				transition: transform 0.2s ease, box-shadow 0.2s ease;
 			}
 
-			.atsg-swatch__item:hover {
-				box-shadow: var(--at-shadow--m, 0 4px 6px rgba(0, 0, 0, 0.15)), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+			.bsg-swatch__item:hover {
+				box-shadow: var(--bsg-shadow-l, 0 4px 6px var(--bsg-shadow-subtle, #e5e7eb));
 			}
 
-			.atsg-swatch__item--base {
-				box-shadow: var(--at-shadow--s, 0 2px 4px rgba(0, 0, 0, 0.15)), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+			.bsg-swatch__item--base {
+				box-shadow: var(--bsg-shadow-m, 0 2px 4px var(--bsg-shadow-subtle, #e5e7eb));
 			}
 
-			.atsg-swatch__shade-label {
-				font-size: var(--at-text--3xs, 0.625rem);
+			.bsg-swatch__shade-label {
+				font-size: var(--bsg-text-2xs, 0.625rem);
 				font-weight: 500;
-				color: rgba(255, 255, 255, 0.9);
-				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-				padding: var(--at-space--3xs, 0.125rem) var(--at-space--3xs, 0.25rem);
-				background: rgba(0, 0, 0, 0.2);
-				border-radius: var(--at-radius--2xs, 2px);
-				margin-bottom: 4px;
+				color: var(--bsg-white, #ffffff);
+				text-shadow: 0 1px 2px var(--bsg-black, #000000);
+				padding: var(--bsg-space-3xs, 0.125rem) var(--bsg-space-3xs, 0.25rem);
+				background: var(--bsg-neutral-darker, #1f2937);
+				border-radius: var(--bsg-radius-xs, 0.125rem);
+				margin-bottom: var(--bsg-space-3xs, 0.25rem);
 			}
 
-			.atsg-swatch__hex {
-				font-size: var(--at-text--2xs, 0.75rem);
-				color: var(--at-neutral-d-2, #6b7280);
+			.bsg-swatch__hex {
+				font-size: var(--bsg-text-2xs, 0.75rem);
+				color: var(--bsg-neutral-medium, #6b7280);
 			}
 
-			.atsg-swatch__hex code {
-				background: var(--at-neutral-t-6, #f3f4f6);
-				padding: var(--at-space--3xs, 0.125rem) var(--at-space--2xs, 0.375rem);
-				border-radius: var(--at-radius--xs, 4px);
+			.bsg-swatch__hex code {
+				background: var(--bsg-neutral-light, #f3f4f6);
+				padding: var(--bsg-space-3xs, 0.125rem) var(--bsg-space-2xs, 0.375rem);
+				border-radius: var(--bsg-radius-xs, 0.25rem);
 			}
 
-			.atsg-swatch__hex-label {
+			.bsg-swatch__hex-label {
 				font-weight: 500;
 			}
-			} /* end @layer atsg */
+			} /* end @layer bsg */
 		';
 	}
 }

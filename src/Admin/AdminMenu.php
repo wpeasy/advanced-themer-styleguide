@@ -4,10 +4,12 @@
  *
  * Registers the WordPress admin menu for the Style Guide Instructions.
  *
- * @package AB\ATStyleGuide
+ * @package AB\BricksSG
  */
 
-namespace AB\ATStyleGuide\Admin;
+namespace AB\BricksSG\Admin;
+
+use AB\BricksSG\Framework\FrameworkDetector;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -21,7 +23,7 @@ final class AdminMenu {
 	 *
 	 * @var string
 	 */
-	const MENU_SLUG = 'at-style-guide';
+	const MENU_SLUG = 'bricks-style-guide';
 
 	/**
 	 * Whether the class has been initialized.
@@ -53,8 +55,8 @@ final class AdminMenu {
 	 */
 	public static function register_menu(): void {
 		add_menu_page(
-			__( 'AT Style Guide', 'advanced-themer-style-guide' ),
-			__( 'AT Style Guide', 'advanced-themer-style-guide' ),
+			__( 'Bricks Style Guide', 'bricks-style-guide' ),
+			__( 'Bricks Style Guide', 'bricks-style-guide' ),
 			'manage_options',
 			self::MENU_SLUG,
 			[ __CLASS__, 'render_page' ],
@@ -90,8 +92,8 @@ final class AdminMenu {
 	 */
 	public static function render_page(): void {
 		?>
-		<div class="wpea wpea-full" id="at-style-guide-admin">
-			<div data-at-style-guide-instructions></div>
+		<div class="wpea wpea-full" id="bricks-style-guide-admin">
+			<div data-bricks-style-guide-instructions></div>
 		</div>
 		<?php
 	}
@@ -111,49 +113,51 @@ final class AdminMenu {
 		// Enqueue WPEA framework CSS.
 		wp_enqueue_style(
 			'wpea-framework',
-			AT_STYLE_GUIDE_PLUGIN_URL . 'lib/wpea/wpea-framework.css',
+			BRICKS_SG_PLUGIN_URL . 'lib/wpea/wpea-framework.css',
 			[],
-			AT_STYLE_GUIDE_VERSION
+			BRICKS_SG_VERSION
 		);
 
 		// Enqueue WPEA WP resets.
 		wp_enqueue_style(
 			'wpea-wp-resets',
-			AT_STYLE_GUIDE_PLUGIN_URL . 'lib/wpea/wpea-wp-resets.css',
+			BRICKS_SG_PLUGIN_URL . 'lib/wpea/wpea-wp-resets.css',
 			[ 'wpea-framework' ],
-			AT_STYLE_GUIDE_VERSION
+			BRICKS_SG_VERSION
 		);
 
 		// Enqueue admin Svelte app if built.
-		$dist_path = AT_STYLE_GUIDE_PLUGIN_PATH . 'assets/admin/dist/';
-		$dist_url  = AT_STYLE_GUIDE_PLUGIN_URL . 'assets/admin/dist/';
+		$dist_path = BRICKS_SG_PLUGIN_PATH . 'assets/admin/dist/';
+		$dist_url  = BRICKS_SG_PLUGIN_URL . 'assets/admin/dist/';
 
 		if ( file_exists( $dist_path . 'main.js' ) ) {
 			wp_enqueue_script(
-				'at-style-guide-admin',
+				'bricks-style-guide-admin',
 				$dist_url . 'main.js',
 				[],
-				AT_STYLE_GUIDE_VERSION,
+				BRICKS_SG_VERSION,
 				true
 			);
 
 			wp_localize_script(
-				'at-style-guide-admin',
-				'atStyleGuideAdminData',
+				'bricks-style-guide-admin',
+				'bricksStyleGuideAdminData',
 				[
-					'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
-					'nonce'     => wp_create_nonce( 'at_style_guide_admin_nonce' ),
-					'pluginUrl' => AT_STYLE_GUIDE_PLUGIN_URL,
+					'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+					'nonce'           => wp_create_nonce( 'bricks_style_guide_admin_nonce' ),
+					'pluginUrl'       => BRICKS_SG_PLUGIN_URL,
+					'activeFramework' => FrameworkDetector::is_acss_active() ? 'acss' : 'at',
+					'frameworkName'   => FrameworkDetector::get_active_framework_name(),
 				]
 			);
 		}
 
 		if ( file_exists( $dist_path . 'main.css' ) ) {
 			wp_enqueue_style(
-				'at-style-guide-admin',
+				'bricks-style-guide-admin',
 				$dist_url . 'main.css',
 				[ 'wpea-wp-resets' ],
-				AT_STYLE_GUIDE_VERSION
+				BRICKS_SG_VERSION
 			);
 		}
 	}
