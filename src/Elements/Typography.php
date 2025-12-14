@@ -612,18 +612,16 @@ class Typography extends \Bricks\Element {
 				border-block-end-width: 2px;
 			}
 
-			/* Style: Colourful */
-			.bsg-typography--colourful .bsg-typography-item__label {
-				color: var(--bsg-primary, #3b82f6);
+			/* Style: Colourful - uses CSS variables that can be overridden by controls */
+			.bsg-typography--colourful {
+				--bsg-typography-label-color: var(--bsg-primary, #3b82f6);
+				--bsg-typography-border-color: var(--bsg-primary-light, #93c5fd);
+				--bsg-typography-meta-bg: var(--bsg-primary-light, #dbeafe);
+				--bsg-typography-meta-color: var(--bsg-primary-dark, #1d4ed8);
 			}
 
 			.bsg-typography--colourful .bsg-typography-item {
-				border-block-end-color: var(--bsg-primary-light, #93c5fd);
-			}
-
-			.bsg-typography--colourful .bsg-typography-item__meta > span {
-				background: var(--bsg-primary-light, #dbeafe);
-				color: var(--bsg-primary-dark, #1d4ed8);
+				border-block-end-color: var(--bsg-typography-border-color);
 			}
 
 			/* Style: Compact */

@@ -482,7 +482,7 @@ class TypographyItem extends \Bricks\Element {
 				font-weight: 600;
 				text-transform: uppercase;
 				letter-spacing: 0.05em;
-				color: var(--bsg-neutral-medium, #6b7280);
+				color: var(--bsg-typography-label-color, var(--bsg-neutral-medium, #6b7280));
 			}
 
 			.bsg-typography-item__sample-wrapper {
@@ -501,7 +501,8 @@ class TypographyItem extends \Bricks\Element {
 			}
 
 			.bsg-typography-item__meta > span {
-				background: var(--bsg-neutral-light, #f3f4f6);
+				background: var(--bsg-typography-meta-bg, var(--bsg-neutral-light, #f3f4f6));
+				color: var(--bsg-typography-meta-color, inherit);
 				padding: 0.25em 0.5em;
 				border-radius: 0.25em;
 			}

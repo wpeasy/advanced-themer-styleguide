@@ -2,6 +2,14 @@
 
 All notable changes to Bricks Style Guide will be documented in this file.
 
+## [0.0.15-beta] - 2025-12-14
+
+### Changed
+- **Box Shadows Element**: Now displays CSS variable values from stylesheet instead of computed box-shadow values
+
+### Fixed
+- **Typography Element**: Colourful preset now uses CSS variables, allowing typography controls to properly override label and meta styles
+
 ## [0.0.14-beta] - 2025-12-14
 
 ### Added

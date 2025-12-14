@@ -484,6 +484,7 @@ function bsgBoxShadowsInit() {
  * Box Shadows Item Element.
  *
  * NO RESIZE LISTENER - box-shadow is static.
+ * Reads the CSS variable value from the stylesheet, not the computed value.
  */
 function bsgBoxShadowsItemInit() {
 	const items = document.querySelectorAll('.bsg-shadows-item');
@@ -492,12 +493,13 @@ function bsgBoxShadowsItemInit() {
 		if (item.dataset.bsgInit) return;
 		item.dataset.bsgInit = 'true';
 
-		const box = item.querySelector('.bsg-shadows-item__box');
 		const computedEl = item.querySelector('.bsg-shadows-item__computed');
-		if (!box || !computedEl) return;
+		const variableName = item.dataset.var;
+		if (!computedEl || !variableName) return;
 
-		// One-time computation
-		computedEl.textContent = roundAllPxValues(window.getComputedStyle(box).boxShadow);
+		// Read the CSS variable value from the stylesheet (not computed box-shadow)
+		const variableValue = window.getComputedStyle(item).getPropertyValue(variableName).trim();
+		computedEl.textContent = variableValue || 'none';
 	});
 }
 
