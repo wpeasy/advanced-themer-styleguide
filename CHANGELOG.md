@@ -4,6 +4,18 @@ All notable changes to Bricks Style Guide will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.19-beta] - 2025-12-15
+
+### Added
+- **Typography Spread Element**: New standalone element for showcasing rich text typography
+  - Displays H1-H4 headings, paragraphs, unordered/ordered lists, and blockquotes
+  - Content inherits all styles from framework (AT/ACSS) and Bricks - no plugin typography styles added
+  - Configurable H1 heading with "Hide H1" toggle and custom text
+  - Optional "Read More" collapse feature with smooth expand/collapse animation
+  - Gradient mask fades content at bottom when collapsed
+  - Customizable collapsed height and button text
+- **Admin Instructions**: Typography Spread documentation added to Typography tab
+
 ## [0.0.18-beta] - 2025-12-15
 
 ### Added

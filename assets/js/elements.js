@@ -280,6 +280,7 @@
 		if (typeof bsgButtonsItemInit === 'function') bsgButtonsItemInit();
 		if (typeof bsgColorsInit === 'function') bsgColorsInit();
 		if (typeof bsgColorsItemInit === 'function') bsgColorsItemInit();
+		if (typeof bsgTypographySpreadInit === 'function') bsgTypographySpreadInit();
 	}
 
 	if (document.readyState === 'loading') {
@@ -1210,5 +1211,100 @@ function announceToScreenReader(message) {
 	liveRegion.textContent = '';
 	requestAnimationFrame(() => {
 		liveRegion.textContent = message;
+	});
+}
+
+/**
+ * Typography Spread Element.
+ *
+ * Handles the expand/collapse functionality for the read more feature.
+ */
+function bsgTypographySpreadInit() {
+	const spreads = document.querySelectorAll('.bsg-typography-spread--collapsible');
+
+	spreads.forEach(spread => {
+		if (spread.dataset.bsgInit) return;
+		spread.dataset.bsgInit = 'true';
+
+		const content = spread.querySelector('.bsg-typography-spread__content');
+		const btn = spread.querySelector('.bsg-typography-spread__read-more-btn');
+		const btnText = spread.querySelector('.bsg-typography-spread__btn-text');
+
+		if (!content || !btn) return;
+
+		const collapsedHeight = spread.dataset.collapsedHeight || '300px';
+		const readMoreText = spread.dataset.readMoreText || 'Read More';
+		const readLessText = spread.dataset.readLessText || 'Read Less';
+
+		// Store the full height
+		let fullHeight = 0;
+		let isExpanded = false;
+
+		// Get the actual content height
+		const measureFullHeight = () => {
+			// Temporarily remove max-height to measure
+			content.style.maxHeight = 'none';
+			fullHeight = content.scrollHeight;
+			// Restore collapsed state
+			if (!isExpanded) {
+				content.style.maxHeight = collapsedHeight;
+			}
+		};
+
+		// Initial setup
+		const init = () => {
+			measureFullHeight();
+
+			// Check if content is shorter than collapsed height
+			const collapsedPx = parseFloat(collapsedHeight);
+			if (fullHeight <= collapsedPx) {
+				// Content fits, hide the button and remove mask
+				btn.parentElement.style.display = 'none';
+				spread.classList.remove('bsg-typography-spread--collapsed');
+				content.style.maxHeight = 'none';
+				return;
+			}
+
+			// Set initial collapsed state
+			content.style.maxHeight = collapsedHeight;
+		};
+
+		// Toggle expand/collapse
+		const toggle = () => {
+			if (isExpanded) {
+				// Collapse
+				isExpanded = false;
+				content.style.maxHeight = collapsedHeight;
+				spread.classList.remove('bsg-typography-spread--expanded');
+				spread.classList.add('bsg-typography-spread--collapsed');
+				if (btnText) btnText.textContent = readMoreText;
+				btn.setAttribute('aria-expanded', 'false');
+			} else {
+				// Expand
+				isExpanded = true;
+				measureFullHeight();
+				content.style.maxHeight = fullHeight + 'px';
+				spread.classList.remove('bsg-typography-spread--collapsed');
+				spread.classList.add('bsg-typography-spread--expanded');
+				if (btnText) btnText.textContent = readLessText;
+				btn.setAttribute('aria-expanded', 'true');
+			}
+		};
+
+		// Set up button
+		btn.setAttribute('aria-expanded', 'false');
+		btn.setAttribute('aria-controls', content.id || 'typography-spread-content');
+		btn.addEventListener('click', toggle);
+
+		// Initialize
+		init();
+
+		// Re-measure on resize (content may reflow)
+		window.BSGResizeManager.add(() => {
+			if (isExpanded) {
+				measureFullHeight();
+				content.style.maxHeight = fullHeight + 'px';
+			}
+		}, spread);
 	});
 }

@@ -125,6 +125,11 @@ final class Plugin {
 				'name'  => 'bsg-colors-item',
 				'class' => 'AB\\BricksSG\\Elements\\ColorsItem',
 			],
+			[
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/TypographySpread.php',
+				'name'  => 'bsg-typography-spread',
+				'class' => 'AB\\BricksSG\\Elements\\TypographySpread',
+			],
 		];
 
 		foreach ( $elements as $element ) {

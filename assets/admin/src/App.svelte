@@ -602,6 +602,58 @@
       </div>
     </Card>
 
+    <Card title="Typography Spread Element">
+      <p>The <strong>Typography Spread</strong> element displays a rich text sample showcasing all heading levels, lists, and blockquotes as styled by your framework.</p>
+
+      <div class="bsg-instructions__section">
+        <h4>Purpose</h4>
+        <p>Use this element to demonstrate how your {isAT ? 'Advanced Themer' : 'Automatic CSS'} and Bricks typography settings render in real content. The element displays framework-styled content without adding its own typography styles.</p>
+      </div>
+
+      <div class="bsg-instructions__section">
+        <h4>Content Structure</h4>
+        <p>The element renders the following content:</p>
+        <ul>
+          <li><strong>H1 Heading</strong> - Separate, customizable heading at the top</li>
+          <li><strong>H2, H3, H4 Headings</strong> - With Lorem Ipsum paragraphs</li>
+          <li><strong>Unordered List</strong> - Example bullet list with 4 items</li>
+          <li><strong>Ordered List</strong> - Example numbered list with 4 items</li>
+          <li><strong>Blockquote</strong> - Styled quote block</li>
+        </ul>
+      </div>
+
+      <div class="bsg-instructions__section">
+        <h4>Content Settings</h4>
+        <ul>
+          <li><strong>Hide H1</strong> - Hide the main H1 heading at the top</li>
+          <li><strong>H1 Text</strong> - Custom text for the H1 heading (default: "I am a H1 Heading")</li>
+        </ul>
+      </div>
+
+      <div class="bsg-instructions__section">
+        <h4>Read More Feature</h4>
+        <p>Enable collapsible content with a smooth expand/collapse animation:</p>
+        <ul>
+          <li><strong>Enable Read More</strong> - Activates the collapse functionality</li>
+          <li><strong>Collapsed Height</strong> - Height when collapsed (default: 300px)</li>
+          <li><strong>Read More Text</strong> - Button text when collapsed (default: "Read More")</li>
+          <li><strong>Read Less Text</strong> - Button text when expanded (default: "Read Less")</li>
+        </ul>
+        <p>When collapsed, a gradient mask fades the content at the bottom. The "Read More" button appears at the bottom right. Clicking it smoothly expands or collapses the content.</p>
+      </div>
+
+      <div class="bsg-instructions__section">
+        <h4>Styling</h4>
+        <p>The Typography Spread element intentionally does not add typography styles. All headings, paragraphs, lists, and blockquotes will inherit styles from:</p>
+        <ul>
+          <li>Your {isAT ? 'Advanced Themer' : 'Automatic CSS'} configuration</li>
+          <li>Bricks theme styles</li>
+          <li>Any custom CSS you've added</li>
+        </ul>
+        <p>This makes it ideal for verifying your typography settings render correctly.</p>
+      </div>
+    </Card>
+
     <Card title="CSS Override Variables">
       <p>The plugin uses a local scope CSS variable pattern. Set these variables on a parent element or in your stylesheet to override the default styles.</p>
       {@render cssVariablesSection('Typography Item Variables', 'typographyItem', typographyItemVars)}
