@@ -71,6 +71,11 @@ final class Plugin {
 				'class' => 'AB\\BricksSG\\Elements\\TypographyItem',
 			],
 			[
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/TypographySpread.php',
+				'name'  => 'bsg-typography-spread',
+				'class' => 'AB\\BricksSG\\Elements\\TypographySpread',
+			],
+			[
 				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/Spacing.php',
 				'name'  => 'bsg-spacing',
 				'class' => 'AB\\BricksSG\\Elements\\Spacing',
@@ -101,11 +106,6 @@ final class Plugin {
 				'class' => 'AB\\BricksSG\\Elements\\BoxShadowsItem',
 			],
 			[
-				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/ColorSwatch.php',
-				'name'  => 'bsg-color-swatch',
-				'class' => 'AB\\BricksSG\\Elements\\ColorSwatch',
-			],
-			[
 				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/Buttons.php',
 				'name'  => 'bsg-buttons',
 				'class' => 'AB\\BricksSG\\Elements\\Buttons',
@@ -126,9 +126,9 @@ final class Plugin {
 				'class' => 'AB\\BricksSG\\Elements\\ColorsItem',
 			],
 			[
-				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/TypographySpread.php',
-				'name'  => 'bsg-typography-spread',
-				'class' => 'AB\\BricksSG\\Elements\\TypographySpread',
+				'file'  => BRICKS_SG_PLUGIN_PATH . 'src/Elements/ColorSwatch.php',
+				'name'  => 'bsg-color-swatch',
+				'class' => 'AB\\BricksSG\\Elements\\ColorSwatch',
 			],
 		];
 
