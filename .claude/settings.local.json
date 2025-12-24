@@ -25,7 +25,12 @@
       "Bash(done)",
       "Bash(for f in src/Elements/*.php src/Framework/*.php)",
       "Bash(grep:*)",
-      "Bash(dir /s /b \"C:\\Users\\Alan.Blair\\Local Sites\\bricks-playground\\app\\public\\wp-content\\plugins\\ab-bricks-styleguide\\assets\\admin\\src\\*.svelte\")"
+      "Bash(dir /s /b \"C:\\Users\\Alan.Blair\\Local Sites\\bricks-playground\\app\\public\\wp-content\\plugins\\ab-bricks-styleguide\\assets\\admin\\src\\*.svelte\")",
+      "WebFetch(domain:github.com)",
+      "Bash(git pull:*)",
+      "WebSearch",
+      "Bash(for:*)",
+      "Skill(zip-plugin)"
     ]
   }
 }

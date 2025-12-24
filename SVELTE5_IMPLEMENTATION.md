@@ -38,12 +38,40 @@ let settings = $state({ theme: 'auto', density: 'comfy' });
 let listeners = $state([]);
 ```
 
-### `$derived` - Computed Values
+### `$derived` - Computed Values (Simple Expressions)
 ```javascript
 let doubled = $derived(count * 2);
 let isDarkTheme = $derived(settings.theme === 'dark');
 let activeListeners = $derived(listeners.filter(l => l.enabled));
 ```
+
+### `$derived.by()` - Computed Values (Complex Logic)
+
+Use `$derived.by()` when you need multiple statements, conditionals, or complex logic:
+
+```javascript
+// WRONG - $derived() does NOT take a function
+let initialView = $derived(() => {
+  if (page.includes('contacts')) return 'contacts';
+  return 'dashboard';
+});  // Error: "This expression is not callable"
+
+// CORRECT - Use $derived.by() for functions/complex logic
+let initialView = $derived.by(() => {
+  const page = config.currentPage || '';
+  if (page.includes('contacts')) return 'contacts';
+  if (page.includes('companies')) return 'companies';
+  return 'dashboard';
+});
+
+// Access as value, NOT function call
+store.navigateTo(initialView);  // Correct
+store.navigateTo(initialView());  // WRONG - not a function
+```
+
+**Key difference:**
+- `$derived(expression)` - Simple single expression
+- `$derived.by(() => { ... })` - Complex logic with multiple statements
 
 ### `$effect` - Side Effects (replaces onMount/afterUpdate)
 ```javascript
@@ -304,7 +332,9 @@ wp_localize_script('my-svelte-app', 'myAppData', [
 
 ### Build Configuration for WordPress
 
-Use **IIFE format** (not ES modules) to avoid issues with WordPress query string versioning:
+**WordPress 6.5+ Requirement:** This plugin requires WordPress 6.5 or higher, which introduces `wp_enqueue_script_module()` for native ES module support.
+
+Use **ES module format** with WordPress 6.5's script module API:
 
 ```typescript
 // vite.config.ts
@@ -316,24 +346,24 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    cssCodeSplit: false,  // Extract CSS to separate file
     rollupOptions: {
       input: 'src/main.ts',
       output: {
         entryFileNames: 'main.js',
         assetFileNames: '[name][extname]',
-        format: 'iife',  // NOT 'es' - WordPress adds ?ver= which breaks ES module imports
-        name: 'MyApp'
+        format: 'es',  // ES modules work with wp_enqueue_script_module()
       }
     }
   }
 });
 ```
 
-**Why IIFE over ES Modules:**
-- WordPress adds `?ver=X.X.X` to script URLs
-- ES module relative imports fail with query strings
-- IIFE bundles everything into one file (or uses globals for chunks)
-- CSS is automatically bundled into the JavaScript
+**Why ES Modules with WordPress 6.5+:**
+- `wp_enqueue_script_module()` properly handles ES module imports
+- No `?ver=` query string issues with import statements
+- Modern browser support for native ES modules
+- Better code splitting and tree shaking potential
 
 ### Multiple Svelte Apps
 
@@ -397,22 +427,30 @@ fetch(`${apiUrl}/endpoint`, {
 
 ## Common Pitfalls
 
-### ❌ DON'T: Use ES modules with WordPress
+### ❌ DON'T: Use ES modules with wp_enqueue_script() (pre-6.5)
 ```typescript
-// vite.config.ts - WRONG
+// WRONG for WordPress < 6.5 with wp_enqueue_script()
 output: {
-  format: 'es',  // WordPress ?ver= breaks relative imports
-  chunkFileNames: 'chunks/[name].js'  // Chunks won't load
+  format: 'es',  // WordPress ?ver= breaks relative imports with legacy script loading
 }
 ```
 
-### ✅ DO: Use IIFE format
+### ✅ DO: Use ES modules with wp_enqueue_script_module() (WordPress 6.5+)
 ```typescript
-// vite.config.ts - CORRECT
+// CORRECT for WordPress 6.5+ with wp_enqueue_script_module()
 output: {
-  format: 'iife',
-  name: 'MyApp'
+  format: 'es',
 }
+```
+
+```php
+// PHP - Use script module API
+wp_enqueue_script_module(
+    'my-svelte-app',
+    PLUGIN_URL . 'dist/main.js',
+    [],
+    PLUGIN_VERSION
+);
 ```
 
 ### ❌ DON'T: Try to use wp_add_inline_script with empty source
@@ -427,6 +465,29 @@ wp_add_inline_script('my-data', 'window.data = {...}');
 // CORRECT
 wp_enqueue_script('my-app', 'path/to/app.js', [], '1.0', true);
 wp_localize_script('my-app', 'myAppData', ['key' => 'value']);
+```
+
+### ❌ DON'T: Pass a function to `$derived()`
+```typescript
+// WRONG - $derived expects an expression, not a function
+let view = $derived(() => {
+  if (page === 'home') return 'home';
+  return 'other';
+});
+// Error: "This expression is not callable. No constituent of type 'X' is callable."
+```
+
+### ✅ DO: Use `$derived.by()` for complex logic
+```typescript
+// CORRECT - Use $derived.by() for functions
+let view = $derived.by(() => {
+  if (page === 'home') return 'home';
+  return 'other';
+});
+
+// Then access as a VALUE, not a function call
+console.log(view);     // Correct
+console.log(view());   // WRONG - view is not a function
 ```
 
 ### ❌ DON'T: Use runes in TypeScript files

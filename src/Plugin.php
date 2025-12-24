@@ -5,9 +5,12 @@
  * @package AB\BricksSG
  */
 
+declare(strict_types=1);
+
 namespace AB\BricksSG;
 
 use AB\BricksSG\Admin\AdminMenu;
+use AB\BricksSG\Admin\SettingsRestApi;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -37,6 +40,9 @@ final class Plugin {
 
 		// Initialize admin menu.
 		AdminMenu::init();
+
+		// Initialize settings REST API.
+		SettingsRestApi::init();
 
 		// Register Bricks elements.
 		add_action( 'init', [ __CLASS__, 'register_bricks_elements' ], 11 );

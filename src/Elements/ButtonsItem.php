@@ -7,6 +7,8 @@
  * @package AB\BricksSG
  */
 
+declare(strict_types=1);
+
 namespace AB\BricksSG\Elements;
 
 use AB\BricksSG\Framework\FrameworkDetector;

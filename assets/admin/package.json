@@ -1,6 +1,6 @@
 {
   "name": "bricks-style-guide-admin",
-  "version": "0.0.19-beta",
+  "version": "0.0.26-beta",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@tsconfig/svelte": "^5.0.6",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "typescript": "^5.0.0",

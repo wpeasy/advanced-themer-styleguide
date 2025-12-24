@@ -1,6 +1,6 @@
 {
   "name": "at-style-guide-svelte",
-  "version": "0.0.1",
+  "version": "0.0.26-beta",
   "private": true,
   "type": "module",
   "scripts": {

@@ -1,15 +1,163 @@
 <script lang="ts">
-  import Tabs from '$lib/Tabs.svelte';
-  import Card from '$lib/Card.svelte';
-  import Alert from '$lib/Alert.svelte';
+  import { onMount } from 'svelte';
+  import { Tabs, VerticalTabs, Card, Alert, FrameworkSettings, defaultFrameworkSettings } from '$lib';
+  import type { FrameworkDisplaySettings } from '$lib';
 
   // Props passed from PHP via wp_localize_script
   interface Props {
     activeFramework?: 'at' | 'acss';
     frameworkName?: string;
+    restUrl?: string;
+    restNonce?: string;
   }
 
-  let { activeFramework = 'at', frameworkName = 'Advanced Themer' }: Props = $props();
+  let {
+    activeFramework = 'at',
+    frameworkName = 'Advanced Themer',
+    restUrl = '',
+    restNonce = ''
+  }: Props = $props();
+
+  // Settings storage key
+  const STORAGE_KEY = 'bsg-framework-settings';
+
+  // Load settings from localStorage (synchronous for initial hydration)
+  function loadFromLocalStorage(): FrameworkDisplaySettings | null {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to load settings from localStorage:', e);
+    }
+    return null;
+  }
+
+  // Initialize settings from localStorage synchronously
+  function getInitialSettings(): FrameworkDisplaySettings {
+    const stored = loadFromLocalStorage();
+    if (stored) {
+      return { ...defaultFrameworkSettings, ...stored };
+    }
+    return { ...defaultFrameworkSettings };
+  }
+
+  // Framework settings state - hydrated from localStorage immediately
+  let frameworkSettings = $state<FrameworkDisplaySettings>(getInitialSettings());
+  let settingsLoaded = $state(true); // Already loaded from localStorage
+
+  // Save settings to localStorage
+  function saveToLocalStorage(settings: FrameworkDisplaySettings) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (e) {
+      console.warn('Failed to save settings to localStorage:', e);
+    }
+  }
+
+  // Load settings from WordPress user meta via REST API
+  async function loadFromUserMeta(): Promise<FrameworkDisplaySettings | null> {
+    if (!restUrl || !restNonce) return null;
+
+    try {
+      const response = await fetch(`${restUrl}bricks-style-guide/v1/settings`, {
+        method: 'GET',
+        headers: {
+          'X-WP-Nonce': restNonce,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && Object.keys(data).length > 0) {
+          return data as FrameworkDisplaySettings;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load settings from user meta:', e);
+    }
+    return null;
+  }
+
+  // Save settings to WordPress user meta via REST API
+  async function saveToUserMeta(settings: FrameworkDisplaySettings) {
+    if (!restUrl || !restNonce) return;
+
+    try {
+      await fetch(`${restUrl}bricks-style-guide/v1/settings`, {
+        method: 'POST',
+        headers: {
+          'X-WP-Nonce': restNonce,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
+      });
+    } catch (e) {
+      console.warn('Failed to save settings to user meta:', e);
+    }
+  }
+
+  // Handle settings change - save to both localStorage and user meta
+  function handleSettingsChange(settings: FrameworkDisplaySettings) {
+    saveToLocalStorage(settings);
+    saveToUserMeta(settings);
+  }
+
+  // Apply initial settings to document and fetch user meta on mount
+  onMount(async () => {
+    // Apply localStorage settings to document immediately
+    applySettingsToDocument(frameworkSettings);
+
+    // Then try user meta (may have newer settings from another browser/device)
+    const userSettings = await loadFromUserMeta();
+    if (userSettings) {
+      // Update settings - need to update properties individually for reactivity
+      Object.assign(frameworkSettings, { ...defaultFrameworkSettings, ...userSettings });
+      // Sync to localStorage
+      saveToLocalStorage(frameworkSettings);
+      // Re-apply to document
+      applySettingsToDocument(frameworkSettings);
+    }
+  });
+
+  // Apply settings to document (CSS variables on html element)
+  function applySettingsToDocument(settings: FrameworkDisplaySettings) {
+    const root = document.documentElement;
+
+    // Apply theme mode
+    if (settings.theme_mode === 'light') {
+      document.body.style.setProperty('color-scheme', 'light only');
+    } else if (settings.theme_mode === 'dark') {
+      document.body.style.setProperty('color-scheme', 'dark only');
+    } else {
+      document.body.style.setProperty('color-scheme', 'light dark');
+    }
+
+    // Apply compact mode class
+    if (settings.compact_mode) {
+      document.body.classList.add('wpea-compact');
+    } else {
+      document.body.classList.remove('wpea-compact');
+    }
+
+    // Apply color overrides
+    root.style.setProperty('--wpea-color--primary-light-override', settings.primary_light);
+    root.style.setProperty('--wpea-color--primary-dark-override', settings.primary_dark);
+    root.style.setProperty('--wpea-color--secondary-light-override', settings.secondary_light);
+    root.style.setProperty('--wpea-color--secondary-dark-override', settings.secondary_dark);
+    root.style.setProperty('--wpea-color--neutral-light-override', settings.neutral_light);
+    root.style.setProperty('--wpea-color--neutral-dark-override', settings.neutral_dark);
+    root.style.setProperty('--wpea-color--success-light-override', settings.success_light);
+    root.style.setProperty('--wpea-color--success-dark-override', settings.success_dark);
+    root.style.setProperty('--wpea-color--warning-light-override', settings.warning_light);
+    root.style.setProperty('--wpea-color--warning-dark-override', settings.warning_dark);
+    root.style.setProperty('--wpea-color--danger-light-override', settings.danger_light);
+    root.style.setProperty('--wpea-color--danger-dark-override', settings.danger_dark);
+    root.style.setProperty('--wpea-color--info-light-override', settings.info_light);
+    root.style.setProperty('--wpea-color--info-dark-override', settings.info_dark);
+  }
 
   // Reactive check for which framework
   const isAT = $derived(activeFramework === 'at');
@@ -196,16 +344,22 @@
     '--bsg-colors-glossary-text-color'
   ];
 
-  // Tab content snippets must be defined inline
-  const tabs = [
-    { id: 'requirements', label: 'Requirements', content: requirementsContent },
-    { id: 'general', label: 'General', content: generalContent },
+  // Element tabs for vertical tabs inside Elements tab
+  const elementTabs = [
     { id: 'colors', label: 'Colors', content: colorsContent },
     { id: 'typography', label: 'Typography', content: typographyContent },
     { id: 'spacing', label: 'Spacing', content: spacingContent },
     { id: 'radii', label: 'Radii', content: radiiContent },
     { id: 'box-shadows', label: 'Box Shadows', content: boxShadowsContent },
     { id: 'buttons', label: 'Buttons', content: buttonsContent }
+  ];
+
+  // Main tabs
+  const tabs = [
+    { id: 'requirements', label: 'Requirements', content: requirementsContent },
+    { id: 'general', label: 'General', content: generalContent },
+    { id: 'elements', label: 'Elements', content: elementsContent },
+    { id: 'settings', label: 'Settings', content: settingsContent }
   ];
 </script>
 
@@ -813,6 +967,21 @@
   </div>
 {/snippet}
 
+{#snippet elementsContent()}
+  <div class="bsg-instructions__elements">
+    <VerticalTabs tabs={elementTabs} />
+  </div>
+{/snippet}
+
+{#snippet settingsContent()}
+  <div class="bsg-instructions__settings">
+    <FrameworkSettings
+      bind:settings={frameworkSettings}
+      onchange={handleSettingsChange}
+    />
+  </div>
+{/snippet}
+
 <div class="bsg-instructions">
   <header class="bsg-instructions__header">
     <h1>Bricks Style Guide</h1>
@@ -824,13 +993,10 @@
 
 <style>
   .bsg-instructions {
-    max-width: 960px;
-    margin: 0 auto;
     padding: var(--wpea-space--lg) var(--wpea-space--md);
   }
 
   .bsg-instructions__header {
-    text-align: center;
     margin-bottom: var(--wpea-space--xl);
   }
 
@@ -852,6 +1018,14 @@
     display: flex;
     flex-direction: column;
     gap: var(--wpea-space--lg);
+  }
+
+  .bsg-instructions__elements {
+    padding: var(--wpea-space--md) 0;
+  }
+
+  .bsg-instructions__settings {
+    padding: var(--wpea-space--md) 0;
   }
 
   .bsg-instructions__section {
@@ -887,9 +1061,9 @@
 
   .bsg-instructions__section code {
     background: var(--wpea-surface--muted);
-    padding: 0.125em 0.375em;
+    padding: calc(var(--wpea-space--xs) / 2) var(--wpea-space--xs);
     border-radius: var(--wpea-radius--xs);
-    font-size: 0.875em;
+    font-size: var(--wpea-text--sm);
     color: var(--wpea-color--primary);
   }
 
@@ -904,7 +1078,7 @@
   .bsg-instructions__code-block code {
     background: transparent;
     padding: 0;
-    font-size: 0.8125em;
+    font-size: var(--wpea-text--xs);
     line-height: 1.6;
     color: var(--wpea-surface--text);
     display: block;
@@ -929,7 +1103,7 @@
     align-items: center;
     padding: var(--wpea-space--sm) var(--wpea-space--md);
     background: var(--wpea-surface--muted);
-    border-bottom: 1px solid var(--wpea-border--default);
+    border-bottom: 1px solid var(--wpea-surface--border);
   }
 
   .bsg-var-list__title {
@@ -940,17 +1114,17 @@
 
   .bsg-var-list__copy-all {
     background: var(--wpea-color--primary);
-    color: white;
+    color: var(--wpea-color--white);
     border: none;
-    padding: 0.375em 0.75em;
+    padding: var(--wpea-space--xs) var(--wpea-space--sm);
     border-radius: var(--wpea-radius--xs);
     font-size: var(--wpea-text--xs);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background var(--wpea-anim-duration--fast) ease;
   }
 
   .bsg-var-list__copy-all:hover {
-    background: var(--wpea-color--primary-hover, #1d4ed8);
+    background: var(--wpea-color--primary-d-2);
   }
 
   .bsg-var-list__items {
@@ -966,7 +1140,7 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--wpea-space--xs) var(--wpea-space--md);
-    border-bottom: 1px solid var(--wpea-border--default);
+    border-bottom: 1px solid var(--wpea-surface--divider);
     margin-bottom: 0;
   }
 
@@ -975,7 +1149,7 @@
   }
 
   .bsg-var-list__item:hover {
-    background: var(--wpea-surface--hover, rgba(0, 0, 0, 0.03));
+    background: var(--wpea-surface--muted);
   }
 
   .bsg-var-list__code {
@@ -989,18 +1163,18 @@
   .bsg-var-list__copy {
     background: transparent;
     color: var(--wpea-surface--text-muted);
-    border: 1px solid var(--wpea-border--default);
-    padding: 0.25em 0.5em;
+    border: 1px solid var(--wpea-surface--border);
+    padding: calc(var(--wpea-space--xs) / 2) var(--wpea-space--xs);
     border-radius: var(--wpea-radius--xs);
     font-size: var(--wpea-text--xs);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--wpea-anim-duration--fast) ease;
     min-width: 3.5em;
   }
 
   .bsg-var-list__copy:hover {
     background: var(--wpea-surface--muted);
     color: var(--wpea-surface--text);
-    border-color: var(--wpea-border--strong);
+    border-color: var(--wpea-surface--border);
   }
 </style>

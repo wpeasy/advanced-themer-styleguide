@@ -4,6 +4,31 @@ All notable changes to Bricks Style Guide will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.26-beta] - 2025-12-24
+
+### Added
+- **Admin Settings Tab**: New Settings tab with FrameworkSettings component from WPEA framework
+  - Theme mode toggle (Light/System/Dark)
+  - Brand & semantic color pickers
+  - Spacing, typography, and radius scale controls
+  - Live preview panel for testing changes
+  - Reset to defaults button
+- **Admin Elements Tab**: New Elements tab using Vertical Tabs layout
+  - Reorganized Colors, Typography, Spacing, Radii, Box Shadows, and Buttons into nested vertical tabs
+  - Cleaner navigation with dedicated Elements section
+- **Settings Persistence**: Framework settings now persist across sessions
+  - localStorage for immediate hydration on page load
+  - WordPress user meta via REST API for cross-browser/device sync
+  - Settings automatically applied on login and page refresh
+- **REST API Endpoint**: New `/wp-json/bricks-style-guide/v1/settings` endpoint
+  - GET/POST methods for retrieving and saving user settings
+  - Proper permission checks (requires `manage_options` capability)
+  - Input sanitization for all setting types (colors, numbers, strings, booleans)
+
+### Changed
+- **Admin UI Structure**: Main tabs now organized as Requirements, General, Elements, Settings
+- **WPEA Framework**: Updated to latest version with FrameworkSettings component
+
 ## [0.0.19-beta] - 2025-12-15
 
 ### Added

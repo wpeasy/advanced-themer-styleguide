@@ -1,17 +1,20 @@
 <?php
 /**
- * Plugin Name: Bricks Style Guide
- * Description: Adds Svelte based Elements to Bricks Builder for creating Style Guides
- * Version: 0.0.19-beta
- * Author: WP Easy
- * Author URI: https://wpeasy.au
- * License: GPL v2 or later
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: bricks-style-guide
- * Domain Path: /languages
- * Requires at least: 6.0
- * Tested up to: 6.7
- * Requires PHP: 7.4
+ * Plugin Name:       Bricks Style Guide
+ * Plugin URI:        https://alanblair.co/bricks-style-guide
+ * Description:       Adds Svelte based Elements to Bricks Builder for creating Style Guides
+ * Version:           0.0.26-beta
+ * Requires at least: 6.5
+ * Tested up to:      6.7
+ * Requires PHP:      8.0
+ * Author:            Alan Blair <alan@alanblair.co>
+ * Author URI:        https://alanblair.co
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       bricks-style-guide
+ * Domain Path:       /languages
+ * Network:           false
+ * Update URI:        false
  */
 
 namespace AB\BricksSG;
@@ -21,7 +24,7 @@ use AB\BricksSG\Framework\FrameworkDetector;
 defined( 'ABSPATH' ) || exit;
 
 // Plugin constants.
-define( 'BRICKS_SG_VERSION', '0.0.19-beta' );
+define( 'BRICKS_SG_VERSION', '0.0.26-beta' );
 define( 'BRICKS_SG_PLUGIN_FILE', __FILE__ );
 define( 'BRICKS_SG_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BRICKS_SG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

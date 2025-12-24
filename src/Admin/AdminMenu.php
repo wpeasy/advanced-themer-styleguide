@@ -7,6 +7,8 @@
  * @package AB\BricksSG
  */
 
+declare(strict_types=1);
+
 namespace AB\BricksSG\Admin;
 
 use AB\BricksSG\Framework\FrameworkDetector;
@@ -148,6 +150,8 @@ final class AdminMenu {
 					'pluginUrl'       => BRICKS_SG_PLUGIN_URL,
 					'activeFramework' => FrameworkDetector::is_acss_active() ? 'acss' : 'at',
 					'frameworkName'   => FrameworkDetector::get_active_framework_name(),
+					'restUrl'         => esc_url_raw( rest_url() ),
+					'restNonce'       => wp_create_nonce( 'wp_rest' ),
 				]
 			);
 		}

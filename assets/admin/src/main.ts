@@ -13,7 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
       target,
       props: {
         activeFramework: adminData.activeFramework || 'at',
-        frameworkName: adminData.frameworkName || 'Advanced Themer'
+        frameworkName: adminData.frameworkName || 'Advanced Themer',
+        restUrl: adminData.restUrl || '',
+        restNonce: adminData.restNonce || ''
       }
     });
   });
@@ -28,6 +30,8 @@ declare global {
       pluginUrl: string;
       activeFramework: 'at' | 'acss';
       frameworkName: string;
+      restUrl: string;
+      restNonce: string;
     };
   }
 }

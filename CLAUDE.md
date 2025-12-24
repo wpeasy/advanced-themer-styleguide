@@ -2,11 +2,16 @@
 
 ## Required Reading
 
-Before working on this project, you MUST read the following documentation file:
+Before working on this project, you MUST read the following documentation files:
 
-- **SVELTE5_IMPLEMENTATION.md** - Svelte 5 implementation details, runes system, WordPress integration patterns, and Vite build configuration
+| File | Purpose |
+|------|---------|
+| **CODE_STANDARDS.md** | Naming conventions, security, PHP/JS/CSS standards |
+| **WORDPRESS.md** | Plugin header template and WordPress configuration |
+| **SVELTE5_IMPLEMENTATION.md** | Svelte 5 runes and patterns (avoid Svelte 4 syntax) |
+| **lib/wpea/claude.md** | WPEasy Admin Framework components and CSS variables |
 
-This file contains essential context about Svelte 5 patterns used in this project.
+These files contain essential context about patterns used in this project.
 
 ---
 
