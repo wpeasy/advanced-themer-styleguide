@@ -325,10 +325,11 @@ class Typography extends \Bricks\Element {
 			'type'    => 'select',
 			'options' => [
 				'default'   => esc_html__( 'Default', 'bricks-style-guide' ),
-				'minimal'   => esc_html__( 'Minimal', 'bricks-style-guide' ),
 				'bold'      => esc_html__( 'Bold', 'bricks-style-guide' ),
 				'colourful' => esc_html__( 'Colourful', 'bricks-style-guide' ),
 				'compact'   => esc_html__( 'Compact', 'bricks-style-guide' ),
+				'cards'     => esc_html__( 'Cards', 'bricks-style-guide' ),
+				'zebra'     => esc_html__( 'Zebra', 'bricks-style-guide' ),
 			],
 			'default' => 'default',
 			'inline'  => true,
@@ -360,32 +361,6 @@ class Typography extends \Bricks\Element {
 			],
 		];
 
-		// Label typography.
-		$this->controls['labelTypography'] = [
-			'group' => 'style',
-			'label' => esc_html__( 'Label Typography', 'bricks-style-guide' ),
-			'type'  => 'typography',
-			'css'   => [
-				[
-					'property' => 'font',
-					'selector' => '.bsg-typography-item__label',
-				],
-			],
-		];
-
-		// Meta typography.
-		$this->controls['metaTypography'] = [
-			'group' => 'style',
-			'label' => esc_html__( 'Meta Typography', 'bricks-style-guide' ),
-			'type'  => 'typography',
-			'css'   => [
-				[
-					'property' => 'font',
-					'selector' => '.bsg-typography-item__meta',
-				],
-			],
-		];
-
 		// Meta background.
 		$this->controls['metaBackground'] = [
 			'group' => 'style',
@@ -408,6 +383,20 @@ class Typography extends \Bricks\Element {
 				[
 					'property' => 'background-color',
 					'selector' => '.bsg-typography-item',
+				],
+			],
+		];
+
+		// Meta gap.
+		$this->controls['metaGap'] = [
+			'group' => 'style',
+			'label' => esc_html__( 'Meta Gap', 'bricks-style-guide' ),
+			'type'  => 'number',
+			'units' => true,
+			'css'   => [
+				[
+					'property' => 'gap',
+					'selector' => '.bsg-typography-item__meta',
 				],
 			],
 		];
@@ -613,37 +602,42 @@ class Typography extends \Bricks\Element {
 				gap: 2em;
 			}
 
-			/* Table layout - critical display rules (outside @layer for higher specificity) */
+			/* Table layout - 2 column grid: [label+sample] [meta] */
 			.bsg-typography--table {
-				display: table !important;
-				width: 100%;
-				border-collapse: collapse;
+				display: flex !important;
+				flex-direction: column;
+				gap: 0;
 			}
 
 			.bsg-typography--table .bsg-typography-item {
-				display: table-row !important;
-				padding: 0;
-				border-block-end: none;
-			}
-
-			.bsg-typography--table .bsg-typography-item__label,
-			.bsg-typography--table .bsg-typography-item__sample-wrapper,
-			.bsg-typography--table .bsg-typography-item__meta {
-				display: table-cell !important;
+				display: grid !important;
+				grid-template-columns: 1fr auto;
+				align-items: center;
 				padding: 1em;
-				vertical-align: middle;
+				gap: 0 1.5em;
 				border-block-end: 1px solid var(--bsg-border-color, #e5e7eb);
 			}
 
 			.bsg-typography--table .bsg-typography-item__label {
-				width: 6.25em;
+				grid-column: 1;
+				grid-row: 1;
+				margin-block-end: 0.25em;
+			}
+
+			.bsg-typography--table .bsg-typography-item__sample-wrapper {
+				grid-column: 1;
+				grid-row: 2;
 			}
 
 			.bsg-typography--table .bsg-typography-item__meta {
-				width: 12.5em;
+				display: flex !important;
 				flex-direction: column;
 				align-items: flex-start;
-				gap: 0.25em;
+				gap: var(--bsg-space-xs, 0.75rem);
+				grid-column: 2;
+				grid-row: 1 / 3;
+				align-self: center;
+				min-width: 10em;
 				text-align: left;
 			}
 
@@ -652,11 +646,9 @@ class Typography extends \Bricks\Element {
 				width: auto;
 			}
 
-			/* Table layout - mobile: revert to stacked */
+			/* Table layout - mobile: revert to single column stacked */
 			@media screen and (max-width: 768px) {
 				.bsg-typography--table {
-					display: flex !important;
-					flex-direction: column;
 					gap: 2em;
 				}
 
@@ -666,21 +658,16 @@ class Typography extends \Bricks\Element {
 					gap: 0.5em;
 					padding: 0;
 					padding-block-end: 1.5em;
-					border-block-end: 1px solid var(--bsg-border-color, #e5e7eb);
 				}
 
-				.bsg-typography--table .bsg-typography-item__label,
-				.bsg-typography--table .bsg-typography-item__sample-wrapper,
-				.bsg-typography--table .bsg-typography-item__meta {
-					display: block !important;
-					padding: 0;
-					width: auto !important;
-					border-block-end: none;
+				.bsg-typography--table .bsg-typography-item__label {
+					margin-block-end: 0;
 				}
 
 				.bsg-typography--table .bsg-typography-item__meta {
-					display: flex !important;
+					flex-direction: row;
 					flex-wrap: wrap;
+					min-width: auto;
 				}
 			}
 
@@ -702,54 +689,97 @@ class Typography extends \Bricks\Element {
 				color: var(--_placeholder-color);
 			}
 
-			/* Style: Minimal */
-			.bsg-typography--minimal .bsg-typography-item {
-				border-block-end: none;
-				padding-block-end: 0.75em;
-			}
-
-			.bsg-typography--minimal .bsg-typography-item__label {
-				display: none;
-			}
-
-			.bsg-typography--minimal .bsg-typography-item__meta {
-				opacity: 0.7;
-			}
-
 			/* Style: Bold - override item settings */
 			.bsg-typography--bold .bsg-typography-item {
 				--_label-font-size: 0.875em;
 				--_label-font-weight: 700;
 				--_label-text-transform: none;
 				--_label-color: var(--bsg-neutral-darker, #1f2937);
+				--_meta-font-weight: 700;
 				border-block-end-width: 2px;
 			}
 
 			/* Style: Colourful - override item settings */
 			.bsg-typography--colourful .bsg-typography-item {
 				--_label-color: var(--bsg-primary, #3b82f6);
-				--_meta-bg: var(--bsg-primary-light, #dbeafe);
+				--_meta-bg: var(--bsg-primary-trans-4, rgba(59, 130, 246, 0.4));
 				--_meta-text-color: var(--bsg-primary-dark, #1d4ed8);
 				border-block-end-color: var(--bsg-primary-light, #93c5fd);
 			}
 
-			/* Style: Compact */
+			} /* end @layer bsg */
+
+			/* Style: Compact - outside @layer to override item defaults */
 			.bsg-typography--compact {
-				gap: 0.5em;
+				gap: var(--bsg-space-s, 1rem);
 			}
 
 			.bsg-typography--compact .bsg-typography-item {
 				--_label-font-size: 0.75em;
 				--_meta-font-size: 0.75em;
-				gap: 0.25em;
-				padding-block-end: 0.5em;
+				gap: 0;
+				padding: var(--bsg-space-s, 1rem);
+			}
+
+			.bsg-typography--compact .bsg-typography-item__sample {
+				line-height: 1;
 			}
 
 			.bsg-typography--compact .bsg-typography-item__meta {
-				gap: 0.5em;
+				gap: var(--bsg-space-xs, 0.75rem);
 			}
 
-			} /* end @layer bsg */
+			/* Style: Cards - items as cards with background, shadow, rounded corners */
+			.bsg-typography--cards {
+				gap: var(--bsg-space-m, 1.5rem);
+			}
+
+			.bsg-typography--cards .bsg-typography-item {
+				background: var(--bsg-white, #ffffff);
+				border-radius: var(--bsg-radius-m, 0.5rem);
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+				border: 1px solid var(--bsg-border-color, #e5e7eb);
+				padding: var(--bsg-space-m, 1.5rem);
+			}
+
+			.bsg-typography--cards.bsg-typography--stacked .bsg-typography-item {
+				border-block-end: 1px solid var(--bsg-border-color, #e5e7eb);
+			}
+
+			.bsg-typography--cards.bsg-typography--table .bsg-typography-item {
+				border-block-end: 1px solid var(--bsg-border-color, #e5e7eb);
+			}
+
+			/* Style: Zebra - alternating background colors */
+			.bsg-typography--zebra .bsg-typography-item:nth-child(odd) {
+				background: var(--bsg-neutral-light, #f9fafb);
+			}
+
+			.bsg-typography--zebra .bsg-typography-item:nth-child(even) {
+				background: var(--bsg-white, #ffffff);
+			}
+
+			.bsg-typography--zebra .bsg-typography-item {
+				padding: var(--bsg-space-m, 1.5rem);
+				border-block-end: none;
+			}
+
+			.bsg-typography--zebra.bsg-typography--stacked {
+				gap: 0;
+				border: 1px solid var(--bsg-border-color, #e5e7eb);
+				border-radius: var(--bsg-radius-m, 0.5rem);
+				overflow: hidden;
+			}
+
+			.bsg-typography--zebra.bsg-typography--table {
+				border: 1px solid var(--bsg-border-color, #e5e7eb);
+				border-radius: var(--bsg-radius-m, 0.5rem);
+				overflow: hidden;
+			}
+
+			.bsg-typography--zebra.bsg-typography--table .bsg-typography-item {
+				border-block-end: none;
+			}
 
 			/* Parent override styles - hide elements based on parent data attributes */
 			/* Outside @layer with !important to override table-cell display */

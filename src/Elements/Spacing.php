@@ -595,9 +595,10 @@ class Spacing extends \Bricks\Element {
 				order: 1;
 			}
 
-			/* Vertical layout: bar thickness = width, height = spacing value (from inline style) */
+			/* Vertical layout: bar thickness = width, height = spacing value */
 			.bsg-spacing--vertical .bsg-spacing-item__bar {
 				width: var(--bsg-bar-thickness) !important;
+				height: var(--_bar-spacing-value) !important;
 			}
 
 			@layer bsg {

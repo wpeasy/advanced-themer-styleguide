@@ -625,65 +625,68 @@ class Colors extends \Bricks\Element {
 
 		$output = "<div {$this->render_attributes( '_root' )}>";
 
-		// A11Y badges toggle switch.
-		$output .= '<div class="bsg-colors__toolbar">';
-		$output .= '<label class="bsg-colors__toggle">';
-		$output .= '<input type="checkbox" class="bsg-colors__toggle-input" data-toggle="a11y-badges">';
-		$output .= '<span class="bsg-colors__toggle-switch"></span>';
-		$output .= '<span class="bsg-colors__toggle-label">' . esc_html__( 'A11Y Badges', 'bricks-style-guide' ) . '</span>';
-		$output .= '</label>';
-		$output .= '</div>';
+		// Only render A11Y switch and glossary if NOT hidden.
+		if ( ! $hide_a11y_switch ) {
+			// A11Y badges toggle switch.
+			$output .= '<div class="bsg-colors__toolbar">';
+			$output .= '<label class="bsg-colors__toggle">';
+			$output .= '<input type="checkbox" class="bsg-colors__toggle-input" data-toggle="a11y-badges">';
+			$output .= '<span class="bsg-colors__toggle-switch"></span>';
+			$output .= '<span class="bsg-colors__toggle-label">' . esc_html__( 'A11Y Badges', 'bricks-style-guide' ) . '</span>';
+			$output .= '</label>';
+			$output .= '</div>';
 
-		// A11Y Glossary - reveals when toggle is enabled (if glossary is enabled in settings).
-		$output .= '<div class="bsg-colors__glossary">';
-		$output .= '<div class="bsg-colors__glossary-inner">';
+			// A11Y Glossary - reveals when toggle is enabled (if glossary is enabled in settings).
+			$output .= '<div class="bsg-colors__glossary">';
+			$output .= '<div class="bsg-colors__glossary-inner">';
 
-		// WCAG Standard explanation.
-		$output .= '<div class="bsg-colors__glossary-section">';
-		$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'WCAG Contrast Standards', 'bricks-style-guide' ) . '</h4>';
-		$output .= '<p class="bsg-colors__glossary-text">' . esc_html__( 'The Web Content Accessibility Guidelines (WCAG) define minimum contrast ratios between text and background colors to ensure readability for users with visual impairments.', 'bricks-style-guide' ) . '</p>';
-		$output .= '</div>';
+			// WCAG Standard explanation.
+			$output .= '<div class="bsg-colors__glossary-section">';
+			$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'WCAG Contrast Standards', 'bricks-style-guide' ) . '</h4>';
+			$output .= '<p class="bsg-colors__glossary-text">' . esc_html__( 'The Web Content Accessibility Guidelines (WCAG) define minimum contrast ratios between text and background colors to ensure readability for users with visual impairments.', 'bricks-style-guide' ) . '</p>';
+			$output .= '</div>';
 
-		// Contrast ratios.
-		$output .= '<div class="bsg-colors__glossary-section">';
-		$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'Contrast Ratios', 'bricks-style-guide' ) . '</h4>';
-		$output .= '<ul class="bsg-colors__glossary-list">';
-		$output .= '<li><strong>AAA</strong> ' . esc_html__( '(7:1+) - Enhanced contrast, best for body text', 'bricks-style-guide' ) . '</li>';
-		$output .= '<li><strong>AA</strong> ' . esc_html__( '(4.5:1+) - Minimum for normal text', 'bricks-style-guide' ) . '</li>';
-		$output .= '<li><strong>AA Large</strong> ' . esc_html__( '(3:1+) - Minimum for large text (24px+ or 19px+ bold)*', 'bricks-style-guide' ) . '</li>';
-		$output .= '</ul>';
-		$output .= '<p class="bsg-colors__glossary-note">' . esc_html__( '*Approximate px values at 96dpi', 'bricks-style-guide' ) . '</p>';
-		$output .= '</div>';
+			// Contrast ratios.
+			$output .= '<div class="bsg-colors__glossary-section">';
+			$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'Contrast Ratios', 'bricks-style-guide' ) . '</h4>';
+			$output .= '<ul class="bsg-colors__glossary-list">';
+			$output .= '<li><strong>AAA</strong> ' . esc_html__( '(7:1+) - Enhanced contrast, best for body text', 'bricks-style-guide' ) . '</li>';
+			$output .= '<li><strong>AA</strong> ' . esc_html__( '(4.5:1+) - Minimum for normal text', 'bricks-style-guide' ) . '</li>';
+			$output .= '<li><strong>AA Large</strong> ' . esc_html__( '(3:1+) - Minimum for large text (24px+ or 19px+ bold)*', 'bricks-style-guide' ) . '</li>';
+			$output .= '</ul>';
+			$output .= '<p class="bsg-colors__glossary-note">' . esc_html__( '*Approximate px values at 96dpi', 'bricks-style-guide' ) . '</p>';
+			$output .= '</div>';
 
-		// Badge legend.
-		$output .= '<div class="bsg-colors__glossary-section">';
-		$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'Badge Legend', 'bricks-style-guide' ) . '</h4>';
-		$output .= '<div class="bsg-colors__glossary-badges">';
-		$output .= '<div class="bsg-colors__glossary-badge-item">';
-		$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--pass">' . esc_html__( 'AAA / AA', 'bricks-style-guide' ) . '</span>';
-		$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Pass - Good contrast', 'bricks-style-guide' ) . '</span>';
-		$output .= '</div>';
-		$output .= '<div class="bsg-colors__glossary-badge-item">';
-		$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--large">' . esc_html__( 'AA Large', 'bricks-style-guide' ) . '</span>';
-		$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Large text only', 'bricks-style-guide' ) . '</span>';
-		$output .= '</div>';
-		$output .= '<div class="bsg-colors__glossary-badge-item">';
-		$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--fail">' . esc_html__( 'Fail', 'bricks-style-guide' ) . '</span>';
-		$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Insufficient contrast', 'bricks-style-guide' ) . '</span>';
-		$output .= '</div>';
-		$output .= '</div>';
-		$output .= '</div>';
+			// Badge legend.
+			$output .= '<div class="bsg-colors__glossary-section">';
+			$output .= '<h4 class="bsg-colors__glossary-title">' . esc_html__( 'Badge Legend', 'bricks-style-guide' ) . '</h4>';
+			$output .= '<div class="bsg-colors__glossary-badges">';
+			$output .= '<div class="bsg-colors__glossary-badge-item">';
+			$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--pass">' . esc_html__( 'AAA / AA', 'bricks-style-guide' ) . '</span>';
+			$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Pass - Good contrast', 'bricks-style-guide' ) . '</span>';
+			$output .= '</div>';
+			$output .= '<div class="bsg-colors__glossary-badge-item">';
+			$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--large">' . esc_html__( 'AA Large', 'bricks-style-guide' ) . '</span>';
+			$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Large text only', 'bricks-style-guide' ) . '</span>';
+			$output .= '</div>';
+			$output .= '<div class="bsg-colors__glossary-badge-item">';
+			$output .= '<span class="bsg-colors__glossary-badge bsg-colors__glossary-badge--fail">' . esc_html__( 'Fail', 'bricks-style-guide' ) . '</span>';
+			$output .= '<span class="bsg-colors__glossary-badge-desc">' . esc_html__( 'Insufficient contrast', 'bricks-style-guide' ) . '</span>';
+			$output .= '</div>';
+			$output .= '</div>';
+			$output .= '</div>';
 
-		// W/B badges explanation.
-		$output .= '<div class="bsg-colors__glossary-section">';
-		$output .= '<p class="bsg-colors__glossary-text bsg-colors__glossary-text--small">';
-		$output .= '<strong>W</strong> = ' . esc_html__( 'contrast against white text', 'bricks-style-guide' ) . '<br>';
-		$output .= '<strong>B</strong> = ' . esc_html__( 'contrast against black text', 'bricks-style-guide' );
-		$output .= '</p>';
-		$output .= '</div>';
+			// W/B badges explanation.
+			$output .= '<div class="bsg-colors__glossary-section">';
+			$output .= '<p class="bsg-colors__glossary-text bsg-colors__glossary-text--small">';
+			$output .= '<strong>W</strong> = ' . esc_html__( 'contrast against white text', 'bricks-style-guide' ) . '<br>';
+			$output .= '<strong>B</strong> = ' . esc_html__( 'contrast against black text', 'bricks-style-guide' );
+			$output .= '</p>';
+			$output .= '</div>';
 
-		$output .= '</div>'; // .bsg-colors__glossary-inner
-		$output .= '</div>'; // .bsg-colors__glossary
+			$output .= '</div>'; // .bsg-colors__glossary-inner
+			$output .= '</div>'; // .bsg-colors__glossary
+		}
 
 		// Render children elements (individual color items).
 		$output .= \Bricks\Frontend::render_children( $this );

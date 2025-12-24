@@ -158,6 +158,7 @@ class FrameworkVariables {
 			--bsg-primary-hover: var(--primary-hover, #2563eb);
 			--bsg-primary-light: var(--primary-light, #dbeafe);
 			--bsg-primary-dark: var(--primary-dark, #1d4ed8);
+			--bsg-primary-trans-4: var(--primary-trans, rgba(59, 130, 246, 0.4));
 			--bsg-secondary: var(--secondary, #8b5cf6);
 			--bsg-white: var(--white, #ffffff);
 			--bsg-black: var(--black, #000000);
@@ -212,6 +213,9 @@ class FrameworkVariables {
 
 			--bsg-primary: var(--at-primary, #3b82f6);
 			--bsg-primary-hover: var(--at-primary-d-1, #2563eb);
+			--bsg-primary-light: var(--at-primary-l-4, #dbeafe);
+			--bsg-primary-dark: var(--at-primary-d-2, #1d4ed8);
+			--bsg-primary-trans-4: var(--at-primary-t-4, rgba(59, 130, 246, 0.4));
 			--bsg-white: var(--at-white, #ffffff);
 			--bsg-black: var(--at-black, #000000);
 

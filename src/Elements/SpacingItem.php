@@ -261,9 +261,10 @@ class SpacingItem extends \Bricks\Element {
 		}
 		$output .= '</div>';
 
-		// Bar container - set both width and height to the spacing value, CSS controls which one applies.
+		// Bar container - set spacing value via CSS variable for both width and height.
+		// CSS controls which dimension uses thickness vs spacing value.
 		$output .= '<div class="bsg-spacing-item__bar-container">';
-		$output .= '<div class="bsg-spacing-item__bar" style="width: var(' . esc_attr( $variable ) . '); height: var(' . esc_attr( $variable ) . ');"></div>';
+		$output .= '<div class="bsg-spacing-item__bar" style="--_bar-spacing-value: var(' . esc_attr( $variable ) . '); width: var(' . esc_attr( $variable ) . '); height: var(' . esc_attr( $variable ) . ');"></div>';
 		if ( $show_value ) {
 			$output .= '<span class="bsg-spacing-item__value">';
 			if ( $show_value_label ) {

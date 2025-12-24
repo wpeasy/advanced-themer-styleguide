@@ -113,6 +113,9 @@ class TypographyItem extends \Bricks\Element {
 	 * @return void
 	 */
 	public function set_controls(): void {
+		// Get framework-specific example variables.
+		$examples = FrameworkDetector::get_example_variables();
+
 		// Content controls.
 		$this->controls['label'] = [
 			'group'       => 'content',
@@ -230,6 +233,20 @@ class TypographyItem extends \Bricks\Element {
 				[
 					'property' => 'background-color',
 					'selector' => '',
+				],
+			],
+		];
+
+		$this->controls['metaGap'] = [
+			'group'   => 'style',
+			'label'   => esc_html__( 'Meta Gap', 'bricks-style-guide' ),
+			'type'    => 'number',
+			'units'   => true,
+			'default' => $examples['space_xs'],
+			'css'     => [
+				[
+					'property' => 'gap',
+					'selector' => '.bsg-typography-item__meta',
 				],
 			],
 		];
@@ -475,7 +492,6 @@ class TypographyItem extends \Bricks\Element {
 			.bsg-typography-item__meta {
 				display: flex;
 				flex-wrap: wrap;
-				gap: 1em;
 			}
 
 			@layer bsg {
